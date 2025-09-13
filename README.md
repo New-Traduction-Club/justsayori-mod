@@ -116,7 +116,7 @@ This mod is designed for use with a copy of the original game by Team Salvato, a
 
 To report bugs, request support or provide input with/to the mod, please raise a new issue [here](https://github.com/Just3090/justsayori-mod/issues).
 
-### BUG REPORTS WILL BE CLOSED, SIGHT UNSEEN.
+<!-- ### BUG REPORTS WILL BE CLOSED, SIGHT UNSEEN. -->
 
 ---
 
