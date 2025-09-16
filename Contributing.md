@@ -1,3 +1,5 @@
+# LEGACY FILE:
+
 # So I want to contribute to the mod…
 Great! We’re always happy to receive contributions from the public!    
 It’s contributions like these that help us make Sayori as realistic as possible.  
