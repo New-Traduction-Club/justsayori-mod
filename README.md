@@ -17,7 +17,8 @@ Currently we have a whole range of unique dialogue, questions, and games for you
 
 This a based-version on the original [Forever and Ever](https://github.com/ForeverAndEverTeam/fae-mod) mod.\
 (Trying to make a long-term support for the mod and/or continue with the project.)\
-Currently, there is'nt new things than the orignal mod, with the passing of time we are going to make new things...
+Currently, there is'nt new things than the orignal mod, with the passing of time we are going to make new things...\
+All the original code belongs to original Forever and Ever Team (and contributors) for more details see [here](https://github.com/ForeverAndEverTeam/fae-mod)
 
 <!-- # COMPLETION NOTICE
 
