@@ -855,6 +855,102 @@ screen preferences():
                     textbutton _("Import DDLC Save Data"):
                         action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
                         style "navigation_button"
+                
+                textbutton _("Web functions"):
+                    action Function(show_ps_overlay)
+                    style "navigation_button"
+
+screen ps_overlay(update_msg="Loading...", news=[]):
+    zorder 250
+    modal True
+
+    add Solid("#000") at ps_blackin
+    add Solid("#0a2fa5cc") at ps_fadein
+
+    vbox:
+        spacing 30
+        xalign 0.5
+        yalign 0.1
+
+        text _("Web functions") style "ps_overlay_title"
+        text update_msg style "ps_overlay_text"
+
+        if news:
+            grid 1 len(news):
+                spacing 20
+                for n in news:
+                    frame:
+                        style "ps_news_frame"
+                        vbox:
+                            spacing 5
+                            text n["title"] style "ps_news_title"
+                            text n["content"] style "ps_news_content"
+        else:
+            text _("There is no recent news.") style "ps_overlay_text"
+
+        textbutton _("Close") action Hide("ps_overlay") style "ps_overlay_button":
+            xalign 0.5
+
+transform ps_blackin:
+    on show:
+        alpha 0.0
+        linear 0.18 alpha 1.0
+    on hide:
+        linear 0.25 alpha 0.0
+
+transform ps_fadein:
+    on show:
+        alpha 0.0
+        pause 0.18
+        linear 0.3 alpha 1.0
+    on hide:
+        linear 0.25 alpha 0.0
+
+# Transiciones de salida (fade out)
+transform ps_blackout:
+    alpha 1.0
+    linear 0.25 alpha 0.0
+
+transform ps_fadeout:
+    alpha 1.0
+    linear 0.25 alpha 0.0
+
+style ps_overlay_title is default:
+    color "#fff"
+    size 62
+    bold True
+    outlines [(2, "#0a2fa5", 0, 0)]
+
+style ps_overlay_text is default:
+    color "#fff"
+    size 36
+    outlines [(1, "#0a2fa5", 0, 0)]
+    xalign 0.5
+    text_align 0.5
+
+style ps_overlay_button is default:
+    background Frame(Solid("#0a2fa5"), 10, 10)
+    color "#fff"
+    size 32
+    padding (16, 8)
+    hover_background Frame(Solid("#1b3fa7"), 10, 10)
+    xalign 0.5
+
+style ps_news_frame is default:
+    background Frame(Solid("#1b3fa7ee"), 10, 10)
+    padding (20, 15)
+    xsize 700
+
+style ps_news_title is default:
+    color "#fff"
+    size 38
+    bold True
+    outlines [(1, "#0a2fa5", 0, 0)]
+
+style ps_news_content is default:
+    color "#fff"
+    size 30
+    outlines [(1, "#0a2fa5", 0, 0)]
 
 
 screen history():
