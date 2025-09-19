@@ -6,7 +6,7 @@ init python:
 
     def look_for_gift():
         
-        gift_path = os.path.join(renpy.config.basedir, "/gifts")
+        gift_path = os.path.join(renpy.config.basedir, "gifts")
         
         if renpy.exists(gift_path + "/cookies.gift"):
             
