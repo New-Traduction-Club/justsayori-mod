@@ -50,7 +50,7 @@ image splash_warning = ParameterizedText(style="splash_text", xalign=0.5, yalign
 
 image menu_logo:
 
-    im.Composite((512, 512), (0, 0), recolorize("mod_assets/logo_bg.png"), (0, 0), "mod_assets/logo_fg.png")
+    im.Composite((512, 512), (0, 0), recolorize("mod_assets/logo_bg.webp"), (0, 0), "mod_assets/logo_fg.webp")
     subpixel True
     xcenter 240
     ycenter 120
@@ -268,7 +268,7 @@ image warning:
 
 image tos = "bg/warning.png"
 image tos2 = "bg/warning2.png"
-image tos3 = "bg/warning3.png"
+image tos3 = "bg/warning3.webp"
 
 
 

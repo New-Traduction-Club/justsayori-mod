@@ -134,7 +134,7 @@ image m_rectstatic:
 
 
 image m_rectstatic2:
-    RectStatic(im.FactorScale(im.Crop("gui/logo.png", (100, 100, 128, 128)), 0.25), 2, 32, 32).sm
+    RectStatic(im.FactorScale(im.Crop("gui/logo.webp", (100, 100, 128, 128)), 0.25), 2, 32, 32).sm
 
 
 image m_rectstatic3:

@@ -207,7 +207,7 @@ label fae_nyd_autoload:
             renpy.call("cnc")
     jump after_holiday
 
-image nightmare_chibi = "mod_assets/nightmare_sayo_chibi_size.png"
+image nightmare_chibi = "mod_assets/nightmare_sayo_chibi_size.webp"
 
 
 label fae_o31_autoload:

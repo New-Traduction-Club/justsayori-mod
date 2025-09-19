@@ -1,21 +1,21 @@
 
 
 
-image sky day overcast = "mod_assets/backgrounds/atmosphere/sky/sky_day_overcast.png"
-image sky day rain = "mod_assets/backgrounds/atmosphere/sky/sky_day_rain.png"
-image sky day sunny = "mod_assets/backgrounds/atmosphere/sky/sky_day_sunny.png"
-image sky day thunder = "mod_assets/backgrounds/atmosphere/sky/sky_day_thunder.png"
-image sky day snow = "mod_assets/backgrounds/atmosphere/sky/sky_day_snow.png"
+image sky day overcast = "mod_assets/backgrounds/atmosphere/sky/sky_day_overcast.webp"
+image sky day rain = "mod_assets/backgrounds/atmosphere/sky/sky_day_rain.webp"
+image sky day sunny = "mod_assets/backgrounds/atmosphere/sky/sky_day_sunny.webp"
+image sky day thunder = "mod_assets/backgrounds/atmosphere/sky/sky_day_thunder.webp"
+image sky day snow = "mod_assets/backgrounds/atmosphere/sky/sky_day_snow.webp"
 
-image sky night overcast = "mod_assets/backgrounds/atmosphere/sky/sky_night_overcast.png"
-image sky night rain = "mod_assets/backgrounds/atmosphere/sky/sky_night_rain.png"
-image sky night sunny = "mod_assets/backgrounds/atmosphere/sky/sky_night_sunny.png"
-image sky night thunder = "mod_assets/backgrounds/atmosphere/sky/sky_night_thunder.png"
+image sky night overcast = "mod_assets/backgrounds/atmosphere/sky/sky_night_overcast.webp"
+image sky night rain = "mod_assets/backgrounds/atmosphere/sky/sky_night_rain.webp"
+image sky night sunny = "mod_assets/backgrounds/atmosphere/sky/sky_night_sunny.webp"
+image sky night thunder = "mod_assets/backgrounds/atmosphere/sky/sky_night_thunder.webp"
 
 
-image dim light = "mod_assets/backgrounds/atmosphere/dim/dim_light.png"
-image dim medium = "mod_assets/backgrounds/atmosphere/dim/dim_medium.png"
-image dim heavy = "mod_assets/backgrounds/atmosphere/dim/dim_heavy.png"
+image dim light = "mod_assets/backgrounds/atmosphere/dim/dim_light.webp"
+image dim medium = "mod_assets/backgrounds/atmosphere/dim/dim_medium.webp"
+image dim heavy = "mod_assets/backgrounds/atmosphere/dim/dim_heavy.webp"
 
 
 image glitch_garbled_a = "mod_assets/backgrounds/etc/glitch_garbled_a.png"
@@ -35,34 +35,34 @@ image sky glitch_fuzzy:
 
 
 image clouds day light:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_light.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_light.webp"
     cloud_scroll
 
 image clouds day heavy:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_heavy.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_heavy.webp"
     cloud_scroll
 
 image clouds day thunder:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_thunder.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_thunder.webp"
     cloud_scroll
 
 image clouds night light:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_light.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_light.webp"
     cloud_scroll
 
 image clouds night heavy:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_heavy.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_heavy.webp"
     cloud_scroll
 
 
 
 
 image particles rain:
-    "mod_assets/backgrounds/atmosphere/particles/rain.png"
+    "mod_assets/backgrounds/atmosphere/particles/rain.webp"
     rain_scroll
 
 image particles snow:
-    "mod_assets/backgrounds/atmosphere/particles/snow.png"
+    "mod_assets/backgrounds/atmosphere/particles/snow.webp"
     snow_scroll
 
 

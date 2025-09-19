@@ -1,23 +1,23 @@
-# Images courtesy of JN Team
 
-# Sky types
-image sky day overcast = "mod_assets/backgrounds/atmosphere/sky/sky_day_overcast.png"
-image sky day rain = "mod_assets/backgrounds/atmosphere/sky/sky_day_rain.png"
-image sky day sunny = "mod_assets/backgrounds/atmosphere/sky/sky_day_sunny.png"
-image sky day thunder = "mod_assets/backgrounds/atmosphere/sky/sky_day_thunder.png"
-image sky day snow = "mod_assets/backgrounds/atmosphere/sky/sky_day_snow.png"
 
-image sky night overcast = "mod_assets/backgrounds/atmosphere/sky/sky_night_overcast.png"
-image sky night rain = "mod_assets/backgrounds/atmosphere/sky/sky_night_rain.png"
-image sky night sunny = "mod_assets/backgrounds/atmosphere/sky/sky_night_sunny.png"
-image sky night thunder = "mod_assets/backgrounds/atmosphere/sky/sky_night_thunder.png"
 
-# Dimming effects; used with various weather conditions
-image dim light = "mod_assets/backgrounds/atmosphere/dim/dim_light.png"
-image dim medium = "mod_assets/backgrounds/atmosphere/dim/dim_medium.png"
-image dim heavy = "mod_assets/backgrounds/atmosphere/dim/dim_heavy.png"
+image sky day overcast = "mod_assets/backgrounds/atmosphere/sky/sky_day_overcast.webp"
+image sky day rain = "mod_assets/backgrounds/atmosphere/sky/sky_day_rain.webp"
+image sky day sunny = "mod_assets/backgrounds/atmosphere/sky/sky_day_sunny.webp"
+image sky day thunder = "mod_assets/backgrounds/atmosphere/sky/sky_day_thunder.webp"
+image sky day snow = "mod_assets/backgrounds/atmosphere/sky/sky_day_snow.webp"
 
-# Glitch effects
+image sky night overcast = "mod_assets/backgrounds/atmosphere/sky/sky_night_overcast.webp"
+image sky night rain = "mod_assets/backgrounds/atmosphere/sky/sky_night_rain.webp"
+image sky night sunny = "mod_assets/backgrounds/atmosphere/sky/sky_night_sunny.webp"
+image sky night thunder = "mod_assets/backgrounds/atmosphere/sky/sky_night_thunder.webp"
+
+
+image dim light = "mod_assets/backgrounds/atmosphere/dim/dim_light.webp"
+image dim medium = "mod_assets/backgrounds/atmosphere/dim/dim_medium.webp"
+image dim heavy = "mod_assets/backgrounds/atmosphere/dim/dim_heavy.webp"
+
+
 image glitch_garbled_a = "mod_assets/backgrounds/etc/glitch_garbled_a.png"
 image glitch_garbled_b = "mod_assets/backgrounds/etc/glitch_garbled_b.png"
 image glitch_garbled_c = "mod_assets/backgrounds/etc/glitch_garbled_c.png"
@@ -33,36 +33,36 @@ image sky glitch_fuzzy:
     pause 0.25
     repeat
 
-# Clouds
+
 image clouds day light:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_light.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_light.webp"
     cloud_scroll
 
 image clouds day heavy:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_heavy.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_heavy.webp"
     cloud_scroll
 
 image clouds day thunder:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_thunder.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_day_thunder.webp"
     cloud_scroll
 
 image clouds night light:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_light.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_light.webp"
     cloud_scroll
 
 image clouds night heavy:
-    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_heavy.png"
+    "mod_assets/backgrounds/atmosphere/clouds/clouds_night_heavy.webp"
     cloud_scroll
 
-# Particles
-# Credit for rain, snow graphics goes to Monika After Story @ https://github.com/Monika-After-Story/MonikaModDev
-# Thanks for allowing us to use these!
+
+
+
 image particles rain:
-    "mod_assets/backgrounds/atmosphere/particles/rain.png"
+    "mod_assets/backgrounds/atmosphere/particles/rain.webp"
     rain_scroll
 
 image particles snow:
-    "mod_assets/backgrounds/atmosphere/particles/snow.png"
+    "mod_assets/backgrounds/atmosphere/particles/snow.webp"
     snow_scroll
 
 image space 1:
@@ -75,7 +75,7 @@ image space 3:
     "images/cg/monika/mask_3.png"
     sky_scroll
 
-#SKY FILES
+
 
 image sky day sunny:
     "mod_assets/masks/sky_day.png"
@@ -102,7 +102,7 @@ transform snow_scroll:
     right
     parallel:
         xoffset 0 yoffset 0
-        linear 60 xoffset 220  yoffset 1280
+        linear 60 xoffset 220 yoffset 1280
         repeat
 
 transform rain_scroll:
@@ -110,11 +110,11 @@ transform rain_scroll:
     right
     parallel:
         xoffset 0 yoffset 0
-        linear 2 xoffset 220  yoffset 1280
+        linear 2 xoffset 220 yoffset 1280
         repeat
 
 transform cloud_scroll:
-    # Clouds shift from left to right
+
     subpixel True
     topleft
     parallel:
@@ -123,7 +123,7 @@ transform cloud_scroll:
         repeat
 
 transform sky_scroll:
-    # Clouds shift from left to right
+
     subpixel True
     topleft
     parallel:
@@ -131,7 +131,7 @@ transform sky_scroll:
         linear 60 xoffset -1280
         repeat
 
-init 0 python in fae_sky:
+init python in fae_sky:
     from Enum import Enum
     import os
     import random
@@ -139,19 +139,19 @@ init 0 python in fae_sky:
     import store.fae_utilities as fae_utilities
     import store.fae_preferences as fae_preferences
 
-    # Zorder indexes
-    # Complete order is:
-    # V PROPS
-    # V SAYORI
-    # V BACKGROUND
-    # V DIM
-    # SKY
+
+
+
+
+
+
+
     _DIM_Z_ORDER = 2
     _CLOUDS_Z_ORDER = -1
     _SKY_Z_ORDER = -2
 
     class FAEWeatherTypes(Enum):
-
+        
         overcast = 1
         rain = 2
         sunny = 3
@@ -178,13 +178,13 @@ init 0 python in fae_sky:
                 night_sky_image = name of the image to show for evening
                 dim_image = name of dimming effect to use
             """
-
+            
             self.weather_type = weather_type
             self.day_sky_image = day_sky_image
             self.evening_sky_image = evening_sky_image
             self.night_sky_image = night_sky_image
             self.dim_image = dim_image
- 
+
     WEATHER_SUNNY = FAEWeather(
         weather_type=FAEWeatherTypes.sunny,
         day_sky_image="sky day sunny",
@@ -201,21 +201,21 @@ init 0 python in fae_sky:
         
     )
 
-    
-  
+
+
     current_weather = None
 
     def reload_sky(with_transition=True):
-
+        
         """
         Shows the sky based on sunrise/sunset times specified in persistent.
         
         FEED:
             with_transition = If True, will visually fade in the new weather
         """
-
+        
         form_sky(WEATHER_SUNNY, with_transition=with_transition)
-
+        
         """
 
         if store.persistent._fae_weather_setting == int(fae_preferences.weather.FAEWeatherSettings.random):
@@ -238,14 +238,14 @@ init 0 python in fae_sky:
         """
 
     def form_sky(weather, with_transition=True):
-
+        
         """
         Shows the specified sky with clouds/dimming effect
         FEED:
             weather = Weather to set
             with_transition = If True, will visually fade in new weather
         """
-
+        
         if store.fae_is_day():
             sky_to_show = weather.day_sky_image
         elif store.fae_is_evening():
@@ -265,6 +265,6 @@ init 0 python in fae_sky:
         
         else:
             renpy.hide("dim")
-        
+
 define weather_change_transition = Dissolve(0.75)
 define dim_change_transition = Dissolve(0.25)
