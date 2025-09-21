@@ -3,46 +3,61 @@ init offset = 5
 
 init -15 python in fae_fun_facts:
 
-    fun_fact_db = {}
+    import store
+
+    # fun_fact_db = {}
 
     def getUnseenFacts():
         
         return [
             fun_fact_label
-            for fun_fact_label, label in fun_fact_db.items()
-            if not label.unlocked
+            for fun_fact_label in store.persistent._fae_fun_facts_db
+            if not store.persistent._fae_fun_facts_db[fun_fact_label]['unlocked']
         ]
 
     def getAllFactsLabels():
         
-        return list(fun_fact_db.keys())
+        return list(store.persistent._fae_fun_facts_db.keys())
 
+
+# init python:
+#     chatReg(
+#         Chat(
+#             persistent._chat_db,
+#             label="s_fun_fact_beginning_fix",
+#             prompt="Can you tell me a fun fact?",
+#             category=["Misc"],
+#             unlocked=True,
+#             random=False
+#         )
+#     )
 
 init python:
     chatReg(
         Chat(
             persistent._chat_db,
-            label="s_fun_fact_beginning",
-            category=["misc"],
+            label="s_fun_fact_beginning_test",
             prompt="Can you tell me a fun fact?",
+            category=['Misc'],
+            unlocked=True,
             random=False
         )
     )
 
-label s_fun_fact_beginning:
+label s_fun_fact_beginning_test:
     s abbcaoa "Do you want to hear a fun fact, [player]?"
 
     python:
 
-        unseen_fact_labels = fae_fun_facts.getUnseenFactsLabel()
+        unseen_fact_labels = fae_fun_facts.getUnseenFacts()
         if len(unseen_fact_labels) > 0:
             fact_label_list = unseen_fact_labels
         else:
-            fact_label_list = fae_fun_facts.getAllFactsLabel()
+            fact_label_list = fae_fun_facts.getAllFactsLabels()
 
-
-        fun_fact_labels = renpy.random.choice(fact_label_list)
-        ats(fun_fact_labels)
+        if fact_label_list:
+            fun_fact_label = renpy.random.choice(fact_label_list)
+            renpy.call(fun_fact_label)
 
     return
 
@@ -135,4 +150,23 @@ label s_fun_fact_Binary:
     s "It’s really cool how they compact giant numbers to make calculations easier."
     s "I wish I could’ve done that in math class, ehehehe~"
     s abaaaoa "If you use both hands, you can even calculate numbers up to {i}1023{/i}!"
+    call fae_fun_facts_end from _call_fae_fun_facts_end_3
+    return
+
+init python:
+    chatReg(
+        Chat(
+            persistent._fae_fun_facts_db,
+            label="s_fun_fact_dreams"
+        )
+    )
+
+label s_fun_fact_dreams:
+    s abhfaoa "Hey [player], have you ever woken up from an amazing dream and, no matter how hard you try, you just completely forget it?"
+    s abbbaca "Well, I did a little research and found something super interesting!"
+    s abbcaoa "Apparently, most people forget 90%% of their dreams within 10 minutes of waking up!"
+    s bbhfaca "It's a little sad, don't you think? Sometimes I have really happy dreams and I wish I could remember them forever..."
+    s bbfclfc "Especially if they're dreams with you in them, ehehe~"
+    s abaaaoa "I guess that's why we should treasure the good moments, whether they're dreams or memories, while they last!"
+    call fae_fun_facts_end from _call_fae_fun_facts_end_4
     return
