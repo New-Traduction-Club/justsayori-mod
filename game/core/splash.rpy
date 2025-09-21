@@ -6,13 +6,13 @@
 
 
 # check this for android
-# init -100 python:
-#     if not renpy.android:
-#         for archive in ['audio','images','fonts']:
-#             if archive not in config.archives:
-#                 renpy.error("DDLC archive files not found in /game folder. Check your installation and try again.")
+init -100 python:
+    if not renpy.android:
+        for archive in ['audio','images','fonts']:
+            if archive not in config.archives:
+                renpy.error("DDLC archive files not found in /game folder. Check your installation and try again.")
 
-#     renpy.config.rollback_enabled = False
+    renpy.config.rollback_enabled = False
 
 
 init python:
