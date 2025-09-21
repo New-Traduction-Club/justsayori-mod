@@ -22,7 +22,7 @@ define config.name = "Just Sayori"
 define gui.show_name = True
 
 
-define config.version = "1.0"
+define config.version = "1.0.1"
 
 
 
@@ -202,9 +202,10 @@ init python:
     build.classify("*.log", None)
     build.classify("errors.txt", None)
     build.classify("log.txt", None)
+    build.classify("game/dev.txt", None)
 
     build.classify("game/bgm/**", None)
-    # build.classify('/music/*.*', None)
+    build.classify('/music/*.*', None)
     build.classify("game/bgm/**", None)
 
     # this
