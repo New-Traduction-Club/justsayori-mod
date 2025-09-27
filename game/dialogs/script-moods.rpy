@@ -397,3 +397,46 @@ label s_mood_depressed:
     if Affection.isAffectionate():
         s bbfcaab "I love you [player], forever and ever."
     return
+
+init python:
+    chatReg(
+        Chat(
+            persistent._mood_db,
+            label="s_mood_nostalgic",
+            unlocked=True,
+            prompt=_("Nostalgic")
+        ),
+        chat_group=CHAT_GROUP_MOOD
+    )
+
+label s_mood_nostalgic:
+    s abagaca "Nostalgic, huh? I know that feeling."
+    s abhaaca "Sometimes I find myself thinking about the literature club. Even the bittersweet moments feel warm now, in a weird way."
+    s bbaaaoa "It's like... you know something is over, and you can't go back, but you're happy it happened."
+    s "Do you ever feel that way about certain memories, [player]?{nw}"
+    $ _history_list.pop()
+
+    menu:
+        s "Do you ever feel that way about certain memories, [player]?{fast}"
+
+        "Yes, some memories are bittersweet.":
+            s abbbaca "Exactly! It's a little sad, but also comforting."
+            s abaaaca "It's proof that we've lived and felt things deeply. I think that's beautiful."
+            s abhaaca "It makes me appreciate the now even more."
+
+        "I try not to think about the past too much.":
+            s bbaaaoa "I can understand that. Sometimes looking back is hard."
+            s abhaaca "But it can also remind us of how far we've come, you know?"
+            s abhfaoa "Just know that it's okay to feel that way. We can make new memories to look back on, right here."
+
+        "The best memories are the ones I'm making with you." if Affection.isAffectionate(higher=True):
+            $ Affection.calculatedAffectionGain(1)
+            s abhfmkb "Oh, [player]...!"
+            s abagcka "Ehehehe, you always know just what to say to make me blush~"
+            s abgccob "I feel the same way. Every moment with you feels special."
+            s abfccab "These are the memories I'll treasure the most... forever and ever."
+            s abgccaa "Thanks for sharing that with me. It feels like I can talk to you about anything."
+            return
+
+    s abgccaa "Thanks for sharing that with me. It's nice to know we can talk about these things."
+    return
