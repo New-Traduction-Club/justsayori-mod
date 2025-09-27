@@ -32,7 +32,7 @@ label compliment_init:
         ]
         compliment_menu_items.sort()
 
-    call screen neat_menu_scroll(compliment_menu_items, ("Nevermind.", None))
+    call screen neat_menu_scroll(compliment_menu_items, (_("Nevermind."), None))
 
     if _return:
         $ ats(_return)
@@ -46,7 +46,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I think you're best girl!",
+            prompt=_("I think you're best girl!"),
             label="compliment_best_girl",
             unlocked=True,
             affection_range=(fae_affection.LOVE, None)
@@ -76,7 +76,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I think you're beautiful.",
+            prompt=_("I think you're beautiful."),
             label="compliment_beautiful",
             unlocked=True,
             affection_range=(fae_affection.LOVE, None)
@@ -102,7 +102,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I think you're pretty.",
+            prompt=_("I think you're pretty."),
             label="compliment_pretty",
             unlocked=True,
             affection_range=(fae_affection.HAPPY, fae_affection.LOVE)
@@ -126,7 +126,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I love your hair!",
+            prompt=_("I love your hair!"),
             label="compliment_love_hair",
             unlocked=True
             
@@ -152,7 +152,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I love your eyes.",
+            prompt=_("I love your eyes."),
             label="compliment_love_eyes",
             unlocked=True,
             affection_range=(fae_affection.ENAMOURED, None)
@@ -179,7 +179,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="You're so kind...",
+            prompt=_("You're so kind..."),
             label="compliment_kind",
             unlocked=True,
             
@@ -207,7 +207,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I look up to you.",
+            prompt=_("I look up to you."),
             label="compliment_look_up_to_you",
             unlocked=True,
             affection_range=(fae_affection.AFFECTIONATE, None)
@@ -235,7 +235,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I like seeing you happy.",
+            prompt=_("I like seeing you happy."),
             label="compliment_like_seeing_happy",
             unlocked=True,
             affection_range=(fae_affection.HAPPY, None)
@@ -259,7 +259,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="Thanks for being here for me.",
+            prompt=_("Thanks for being here for me."),
             label="compliment_thank_for_being_here",
             unlocked=True,
             affection_range=(fae_affection.HAPPY, None)
@@ -287,7 +287,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="I like your writing.",
+            prompt=_("I like your writing."),
             label="compliment_like_your_writing",
             unlocked=True,
             
@@ -315,7 +315,7 @@ init python:
     chatReg(
         Chat(
             persistent._flatter_db,
-            prompt="You're a ball of sunshine!",
+            prompt=_("You're a ball of sunshine!"),
             label="compliment_ball_of_sunshine",
             unlocked=True,
             affection_range=(fae_affection.AFFECTIONATE, None)

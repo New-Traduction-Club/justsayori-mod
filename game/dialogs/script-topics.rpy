@@ -102,9 +102,9 @@ init python:
             persistent._chat_db,
             label="s_topics_depression",
             unlocked=True,
-            prompt="Depression",
+            prompt=_("Depression"),
             random=True,
-            category=["Personal", "Sayori"]
+            category=[_("Personal"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -176,9 +176,9 @@ init python:
             persistent._chat_db,
             label="s_topics_childhood",
             unlocked=True,
-            prompt="Childhood memories",
+            prompt=_("Childhood memories"),
             random=True,
-            category=["Personal", "Childhood"]
+            category=[_("Personal"), _("Childhood")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -207,9 +207,9 @@ init python:
             persistent._chat_db,
             label="s_topics_guitar",
             unlocked=True,
-            prompt="Guitar",
+            prompt=_("Guitar"),
             random=True,
-            category=["Hobby", "Music"]
+            category=[_("Hobby"), _("Music")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -242,9 +242,9 @@ init python:
             persistent._chat_db,
             label="s_topics_flowers",
             unlocked=True,
-            prompt="Thoughts on flowers",
+            prompt=_("Thoughts on flowers"),
             random=True,
-            category=["Misc"]
+            category=[_("Misc")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -286,9 +286,9 @@ init python:
             persistent._chat_db,
             label="s_topics_lucid_dream",
             unlocked=True,
-            prompt="Quitting the game.",
+            prompt=_("Quitting the game."),
             random=True,
-            category=["Game", "Sayori"]
+            category=[_("Game"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -320,9 +320,9 @@ init python:
             persistent._chat_db,
             label="s_topics_intelligence",
             unlocked=True,
-            prompt="Personal Intelligence",
+            prompt=_("Personal Intelligence"),
             random=True,
-            category=["Sayori", "Life", "Society"]
+            category=[_("Sayori"), _("Life"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -350,9 +350,9 @@ init python:
             persistent._chat_db,
             label="s_topics_videogames",
             unlocked=True,
-            prompt="Videogames",
+            prompt=_("Videogames"),
             random=True,
-            category=["Art", "Videogames"]
+            category=[_("Art"), _("Videogames")]
     ),
     chat_group=CHAT_GROUP_NORMAL
 )
@@ -384,10 +384,10 @@ init python:
             persistent._chat_db,
             label="s_topics_languages",
             unlocked=True,
-            prompt="Speaking other languages",
+            prompt=_("Speaking other languages"),
             random=True,
             conditional="store.persistent.language_greeting_seen",
-            category=["Languages"]
+            category=[_("Languages")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -413,9 +413,9 @@ init python:
             persistent._chat_db,
             label="s_player_colours",
             unlocked=True,
-            prompt="What is your favorite colour?",
+            prompt=_("What is your favorite colour?"),
             random=False,
-            category=["Personal", "Preferences"]
+            category=[_("Personal"), _("Preferences")]
     ),
     chat_group=CHAT_GROUP_NORMAL
 )
@@ -488,9 +488,9 @@ init python:
             persistent._chat_db,
             label="s_topic_pronouns_redux",
             unlocked=False,
-            prompt="Pronouns",
+            prompt=_("Pronouns"),
             random=False,
-            category=["Personal"]
+            category=[_("Personal")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -522,9 +522,9 @@ init python:
             persistent._chat_db,
             label="s_topics_dating",
             unlocked=True,
-            prompt="The ideal date",
+            prompt=_("The ideal date"),
             random=True,
-            category=["Romance", "Life"]
+            category=[_("Romance"), _("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -564,9 +564,9 @@ init python:
             persistent._chat_db,
             label="s_topics_cinnamon_bun",
             unlocked=True,
-            prompt="Cinnamon Buns",
+            prompt=_("Cinnamon Buns"),
             random=True,
-            category=["Food", "Sayori"]
+            category=[_("Food"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -589,9 +589,9 @@ init python:
             persistent._chat_db,
             label="s_topics_poems",
             unlocked=True,
-            prompt="Poetry",
+            prompt=_("Poetry"),
             random=True,
-            category=["Literature", "DDLC"]
+            category=[_("Literature"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -619,9 +619,9 @@ init python:
             persistent._chat_db,
             label="s_topics_drawing",
             unlocked=True,
-            prompt="Drawing",
+            prompt=_("Drawing"),
             random=True,
-            category=["Art", "Sayori"]
+            category=[_("Art"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -650,9 +650,9 @@ init python:
             persistent._chat_db,
             label="s_topics_bulli",
             unlocked=True,
-            prompt="Bulli-posts",
+            prompt=_("Bulli-posts"),
             random=True,
-            category=["Society", "Sayori", "DDLC"]
+            category=[_("Society"), _("Sayori"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -685,9 +685,9 @@ init python:
             persistent._chat_db,
             label="s_topics_isolation",
             unlocked=True,
-            prompt="Isolation",
+            prompt=_("Isolation"),
             random=True,
-            category=["Society", "Life"]
+            category=[_("Society"), _("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -722,9 +722,9 @@ init python:
             persistent._chat_db,
             label="s_topics_public_service_announcement",
             unlocked=True,
-            prompt="PSAs",
+            prompt=_("PSAs"),
             random=True,
-            category=["Society", "Life"]
+            category=[_("Society"), _("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -759,9 +759,9 @@ init python:
             persistent._chat_db,
             label="s_topics_pets",
             unlocked=True,
-            prompt="Pets",
+            prompt=_("Pets"),
             random=True,
-            category=["Society", "Life"]
+            category=[_("Society"), _("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -791,9 +791,9 @@ init python:
             persistent._chat_db,
             label="s_player_cooking",
             unlocked=True,
-            prompt="Are you good at cooking?",
+            prompt=_("Are you good at cooking?"),
             random=False,
-            category=["Life", "Cooking"]
+            category=[_("Life"), _("Cooking")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -828,10 +828,10 @@ init python:
             persistent._chat_db,
             label="s_player_pets",
             unlocked=True,
-            prompt="What pet would you like to have?",
+            prompt=_("What pet would you like to have?"),
             random=False,
 
-            category=["Life", "Animals"]
+            category=[_("Life"), _("Animals")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -855,9 +855,9 @@ init python:
             persistent._chat_db,
             label="s_player_cats",
             unlocked=True,
-            prompt="What do you think about cats?",
+            prompt=_("What do you think about cats?"),
             random=False,
-            category=["Life", "Animals"]
+            category=[_("Life"), _("Animals")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -879,9 +879,9 @@ init python:
             persistent._chat_db,
             label="s_topic_archetype",
             unlocked=True,
-            prompt="Archetypes",
+            prompt=_("Archetypes"),
             random=True,
-            category=["Life", "Personality"]
+            category=[_("Life"), _("Personality")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -916,9 +916,9 @@ init python:
             persistent._chat_db,
             label="s_topic_voice",
             unlocked=True,
-            prompt="Voice",
+            prompt=_("Voice"),
             random=True,
-            category=["Life", "Personality"]
+            category=[_("Life"), _("Personality")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -950,9 +950,9 @@ init python:
             persistent._chat_db,
             label="s_topic_lit",
             unlocked=True,
-            prompt="Literature",
+            prompt=_("Literature"),
             random=True,
-            category=["Art", "Literature"]
+            category=[_("Art"), _("Literature")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -981,9 +981,9 @@ init python:
             persistent._chat_db,
             label="s_topic_charity",
             unlocked=True,
-            prompt="Charity",
+            prompt=_("Charity"),
             random=True,
-            category=["Society"]
+            category=[_("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1014,9 +1014,9 @@ init python:
             persistent._chat_db,
             label="s_topic_programming",
             unlocked=True,
-            prompt="Do you like programming?",
+            prompt=_("Do you like programming?"),
             random=False,
-            category=["Hobbies", "Sayori"]
+            category=[_("Hobbies"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1052,9 +1052,9 @@ init python:
             persistent._chat_db,
             label="s_topic_travel",
             unlocked=True,
-            prompt="Travel",
+            prompt=_("Travel"),
             random=True,
-            category=["You", "Lifestyle", "Travelling"]
+            category=[_("You"), _("Lifestyle"), _("Travelling")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1085,9 +1085,9 @@ init python:
             persistent._chat_db,
             label="s_topic_cleaning",
             unlocked=True,
-            prompt="Messiness",
+            prompt=_("Messiness"),
             random=True,
-            category=["Lifestyle"]
+            category=[_("Lifestyle")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1115,9 +1115,9 @@ init python:
             persistent._chat_db,
             label="s_topic_clones",
             unlocked=True,
-            prompt="Clones",
+            prompt=_("Clones"),
             random=True,
-            category=["Game", "Sayori"]
+            category=[_("Game"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1169,9 +1169,9 @@ init python:
             persistent._chat_db,
             label="s_topic_stars",
             unlocked=True,
-            prompt="Stars",
+            prompt=_("Stars"),
             random=True,
-            category=["Sayori", "Lifestyle"]
+            category=[_("Sayori"), _("Lifestyle")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1194,9 +1194,9 @@ init python:
             persistent._chat_db,
             label="s_topic_stop_visiting",
             unlocked=True,
-            prompt="Stop Visiting",
+            prompt=_("Stop Visiting"),
             random=True,
-            category=["You", "Sayori"],
+            category=[_("You"), _("Sayori")],
             affection_range=(fae_affection.AFFECTIONATE, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -1281,9 +1281,9 @@ init python:
             persistent._chat_db,
             label="s_topic_marriage",
             unlocked=True,
-            prompt="Marriage",
+            prompt=_("Marriage"),
             random=True,
-            category=["Romance", "Society"],
+            category=[_("Romance"), _("Society")],
             affection_range=(fae_affection.LOVE, None),
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -1322,9 +1322,9 @@ init python:
             persistent._chat_db,
             label="s_topic_presents",
             unlocked=True,
-            prompt="Presents",
+            prompt=_("Presents"),
             random=True,
-            category=["Sayori", "Society"]
+            category=[_("Sayori"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1348,9 +1348,9 @@ init python:
             persistent._chat_db,
             label="s_topic_thanks",
             unlocked=True,
-            prompt="Thank you",
+            prompt=_("Thank you"),
             random=True,
-            category=["Sayori", "You"],
+            category=[_("Sayori"), _("You")],
             affection_range=(fae_affection.AFFECTIONATE, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -1378,9 +1378,9 @@ init python:
             persistent._chat_db,
             label="s_topic_name",
             unlocked=True,
-            prompt="Names",
+            prompt=_("Names"),
             random=True,
-            category=["Sayori", "Society"]
+            category=[_("Sayori"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1411,9 +1411,9 @@ init python:
             persistent._chat_db,
             label="s_topic_art",
             unlocked=True,
-            prompt="Fanart",
+            prompt=_("Fanart"),
             random=True,
-            category=["DDLC", "Art"]
+            category=[_("DDLC"), _("Art")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1435,9 +1435,9 @@ init python:
             persistent._chat_db,
             label="s_topic_touches",
             unlocked=True,
-            prompt="Touches",
+            prompt=_("Touches"),
             random=True,
-            category=["Sayori", "Romance"]
+            category=[_("Sayori"), _("Romance")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1458,9 +1458,9 @@ init python:
             persistent._chat_db,
             label="s_topic_merch",
             unlocked=True,
-            prompt="Merch",
+            prompt=_("Merch"),
             random=True,
-            category=["DDLC", "Society"]
+            category=[_("DDLC"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1482,9 +1482,9 @@ init python:
             persistent._chat_db,
             label="s_topic_oversleeping",
             unlocked=True,
-            prompt="Oversleeping",
+            prompt=_("Oversleeping"),
             random=True,
-            category=["Sayori", "Lifestyle"]
+            category=[_("Sayori"), _("Lifestyle")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1517,9 +1517,9 @@ init python:
             persistent._chat_db,
             label="s_topic_time",
             unlocked=True,
-            prompt="Game time",
+            prompt=_("Game time"),
             random=True,
-            category=["Games", "DDLC"]
+            category=[_("Games"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1549,9 +1549,9 @@ init python:
             persistent._chat_db,
             label="s_topic_worlds",
             unlocked=True,
-            prompt="Game worlds",
+            prompt=_("Game worlds"),
             random=True,
-            category=["Games", "DDLC"]
+            category=[_("Games"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1581,9 +1581,9 @@ init python:
             persistent._chat_db,
             label="s_topic_questions",
             unlocked=True,
-            prompt="Questions",
+            prompt=_("Questions"),
             random=True,
-            category=["Sayori", "DDLC"]
+            category=[_("Sayori"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1610,9 +1610,9 @@ init python:
             persistent._chat_db,
             label="s_topic_breakfast",
             unlocked=True,
-            prompt="Breakfast",
+            prompt=_("Breakfast"),
             random=True,
-            category=["Lifestyle", "Food"]
+            category=[_("Lifestyle"), _("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1642,9 +1642,9 @@ init python:
             persistent._chat_db,
             label="s_topic_vegetarians",
             unlocked=True,
-            prompt="Vegetarians",
+            prompt=_("Vegetarians"),
             random=True,
-            category=["Lifestyle", "Food"]
+            category=[_("Lifestyle"), _("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1669,9 +1669,9 @@ init python:
             persistent._chat_db,
             label="s_topic_pizza",
             unlocked=True,
-            prompt="Pizza",
+            prompt=_("Pizza"),
             random=True,
-            category=["Lifestyle", "Food"]
+            category=[_("Lifestyle"), _("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1700,9 +1700,9 @@ init python:
             persistent._chat_db,
             label="s_topic_iceCream",
             unlocked=True,
-            prompt="Ice-cream",
+            prompt=_("Ice-cream"),
             random=True,
-            category=["Lifestyle", "Food"]
+            category=[_("Lifestyle"), _("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1727,9 +1727,9 @@ init python:
             persistent._chat_db,
             label="s_topic_tech",
             unlocked=True,
-            prompt="Technology",
+            prompt=_("Technology"),
             random=True,
-            category=["Society", "Technology"]
+            category=[_("Society"), _("Technology")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1754,9 +1754,9 @@ init python:
             persistent._chat_db,
             label="s_topic_cupcakes",
             unlocked=True,
-            prompt="Cupcakes",
+            prompt=_("Cupcakes"),
             random=False,
-            category=["Food"]
+            category=[_("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1784,9 +1784,9 @@ init python:
             persistent._chat_db,
             label="s_answer_bday",
             unlocked=True,
-            prompt="When's your birthday?",
+            prompt=_("When's your birthday?"),
             random=False,
-            category=["Sayori"]
+            category=[_("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1811,9 +1811,9 @@ init python:
             persistent._chat_db,
             label="s_answer_music",
             unlocked=True,
-            prompt="What kind of music do you like?",
+            prompt=_("What kind of music do you like?"),
             random=False,
-            category=["Sayori", "Music"]
+            category=[_("Sayori"), _("Music")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1837,9 +1837,9 @@ init python:
             persistent._chat_db,
             label="s_answer_shipping",
             unlocked=True,
-            prompt="What do you think about ships?",
+            prompt=_("What do you think about ships?"),
             random=False,
-            category=["DDLC"]
+            category=[_("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1863,9 +1863,9 @@ init python:
             persistent._chat_db,
             label="s_answer_holidays",
             unlocked=True,
-            prompt="What's your favourite holiday?",
+            prompt=_("What's your favourite holiday?"),
             random=False,
-            category=["Society"]
+            category=[_("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1887,9 +1887,9 @@ init python:
             persistent._chat_db,
             label="s_answer_books",
             unlocked=True,
-            prompt="What are your favourite books?",
+            prompt=_("What are your favourite books?"),
             random=False,
-            category=["Literature", "Sayori"]
+            category=[_("Literature"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1910,9 +1910,9 @@ init python:
             persistent._chat_db,
             label="s_answer_poems",
             unlocked=True,
-            prompt="What did MC's poems look like to you?",
+            prompt=_("What did MC's poems look like to you?"),
             random=False,
-            category=["Literature", "DDLC"]
+            category=[_("Literature"), _("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1933,9 +1933,9 @@ init python:
             persistent._chat_db,
             label="s_answer_love",
             unlocked=True,
-            prompt="Do you love me?",
+            prompt=_("Do you love me?"),
             random=False,
-            category=["Romance", "Sayori"],
+            category=[_("Romance"), _("Sayori")],
             affection_range=(fae_affection.LOVE, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -1958,9 +1958,9 @@ init python:
             persistent._chat_db,
             label="s_answer_god",
             unlocked=True,
-            prompt="Do you believe in god?",
+            prompt=_("Do you believe in god?"),
             random=False,
-            category=["Life"]
+            category=[_("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -1982,9 +1982,9 @@ init python:
             persistent._chat_db,
             label="s_answer_politics",
             unlocked=True,
-            prompt="What do you think about politics?",
+            prompt=_("What do you think about politics?"),
             random=False,
-            category=["Life", "Society"]
+            category=[_("Life"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2009,9 +2009,9 @@ init python:
             persistent._chat_db,
             label="s_answer_cookies",
             unlocked=True,
-            prompt="Do you like cookies?",
+            prompt=_("Do you like cookies?"),
             random=False,
-            category=["Food", "Sayori"]
+            category=[_("Food"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2055,9 +2055,9 @@ init python:
             persistent._chat_db,
             label="s_answer_chibi",
             unlocked=True,
-            prompt="What do you think about Chibis?",
+            prompt=_("What do you think about Chibis?"),
             random=False,
-            category=["DDLC", "Sayori"]
+            category=[_("DDLC"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2098,9 +2098,9 @@ init python:
             persistent._chat_db,
             label="s_answer_editing",
             unlocked=True,
-            prompt="How do you manipulate the game?",
+            prompt=_("How do you manipulate the game?"),
             random=False,
-            category=["DDLC", "Sayori"]
+            category=[_("DDLC"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2126,9 +2126,9 @@ init python:
             persistent._chat_db,
             label="s_answer_reality",
             unlocked=True,
-            prompt="What do you think about the real world?",
+            prompt=_("What do you think about the real world?"),
             random=False,
-            category=["Life", "Sayori"]
+            category=[_("Life"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2155,9 +2155,9 @@ init python:
             persistent._chat_db,
             label="s_answer_read",
             unlocked=True,
-            prompt="Can I read a poem?",
+            prompt=_("Can I read a poem?"),
             random=False,
-            category=["Life", "Poetry"]
+            category=[_("Life"), _("Poetry")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2176,9 +2176,9 @@ init python:
             persistent._chat_db,
             label="s_answer_profession",
             unlocked=True,
-            prompt="What would be your ideal job?",
+            prompt=_("What would be your ideal job?"),
             random=False,
-            category=["Life", "Sayori"]
+            category=[_("Life"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2205,9 +2205,9 @@ init python:
             persistent._chat_db,
             label="s_answer_opinion",
             unlocked=True,
-            prompt="Let's talk about the club members...",
+            prompt=_("Let's talk about the club members..."),
             random=False,
-            category=["DDLC"]
+            category=[_("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2307,9 +2307,9 @@ init python:
             persistent._chat_db,
             label="s_answer_lostFriends",
             unlocked=True,
-            prompt="Do you miss the club members?",
+            prompt=_("Do you miss the club members?"),
             random=False,
-            category=["DDLC"]
+            category=[_("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2336,10 +2336,10 @@ init python:
             persistent._chat_db,
             label="s_event_music_intro_redux",
             unlocked=True,
-            prompt="music",
+            prompt=_("music"),
             conditional="not persistent.fae_reversi_unlocked_redux and not persistent.fae_custom_music_unlocked",
             random=True,
-            category=["Music"],
+            category=[_("Music")],
             affection_range=(fae_affection.HAPPY, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -2364,10 +2364,10 @@ init python:
             persistent._chat_db,
             label="s_stopic_bulls_and_cows_redux",
             unlocked=True,
-            prompt="Bulls and Cows",
+            prompt=_("Bulls and Cows"),
             conditional="persistent.fae_custom_music_unlocked and not persistent.fae_bnc_unlocked_redux",
             random=True,
-            category=["Games"],
+            category=[_("Games")],
             affection_range=(fae_affection.HAPPY, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -2407,10 +2407,10 @@ init python:
             persistent._chat_db,
             label="s_topic_reversi_redux",
             unlocked=True,
-            prompt="Reversi",
+            prompt=_("Reversi"),
             conditional="persistent.fae_bnc_unlocked_redux",
             random=True,
-            category=["Games"],
+            category=[_("Games")],
             affection_range=(fae_affection.HAPPY, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -2444,9 +2444,9 @@ init python:
             persistent._chat_db,
             label="s_answer_programming",
             unlocked=True,
-            prompt="Are you good at programming?",
+            prompt=_("Are you good at programming?"),
             random=False,
-            category=["Hobbies"]
+            category=[_("Hobbies")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2469,9 +2469,9 @@ init python:
             persistent._chat_db,
             label="s_answer_visual_novels",
             unlocked=True,
-            prompt="Have you ever played visual novels?",
+            prompt=_("Have you ever played visual novels?"),
             random=False,
-            category=["Hobbies", "Games"]
+            category=[_("Hobbies"), _("Games")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2643,9 +2643,9 @@ init python:
             persistent._chat_db,
             label="s_topics_programming",
             unlocked=True,
-            prompt="Programming",
+            prompt=_("Programming"),
             random=True,
-            category=["Sayori", "Hobbies"]
+            category=[_("Sayori"), _("Hobbies")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2671,9 +2671,9 @@ init python:
             persistent._chat_db,
             label="s_answer_think_about_mc",
             unlocked=True,
-            prompt="Do you still think about MC?",
+            prompt=_("Do you still think about MC?"),
             random=False,
-            category=["DDLC"]
+            category=[_("DDLC")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2715,9 +2715,9 @@ init python:
             persistent._chat_db,
             label="s_topics_intrusive_thoughts",
             unlocked=True,
-            prompt="Intrusive thoughts",
+            prompt=_("Intrusive thoughts"),
             random=True,
-            category=["Sayori", "Personal"]
+            category=[_("Sayori"), _("Personal")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2764,9 +2764,9 @@ init python:
             persistent._chat_db,
             label="s_topics_zombie_apocalypse",
             unlocked=True,
-            prompt="Zombie Apocalypse",
+            prompt=_("Zombie Apocalypse"),
             random=True,
-            category=["Life"]
+            category=[_("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2819,9 +2819,9 @@ init python:
             persistent._chat_db,
             label="s_topics_alcohol",
             unlocked=True,
-            prompt="Alcohol",
+            prompt=_("Alcohol"),
             random=True,
-            category=["DDLC", "Life"]
+            category=[_("DDLC"), _("Life")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2885,9 +2885,9 @@ init python:
             persistent._chat_db,
             label="s_topics_old_sprites",
             unlocked=True,
-            prompt="Old Sprites",
+            prompt=_("Old Sprites"),
             random=True,
-            category=["DDLC", "Sayori"]
+            category=[_("DDLC"), _("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -2916,9 +2916,9 @@ init python:
             persistent._chat_db,
             label="s_topics_backups",
             unlocked=True,
-            prompt="Sayori's Memories",
+            prompt=_("Sayori's Memories"),
             random=True,
-            category=["Sayori"],
+            category=[_("Sayori")],
             affection_range=(fae_affection.AFFECTIONATE, None)
         ),
         chat_group=CHAT_GROUP_NORMAL
@@ -2967,9 +2967,9 @@ init python:
             persistent._chat_db,
             label="s_topics_hemispheres",
             unlocked=True,
-            prompt="Hemispheres.",
+            prompt=_("Hemispheres."),
             random=True,
-            category=["Personal"]
+            category=[_("Personal")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3008,9 +3008,9 @@ init python:
             persistent._chat_db,
             label="s_topic_gifting",
             unlocked=True,
-            prompt="Gifting.",
+            prompt=_("Gifting."),
             random=True,
-            category=["Sayori"]
+            category=[_("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3036,9 +3036,9 @@ init python:
             persistent._chat_db,
             label="s_topic_boba",
             unlocked=True,
-            prompt="Boba",
+            prompt=_("Boba"),
             random=True,
-            category=["Food"]
+            category=[_("Food")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3071,9 +3071,9 @@ init python:
             persistent._chat_db,
             label="s_topics_like_flowers",
             unlocked=True,
-            prompt="Liking flowers",
+            prompt=_("Liking flowers"),
             random=True,
-            category=["Lifestyle"]
+            category=[_("Lifestyle")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3101,9 +3101,9 @@ init python:
             persistent._chat_db,
             label="s_topics_notfications",
             unlocked=True,
-            prompt="Notifications",
+            prompt=_("Notifications"),
             random=True,
-            category=["Sayori"]
+            category=[_("Sayori")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3141,9 +3141,9 @@ init python:
             persistent._chat_db,
             label="s_topics_mas",
             unlocked=True,
-            prompt="Monika After Story",
+            prompt=_("Monika After Story"),
             random=True,
-            category=[""]
+            category=[_("")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3205,9 +3205,9 @@ init python:
             persistent._chat_db,
             label="s_topics_pps",
             unlocked=True,
-            prompt="Pen Pals",
+            prompt=_("Pen Pals"),
             random=True,
-            category=["Life", "Society"]
+            category=[_("Life"), _("Society")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
@@ -3237,9 +3237,9 @@ init python:
             persistent._chat_db,
             label="s_topics_location",
             unlocked=True,
-            prompt="Place of living",
+            prompt=_("Place of living"),
             random=True,
-            category=["Life", "You"]
+            category=[_("Life"), _("You")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )

@@ -194,9 +194,9 @@ init 5 python:
             persistent._chat_db,
             label="sayori_give_nickname",
             unlocked=True,
-            prompt="Nicknames",
+            prompt=_("Nicknames"),
             conditional="persistent.fae_allow_nicknames",
-            category=["Sayori"],
+            category=[_("Sayori")],
             random=False,
             affection_range=(fae_affection.ENAMOURED, None)
         ),
@@ -223,7 +223,7 @@ label sayori_give_nickname:
 
 
 
-    $ nickname = renpy.input(prompt="What do you want to call me?", allow=fae_globals.STANDARD_ALPHABETICAL_CHARACTERS, length=10).strip()
+    $ nickname = renpy.input(prompt=_("What do you want to call me?"), allow=fae_globals.STANDARD_ALPHABETICAL_CHARACTERS, length=10).strip()
 
     if nickname.lower() == "nevermind":
         s abfcaoa "Changed your mind, [player]?"

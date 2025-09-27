@@ -46,7 +46,7 @@ label regret_init:
             for _regrets in fae_regrets.get_all_regrets()
         ]
 
-    call screen neat_menu_scroll(regrets_menu_items, ("Nevermind", None))
+    call screen neat_menu_scroll(regrets_menu_items, (_("Nevermind"), None))
 
     if _return:
         $ ats(_return)
@@ -62,7 +62,7 @@ init python:
             persistent._regret_db,
             label="regret_cheat_game",
             unlocked=True,
-            prompt="For cheating at our game."
+            prompt=_("For cheating at our game.")
         ),
         chat_group=CHAT_GROUP_REGRET
     )
@@ -84,7 +84,7 @@ init python:
     chatReg(
         Chat(
             persistent._regret_db,
-            prompt="For leaving without saying goodbye.",
+            prompt=_("For leaving without saying goodbye."),
             label="regret_unexpected_quit",
             unlocked=True
         ),
@@ -104,7 +104,7 @@ init python:
     chatReg(
         Chat(
             persistent._regret_db,
-            prompt="For something",
+            prompt=_("For something"),
             label="regret_generic",
             unlocked=True
         ),
@@ -126,7 +126,7 @@ init python:
             persistent._regret_db,
             label="regret_bad_name",
             unlocked=True,
-            prompt="For calling you a bad name."
+            prompt=_("For calling you a bad name.")
         ),
         chat_group=CHAT_GROUP_REGRET
     )
@@ -148,7 +148,7 @@ init python:
             persistent._regret_db,
             label="regret_long_absence",
             unlocked=True,
-            prompt="For being away for so long."
+            prompt=_("For being away for so long.")
         ),
         chat_group=CHAT_GROUP_REGRET
     )
@@ -171,7 +171,7 @@ init python:
             persistent._regret_db,
             label="regret_offense",
             unlocked=True,
-            prompt="For being offensive."
+            prompt=_("For being offensive.")
         ),
         chat_group=CHAT_GROUP_REGRET
     )

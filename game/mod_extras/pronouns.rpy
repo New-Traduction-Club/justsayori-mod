@@ -28,10 +28,10 @@ init python:
         pronoun_temp = ""
 
 label pronoun_screen:
-    $ renpy.call_screen("pronoun_input", message="Enter your first pronoun (He/She/They)", ok_action=Function(SetPronoun, type="he"))
-    $ renpy.call_screen("pronoun_input", message="Enter your second pronoun (He's/She's/They're)", ok_action=Function(SetPronoun, type="he's"), hes=True)
-    $ renpy.call_screen("pronoun_input", message="Enter your third pronoun (Him/Her/Them)", ok_action=Function(SetPronoun, type="him"))
-    $ renpy.call_screen("pronoun_input", message="Enter your fourth pronoun (Is/Are)", ok_action=Function(SetPronoun, type="are"))
+    $ renpy.call_screen("pronoun_input", message=_("Enter your first pronoun (He/She/They)"), ok_action=Function(SetPronoun, type="he"))
+    $ renpy.call_screen("pronoun_input", message=_("Enter your second pronoun (He's/She's/They're)"), ok_action=Function(SetPronoun, type="he's"), hes=True)
+    $ renpy.call_screen("pronoun_input", message=_("Enter your third pronoun (Him/Her/Them)"), ok_action=Function(SetPronoun, type="him"))
+    $ renpy.call_screen("pronoun_input", message=_("Enter your fourth pronoun (Is/Are)"), ok_action=Function(SetPronoun, type="are"))
     return
 
 screen pronoun_input(message, ok_action, hes=False):

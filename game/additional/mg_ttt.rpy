@@ -63,15 +63,15 @@ init 10 python:
                     
             def ttt_check_state():
                 if ttt.state != 0:
-                        if abs(ttt.state) < 9:
-                            renpy.call_in_new_context("mg_ttt_s_comment", ttt.state < 0)
-                            ttt(restart = True, winner = ttt.state < 0)
-                        elif ttt.state == -9:
-                            renpy.call_in_new_context("mg_ttt_s_comment", 3)
-                            ttt(restart = True, winner = 0)
-                        else:
-                            renpy.call_in_new_context("mg_ttt_s_comment", 2)
-                            ttt(restart = True)
+                    if abs(ttt.state) < 9:
+                        renpy.call_in_new_context("mg_ttt_s_comment", ttt.state < 0)
+                        ttt(restart = True, winner = ttt.state < 0)
+                    elif ttt.state == -9:
+                        renpy.call_in_new_context("mg_ttt_s_comment", 3)
+                        ttt(restart = True, winner = 0)
+                    else:
+                        renpy.call_in_new_context("mg_ttt_s_comment", 2)
+                        ttt(restart = True)
             
             def ttt_ai():
                 w_lines, l_lines, f_lines = [], [], []
@@ -128,7 +128,7 @@ image ttt_cross_cursor:
     alpha 0.25
     truecenter
 
-image ttt_circle: 
+image ttt_circle:
     Text("O", font = "gui/font/s1.ttf", size = 240, color = "#6acdcd", outlines = [])
     on show:
         alpha 0.0
@@ -153,7 +153,7 @@ screen mg_ttt_scr():
     
     for x in range(3):
         for y in range(3):
-            $i, p = ttt.field[3 * y + x], (260 + 192 * (x+1), 192 * (y+1))
+            $ i, p = ttt.field[3 * y + x], (260 + 192 * (x+1), 192 * (y+1))
             if i is True:
                 add "ttt_cross" anchor (0.5, 0.5) pos p
             elif i is False:
@@ -202,13 +202,13 @@ screen mg_ttt_scr():
 label mg_ttt:
     #$justIsSitting = False
     hide sayori
-    show sayori 1a at i44 zorder 2
+    show sayori 1a zorder 2 at i44
     call screen mg_ttt_scr() nopredict
     return
 
 label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat, 2 = draw, 3 = restart
     if id == 0: # If sayori wins
-        $random_id = renpy.random.randint(0, 2)
+        $ random_id = renpy.random.randint(0, 2)
         if random_id == 0:
             s 2q "Okay, I win this game."
             s "You should have a better strategy next time."
@@ -219,7 +219,7 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
             s 2e "Don't worry!"
             s "Maybe you'll win next time."
     elif id == 1: # Sayori's win
-        $random_id = renpy.random.randint(0, 1)
+        $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:
             s 5b "Okay, you win!"
             s 5a "Next time I'll be more crafty."
@@ -228,7 +228,7 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
             s 1l "You seem to be more clever than me."
             s "Next time I'll try harder."
     elif id == 2:
-        $random_id = renpy.random.randint(0, 1)
+        $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:# Draw
             s 1k "Oh, the board is full."
             s "And no one got three in a row."
@@ -238,8 +238,8 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
             s "Tic-Tac-Toe games often end up in a draw."
             s "Maybe there will be a winner in the next game."
     else:
-        $random_id = renpy.random.randint(0, 1)
-        if random_id == 0:# REstart
+        $ random_id = renpy.random.randint(0, 1)
+        if random_id == 0:# Restart
             s 4o "Are you giving up?"
             s 4c "Then we'll start again, but I'll get a point for this round."
         else:
@@ -249,12 +249,12 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
     return
 
 label mg_ttt_s_turn:
-    show sayori 1k at i44 zorder 2
+    show sayori 1k zorder 2 at i44
     python:
         randTime = renpy.random.triangular(0.25, 2)
         renpy.pause(randTime)
         ttt.ai()
-    show sayori 1a at i44 zorder 2
+    show sayori 1a zorder 2 at i44
     pause 0.25
     return
     

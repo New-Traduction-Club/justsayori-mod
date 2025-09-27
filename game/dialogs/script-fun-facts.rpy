@@ -37,8 +37,8 @@ init python:
         Chat(
             persistent._chat_db,
             label="s_fun_fact_beginning_test",
-            prompt="Can you tell me a fun fact?",
-            category=['Misc'],
+            prompt=_("Can you tell me a fun fact?"),
+            category=[_('Misc')],
             unlocked=True,
             random=False
         )

@@ -16,10 +16,10 @@ init python:
 
             update_available = version_tuple(latest_version) > version_tuple(CURRENT_VERSION)
             if update_available:
-                update_msg = "New Update available! ({})".format(latest_version)
+                update_msg = _("New Update available! ({})").format(latest_version)
             else:
-                update_msg = "You have the latest version ({})".format(CURRENT_VERSION)
+                update_msg = _("You have the latest version ({})").format(CURRENT_VERSION)
 
             renpy.show_screen("ps_overlay", update_msg=update_msg, news=news)
         except Exception as e:
-            renpy.show_screen("ps_overlay", update_msg="Failed to load web features.", news=[])
+            renpy.show_screen("ps_overlay", update_msg=_("Failed to load web features."), news=[])

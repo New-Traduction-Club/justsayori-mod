@@ -7,19 +7,50 @@ init 999 python:
         
         fae_random_chat_rate.adjustRandFrequency(persistent._fae_random_chat_freq)
 
-define FAE_PRONOUN_GENDER_MAP = {
-    "his": {"M": "his", "F": "her", "X": "their"},
-    "he": {"M": "he", "F": "she", "X": "they"},
-    "hes": {"M": "he's", "F": "she's", "X": "they're"},
-    "heis": {"M": "he is", "F": "she is", "X": "they are"},
-    "bf": {"M": "boyfriend", "F": "girlfriend", "X": "partner"},
-    "man": {"M": "man", "F": "woman", "X": "person"},
-    "boy": {"M": "boy", "F": "girl", "X": "person"},
-    "guy": {"M": "guy", "F": "girl", "X": "person"},
-    "him": {"M": "him", "F": "her", "X": "them"},
-    "himself": {"M": "himself", "F": "herself", "X": "themselves"},
-    "hero": {"M": "hero", "F": "heroine", "X": "hero"}
-}
+if persist.language == "spanish":
+    define FAE_PRONOUN_GENDER_MAP = {
+        "his": {"M": "su", "F": "su", "X": "su"},
+        "he": {"M": "él", "F": "ella", "X": "él"},
+        "hes": {"M": "él es", "F": "ella es", "X": "él es"},
+        "heis": {"M": "él es", "F": "ella es", "X": "él es"},
+        "bf": {"M": "novio", "F": "novia", "X": "pareja"},
+        "man": {"M": "hombre", "F": "mujer", "X": "persona"},
+        "boy": {"M": "niño", "F": "niña", "X": "persona"},
+        "guy": {"M": "chico", "F": "chica", "X": "persona"},
+        "him": {"M": "lo", "F": "la", "X": "le"},
+        "himself": {"M": "él mismo", "F": "ella misma", "X": "él mismo"},
+        "hero": {"M": "héroe", "F": "heroína", "X": "héroe"}
+    }
+
+elif persist.language == "ptbr":
+    define FAE_PRONOUN_GENDER_MAP_PTBR = {
+        "his": {"M": "seu", "F": "sua", "X": "seu/sua"},
+        "he": {"M": "ele", "F": "ela", "X": "elu"},
+        "hes": {"M": "ele é", "F": "ela é", "X": "elu é"},
+        "heis": {"M": "ele é", "F": "ela é", "X": "elu é"},
+        "bf": {"M": "namorado", "F": "namorada", "X": "parceire"},
+        "man": {"M": "homem", "F": "mulher", "X": "pessoa"},
+        "boy": {"M": "menino", "F": "menina", "X": "criança"},
+        "guy": {"M": "garoto", "F": "garota", "X": "pessoa"},
+        "him": {"M": "ele", "F": "ela", "X": "elu"},
+        "himself": {"M": "ele mesmo", "F": "ela mesma", "X": "elu mesme"},
+        "hero": {"M": "herói", "F": "heroína", "X": "herói"}
+    }
+
+else:
+    define FAE_PRONOUN_GENDER_MAP = {
+        "his": {"M": "his", "F": "her", "X": "their"},
+        "he": {"M": "he", "F": "she", "X": "they"},
+        "hes": {"M": "he's", "F": "she's", "X": "they're"},
+        "heis": {"M": "he is", "F": "she is", "X": "they are"},
+        "bf": {"M": "boyfriend", "F": "girlfriend", "X": "partner"},
+        "man": {"M": "man", "F": "woman", "X": "person"},
+        "boy": {"M": "boy", "F": "girl", "X": "person"},
+        "guy": {"M": "guy", "F": "girl", "X": "person"},
+        "him": {"M": "him", "F": "her", "X": "them"},
+        "himself": {"M": "himself", "F": "herself", "X": "themselves"},
+        "hero": {"M": "hero", "F": "heroine", "X": "hero"}
+    }
 
 init python:
 

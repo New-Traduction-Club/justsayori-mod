@@ -7,7 +7,7 @@ init offset = -1
 init python:
 
     layout.FAE_TT_NOTIF = (
-        "Enabling this will let Sayori use your system notifications, and check if FaE is your active window"
+        _("Enabling this will let Sayori use your system notifications, and check if JS is your active window")
     )
 
 
@@ -63,8 +63,8 @@ screen say(who, what):
 
 
 
-    if not renpy.variant("small"):
-        add SideImage() xalign 0.0 yalign 1.0
+    # if not renpy.variant("small"):
+    #     add SideImage() xalign 0.0 yalign 1.0
 
     use quick_menu
 
@@ -293,7 +293,7 @@ init python:
     def FileActionMod(name, page=None, **kwargs):
         
         if renpy.current_screen().screen_name[0] == "save":
-            return Show(screen="dialog", message="There's no point in saving anymore.\nDon't worry, I'm not going anywhere.", ok_action=Hide("dialog"))
+            return Show(screen="dialog", message=_("There's no point in saving anymore.\nDon't worry, I'm not going anywhere."), ok_action=Hide("dialog"))
 
 
 
@@ -344,13 +344,13 @@ label fae_bad_name_input:
 
             hide screen name_input
 
-            show screen confirm(message="Invalid Name", ok_action=Return)
+            show screen confirm(message=_("Invalid Name"), ok_action=Return)
 
             window auto
     else:
         hide screen name_input
 
-        show screen confirm(message="Invalid Name", ok_action=Return)
+        show screen confirm(message=_("Invalid Name"), ok_action=Return)
 
     $ enable_esc()
     hide screen navigation
@@ -374,7 +374,7 @@ screen navigation():
 
 
 
-            textbutton _("Just Sayori") action If(persistent.playername, true=Start(), false=Show(screen="name_input", message="Please enter your name", ok_action=Function(FinishEnterName)))
+            textbutton _("Just Sayori") action If(persistent.playername, true=Start(), false=Show(screen="name_input", message=_("Please enter your name"), ok_action=Function(FinishEnterName)))
 
         else:
 
@@ -391,7 +391,7 @@ screen navigation():
 
         elif not main_menu:
 
-            textbutton _("Main Menu") action NullAction(), Show("dialog", message="There's no point!\nYou'll just get back here!", ok_action=Hide("dialog"))
+            textbutton _("Main Menu") action NullAction(), Show("dialog", message=_("There's no point!\nYou'll just get back here!"), ok_action=Hide("dialog"))
 
         textbutton _("Settings") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None)]
 
@@ -612,7 +612,7 @@ screen load():
 init python:
     def FileActionMod(name, page=None, **kwargs):
         if renpy.current_screen().screen_name[0] == "save":
-            return Show(screen="dialog", message="There's no point in saving. \nNot when we're sitting here doing nothing...", ok_action=Hide("dialog"))
+            return Show(screen="dialog", message=_("There's no point in saving. \nNot when we're sitting here doing nothing..."), ok_action=Hide("dialog"))
 
 
 
@@ -846,6 +846,18 @@ screen preferences():
                     textbutton _("Mute All"):
                         style "check_button"
                         action Preference("all mute", "toggle")
+#begin language_picker
+                ## Additional vboxes of type "radio_pref" or "check_pref" can be
+                ## added here, to add additional creator-defined preferences.
+                
+                # vbox:
+                #     style_prefix "radio"
+                #     label _("Language")
+
+                #     # Real languages should go alphabetical order by English name.
+                #     textbutton "English" text_font "DejaVuSans.ttf" action [Language(None), SetField(persistent, "language", "english"), Show("dialog", message="It is recommended to restart to apply the changes.\n\nOtherwise, some things may remain in other languages.", ok_action=Hide("dialog"))]
+                #     textbutton "Español" text_font "DejaVuSans.ttf" action [Language("spanish"), SetField(persistent, "language", "spanish"), Show("dialog", message="Se recomienda reiniciar el juego\npara aplicar los cambios.\n\nDe lo contrario, es posible\nque algunas cosas se\nconserven en otros idiomas.", ok_action=Hide("dialog"))]
+                #     textbutton "Português (BR)" text_font "DejaVuSans.ttf" action [Language("ptbr"), SetField(persistent, "language", "ptbr"), Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.\n\nCaso contrário, alguns itens podem permanecer em outros idiomas.", ok_action=Hide("dialog"))]
 
             hbox:
 
@@ -1372,7 +1384,7 @@ init python:
             percent = 100
         
         if winver == 8:
-            d = Text("we'll restart for you. (" + str(percent) + "% complete)\n", style="bsod_win8_text", size=26)
+            d = Text(_("we'll restart for you. (" + str(percent) + "% complete)\n"), style="bsod_win8_text", size=26)
         else:
             d = Text(str(percent) + "% complete", style="bsod_win10_text", line_leading=25)
         
@@ -1409,15 +1421,15 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
 
                 style_prefix "bsod_win7"
 
-                text "A problem has been detected and Windows has been shut down to prevent damage to your computer."
-                text "The problem seems to be caused by the following file: " + bsodFile.upper()
+                text _("A problem has been detected and Windows has been shut down to prevent damage to your computer.")
+                text _("The problem seems to be caused by the following file: ") + bsodFile.upper()
                 text bsodCode.upper()
-                text "If this is the first time you've seen this Stop error screen, restart your computer. If this screens appears again, follow these steps:"
-                text "Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need."
-                text "If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode."
-                text "Technical information:"
-                text "*** STOP: 0x00000051 (OXFD69420, 0x00000005, OXFBF92317" + ", 0x00000000)\n"
-                text "*** " + bsodFile.upper() + "  -  Address FBF92317 base at FBF102721, Datestamp 3d6dd67c"
+                text _("If this is the first time you've seen this Stop error screen, restart your computer. If this screens appears again, follow these steps:")
+                text _("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
+                text _("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
+                text _("Technical information:")
+                text _("*** STOP: 0x00000051 (OXFD69420, 0x00000005, OXFBF92317" + ", 0x00000000)\n")
+                text _("*** ") + bsodFile.upper() + _("  -  Address FBF92317 base at FBF102721, Datestamp 3d6dd67c")
 
         elif osVer < (10, 0, 10240):
 
@@ -1430,11 +1442,11 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
                 xalign 0.5
                 yalign 0.4
 
-                text ":(" style "bsod_win8_sad_text"
-                text "Your PC ran into a problem and needs to restart."
-                text "We're just collecting some error info, and then"
+                text _(":(") style "bsod_win8_sad_text"
+                text _("Your PC ran into a problem and needs to restart.")
+                text _("We're just collecting some error info, and then")
                 add DynamicDisplayable(fakePercent, 8)
-                text "If you'd like to know more, you can search online later for this error: " + bsodCode.upper() style "bsod_win8_sub_text"
+                text _("If you'd like to know more, you can search online later for this error: ") + bsodCode.upper() style "bsod_win8_sub_text"
 
         else:
 
@@ -1463,19 +1475,19 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
                 xalign 0.3
                 yalign 0.3
 
-                text ":(" style "bsod_win10_sad_text"
+                text _(":(") style "bsod_win10_sad_text"
 
                 if osVer < (10, 0, 22000):
 
-                    text "Your PC ran into a problem and needs to restart. We're"
-                    text "just collecting some error info, and then we'll restart for"
-                    text "you."
+                    text _("Your PC ran into a problem and needs to restart. We're")
+                    text _("just collecting some error info, and then we'll restart for")
+                    text _("you.")
 
                 else:
 
-                    text "Your device ran into a problem and needs to restart."
-                    text "We're just collecting some error info, and then you can"
-                    text "restart."
+                    text _("Your device ran into a problem and needs to restart.")
+                    text _("We're just collecting some error info, and then you can")
+                    text _("restart.")
 
                 add DynamicDisplayable(fakePercent, 10)
 
@@ -1489,9 +1501,9 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
                         vbox:
                             xpos 0.03
                             spacing 4
-                            text "For more information about this issue and possible fixes, visit https://www.windows.com/stopcode" style "bsod_win10_info_text" line_leading 25
-                            text "If you call a support person, give them this info:" style "bsod_win10_sub_text" line_leading 25
-                            text "Stop code: " + bsodCode.upper() style "bsod_win10_sub_text"
+                            text _("For more information about this issue and possible fixes, visit https://www.windows.com/stopcode") style "bsod_win10_info_text" line_leading 25
+                            text _("If you call a support person, give them this info:") style "bsod_win10_sub_text" line_leading 25
+                            text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
 
                     else:
 
@@ -1501,10 +1513,10 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
                         vbox:
                             xpos 0.03
                             spacing 4
-                            text "For more information about this issue and possible fixes, visit" style "bsod_win10_info_text" line_leading 25
-                            text "https://www.windows.com/stopcode\n" style "bsod_win10_info_text"
-                            text "If you call a support person, give them this info:" style "bsod_win10_sub_text"
-                            text "Stop code: " + bsodCode.upper() style "bsod_win10_sub_text"
+                            text _("For more information about this issue and possible fixes, visit") style "bsod_win10_info_text" line_leading 25
+                            text _("https://www.windows.com/stopcode\n") style "bsod_win10_info_text"
+                            text _("If you call a support person, give them this info:") style "bsod_win10_sub_text"
+                            text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
 
     elif renpy.macintosh:
 
@@ -1517,18 +1529,18 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
             xalign 0.53
             yalign 0.51
 
-            text "You need to restart your computer. Hold down the Power\n"
-            text "button until it turns off, then press the Power button again." line_spacing 25
-            text "Redémarrez l'ordinateur. Enfoncez le bouton de démarrage\n"
-            text "jusqu'à l'extinction, puis appuyez dessus une nouvelle fois." line_spacing 25
-            text "Debe reiniciar el o rdenador. Mantenga pulsado el botón de\n"
-            text "arranque hasta que se apague y luego vuelva a pulsarlo." line_spacing 25
-            text "Sie müssen den Computer neu starten. Halten Sie den\n"
-            text "Ein-/Ausschalter gedrückt bis das Gerät ausgeschaltet ist\n"
-            text "und drücken Sie ihn dann erneut." line_spacing 25
-            text "Devi riavviare il computer. Tieni premuto il pulsante di\n"
-            text "accensione finché non si spegne, quindi premi di nuovo il\n"
-            text "pulsante di accensione."
+            text _("You need to restart your computer. Hold down the Power\n")
+            text _("button until it turns off, then press the Power button again.") line_spacing 25
+            text _("Redémarrez l'ordinateur. Enfoncez le bouton de démarrage\n")
+            text _("jusqu'à l'extinction, puis appuyez dessus une nouvelle fois.") line_spacing 25
+            text _("Debe reiniciar el o rdenador. Mantenga pulsado el botón de\n")
+            text _("arranque hasta que se apague y luego vuelva a pulsarlo.") line_spacing 25
+            text _("Sie müssen den Computer neu starten. Halten Sie den\n")
+            text _("Ein-/Ausschalter gedrückt bis das Gerät ausgeschaltet ist\n")
+            text _("und drücken Sie ihn dann erneut.") line_spacing 25
+            text _("Devi riavviare il computer. Tieni premuto il pulsante di\n")
+            text _("accensione finché non si spegne, quindi premi di nuovo il\n")
+            text _("pulsante di accensione.")
 
     else:
 
@@ -1537,33 +1549,33 @@ screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=F
         vbox:
             style_prefix "bsod_linux"
 
-            text "metaverse-pci.c:v[config.version] 9/22/2017 Metaverse Enterprise Solutions\n"
-            text "  https://www.metaverse-enterprise.com/network/metaverse-pci.html"
-            text "hda0: METAVERSE ENTERPRISE VIRTUAL HARDDISK, ATA DISK drive"
-            text "ide0 at 0x1f0 - 0x1f7, 0x3f6 on irq 14"
-            text "hdc: METAVERSE ENTERPRISE VIRTUAL CD-ROM, ATAPI CD/DVD-ROM drive"
-            text "ide1 at 0x444 - 0x910, 0x211 on irq 15"
-            text "fd0: METAVERSE ENTERPRISE VIRTUAL FLOPPY, ATA FLOPPY drive"
-            text "ide2 at 0x7363-0x6e6565, 0x4569 on irq 16"
-            text "ACPI: PCI Interrupt Link [[LNKC]] ebabked at IRQ 10"
-            text "ACPI: PCI Interrupt 0000:00:03:.0[[A]] -> Link [[LNKC]] -> GSI 10 (level, low) -> IRQ 10"
-            text "eno1: Metaverse Enterprise LIB-0922 found at 0xc453, IRQ 10, 09:10:21:86:75:30"
-            text "hda: max request size: 512KiB"
-            text "hda: 2147483648 sectors (1 TB) w/256KiB Cache, CHS=178/255/63, (U)DMA"
-            text "hda: hda1"
-            text "hdc: ATAPI 4x CD-ROM drive, 512kB Cache, (U)DMA"
-            text "Uniform CD-ROM driver Revision: 3.20"
-            text "Done."
-            text "Begin: DDLC.so"
-            text "Done."
-            text "DDLC.so: global natsukiTime undeclared."
-            text "DDLC.so: global sayoriTime undeclared."
-            text "DDLC.so: global yuriTime undeclared."
-            text "DDLC.so: global monikaTime undeclared."
-            text "DDLC.so: SUCCESS."
-            text "Begin: DDLC.so -> linux-4.12.14"
-            text "/init: /init: 151: " + bsodCode.upper() + ": 0xforce=panic"
-            text "Kernel panic - not syncing: Attempted to kill init!"
+            text _("metaverse-pci.c:v[config.version] 9/22/2017 Metaverse Enterprise Solutions\n")
+            text _("  https://www.metaverse-enterprise.com/network/metaverse-pci.html")
+            text _("hda0: METAVERSE ENTERPRISE VIRTUAL HARDDISK, ATA DISK drive")
+            text _("ide0 at 0x1f0 - 0x1f7, 0x3f6 on irq 14")
+            text _("hdc: METAVERSE ENTERPRISE VIRTUAL CD-ROM, ATAPI CD/DVD-ROM drive")
+            text _("ide1 at 0x444 - 0x910, 0x211 on irq 15")
+            text _("fd0: METAVERSE ENTERPRISE VIRTUAL FLOPPY, ATA FLOPPY drive")
+            text _("ide2 at 0x7363-0x6e6565, 0x4569 on irq 16")
+            text _("ACPI: PCI Interrupt Link [[LNKC]] ebabked at IRQ 10")
+            text _("ACPI: PCI Interrupt 0000:00:03:.0[[A]] -> Link [[LNKC]] -> GSI 10 (level, low) -> IRQ 10")
+            text _("eno1: Metaverse Enterprise LIB-0922 found at 0xc453, IRQ 10, 09:10:21:86:75:30")
+            text _("hda: max request size: 512KiB")
+            text _("hda: 2147483648 sectors (1 TB) w/256KiB Cache, CHS=178/255/63, (U)DMA")
+            text _("hda: hda1")
+            text _("hdc: ATAPI 4x CD-ROM drive, 512kB Cache, (U)DMA")
+            text _("Uniform CD-ROM driver Revision: 3.20")
+            text _("Done.")
+            text _("Begin: DDLC.so")
+            text _("Done.")
+            text _("DDLC.so: global natsukiTime undeclared.")
+            text _("DDLC.so: global sayoriTime undeclared.")
+            text _("DDLC.so: global yuriTime undeclared.")
+            text _("DDLC.so: global monikaTime undeclared.")
+            text _("DDLC.so: SUCCESS.")
+            text _("Begin: DDLC.so -> linux-4.12.14")
+            text _("/init: /init: 151: ") + bsodCode.upper() + _(": 0xforce=panic")
+            text _("Kernel panic - not syncing: Attempted to kill init!")
             add DynamicDisplayable(constantCursor)
 
     add Solid("#000000") at bsod_transition
@@ -1637,7 +1649,7 @@ screen qab():
                     text _("Shift-M")
 
 
-    text "Click 'Help' for the complete list.":
+    text _("Click 'Help' for the complete list."):
         xalign 1.0 yalign 0.0
         xoffset -10
         style "main_menu_version"

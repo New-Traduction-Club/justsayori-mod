@@ -13,16 +13,19 @@ init python:
             store.fae_utilities.removeFileDir(gift_path + "/cookies.gift")
             
             renpy.call("fae_cookies")
+
+            return
         
         if renpy.exists(gift_path + "/otter.gift"):
             
             store.fae_utilities.removeFileDir(gift_path + "/otter.gift")
             
             renpy.call("fae_otter")
+
+            return
         
         
-        else:
-            renpy.call("fae_no_gift")
+        renpy.call("fae_no_gift")
         
         return
 

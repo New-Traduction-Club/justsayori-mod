@@ -6,7 +6,7 @@ init 10 python:
     #y >> 3 = y // 8, y << 3 = y * 8 (for bitwise-ops newbies)
     def reversi_n_to_xy(n, sx = 1, sy = None, ox = 0, oy = 0):
         y = n >> 3
-        x = n & 7 #n % 8
+        x = n & 7 
         return (x * sx + ox, y * (sy or sx) + oy)
     def reversi_xy_to_n(x, y):
         return (y << 3) + x
@@ -365,9 +365,9 @@ screen mg_reversi_scr():
     
     for y in range(8):
         for x in range(0, 8):
-            $p = (442 + x * 75, 585 - y * 75)
-            $n = reversi_xy_to_n(x, y)
-            $i = reversi_cell(n)
+            $ p = (442 + x * 75, 585 - y * 75)
+            $ n = reversi_xy_to_n(x, y)
+            $ i = reversi_cell(n)
             
             #Add a selection button
             if reversi.players_turn or not reversi.with_ai:
@@ -429,7 +429,7 @@ label mg_reversi_s_comment(id = 0): #Sayori's comment; -1/1 = Sayori's victory/d
     hide screen mg_reversi_scr
     
     if id == -1: # Sayori wins
-        $random_id = renpy.random.randint(0, 2)
+        $ random_id = renpy.random.randint(0, 2)
         if random_id == 0:
             s ebbccea "Yay! I won this game!"
             s abgcaoa "Don't worry, you'll have better luck next time~"
@@ -442,7 +442,7 @@ label mg_reversi_s_comment(id = 0): #Sayori's comment; -1/1 = Sayori's victory/d
             s "Maybe you'll win next time."
             s abagiia "You'll just have to watch out for my ultra smart moves~."
     elif id == 1: # Player wins
-        $random_id = renpy.random.randint(0, 2)
+        $ random_id = renpy.random.randint(0, 2)
         if random_id == 0:
             s abagaha "Okay, you win!"
             s gbagiaa "But know I'll be more crafty next time!"
@@ -453,16 +453,16 @@ label mg_reversi_s_comment(id = 0): #Sayori's comment; -1/1 = Sayori's victory/d
             s abagkgaj "Wait, you took more pieces than me!"
             s bbagciaj "I should probably be more attentive next time."
     elif id == 2: # Draw
-        $random_id = renpy.random.randint(0, 1)
+        $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:
             s eahcaoa "Hey, we split the board in half!"
             s gahdkdaj "Unless I messed up my math."
             s abfdcoa "But a draw is also a result, isn't it?"
         else:
-            s ebbcaoa  "Hey, we have the same number of pieces!"
+            s ebbcaoa "Hey, we have the same number of pieces!"
             s ebgccqa "We really seem to have {i}soooooooooo{/i} much in common, ehehe~"
     elif id == -2: # Restart
-        $random_id = renpy.random.randint(0, 1)
+        $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:
             s ebhfada "Are you giving up?"
             s abhfcaa "Ok, we'll start again, but I'll get a point for this game."

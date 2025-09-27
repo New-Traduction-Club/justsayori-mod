@@ -21,12 +21,12 @@ init python:
     menu_trans_time = 1
 
 
-    splash_message_default = "This game is an unofficial fan game that is unaffiliated with Team Salvato."
+    splash_message_default = _("This game is an unofficial fan game that is unaffiliated with Team Salvato.")
 
 
     splash_messages = [
-        "Please support Doki Doki Literature Club.",
-        "Monika is watching you code."
+        _("Please support Doki Doki Literature Club."),
+        _("Monika is watching you code.")
     ]
 
 
@@ -277,16 +277,15 @@ label splashscreen:
         if RELOADCHECK():
             raise InstallError("Please re-install the mod")
 
-        # if renpy.android:
-        #     fae_utilities.log("UNSUPPORTED PLATFORM DETECTED. RE-INSTALL MOD ON A SUPPORTED PLATFORM")
-        #     renpy.quit()
-        ### ............................
+    ### Screen to select language for the fist time
+    # if persistent.language == None:
+    #     call screen choose_language
 
 
 
     if not persistent.fae_disclaimer_seen:
         scene black
-        show text "{=gui_text}This mod is not a substitute for a real relationship and should not be treated as such."
+        show text _("{=gui_text}This mod is not a substitute for a real relationship and should not be treated as such.")
 
         $ renpy.pause(10, True)
 

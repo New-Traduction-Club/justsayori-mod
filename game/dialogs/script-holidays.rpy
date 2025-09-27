@@ -106,7 +106,7 @@ label fae_d25_autoload:
     if not persistent.fae_d25_seen:
 
 
-        $ makeFile('letter', """Dear player,
+        $ makeFile(_('letter'), _("""Dear player,
 
             After about a year of writing, coding, arting and expressioning, the full release of Forever & Ever, version 0.1.0, is finally here!\nWe’ve essentially made an entirely new mod, with everything on the surface and behind the scenes being completely revamped and brought back up to date to give our cinnamon bun the mod she deserves.\nIt’s been a difficult journey at times, but the friendly and homely feel of the community has really motivated us, so we’d also like to say thank you to each and every one of you for your patience and support in bringing this update to life, we couldn't have done it without you.\nConsider this a Christmas gift from all of the devs, to all of you! 
 
@@ -114,7 +114,7 @@ label fae_d25_autoload:
 
             Best wishes,\n
             The Forever & Ever Team 
-            """)
+            """))
         if not persistent._fae_player_south_hemisphere:
             $ fae_atmosphere.showSky(fae_atmosphere.WEATHER_SNOW)
 

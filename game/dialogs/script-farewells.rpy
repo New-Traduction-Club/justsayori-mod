@@ -42,15 +42,15 @@ init -6 python in fae_farewells:
     def load_farewell_choices():
         
         return [
-            ("I'm going to sleep.", "s_farewell_sleep"),
-            ("I'm going to school.", "s_farewell_school"),
-            ("I'm going to play a game.", "s_farewell_game"),
-            ("I'm going to eat.", "s_farewell_eat"),
-            ("I'm going to work out.", "s_farewell_work_out"),
-            ("I'm going to work.", "s_farewell_work"),
-            ("I'm going to do chores.", "s_farewell_chores"),
-            ("I'm going to restart.", "s_farewell_restart"),
-            ("I'll be going away for a while.", "s_farewell_long_absence")
+            (_("I'm going to sleep."), "s_farewell_sleep"),
+            (_("I'm going to school."), "s_farewell_school"),
+            (_("I'm going to play a game."), "s_farewell_game"),
+            (_("I'm going to eat."), "s_farewell_eat"),
+            (_("I'm going to work out."), "s_farewell_work_out"),
+            (_("I'm going to work."), "s_farewell_work"),
+            (_("I'm going to do chores."), "s_farewell_chores"),
+            (_("I'm going to restart."), "s_farewell_restart"),
+            (_("I'll be going away for a while."), "s_farewell_long_absence")
         ]
 
     def farewell_pick():
@@ -90,9 +90,9 @@ label farewell_options:
     python:
         selectable_leave_options = fae_farewells.load_farewell_choices()
         selectable_leave_options.sort(key = lambda option: option[0])
-        selectable_leave_options.append(("Goodbye.", "farewell_init"))
+        selectable_leave_options.append((_("Goodbye."), "farewell_init"))
 
-    call screen neat_menu_scroll(selectable_leave_options, ("Nevermind.", False))
+    call screen neat_menu_scroll(selectable_leave_options, (_("Nevermind."), False))
 
     if not _return:
         jump ch30_loop

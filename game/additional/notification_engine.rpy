@@ -49,7 +49,7 @@ init python in fae_notifs:
             def notifyWindows():
 
                 title = 'Sayori'
-                message = 'I have something to tell you!'
+                message = _('I have something to tell you!')
 
                 return (
                     notification.notify(
@@ -76,7 +76,7 @@ init python in fae_notifs:
             def notifyLinux():
 
                 title = 'Sayori'
-                message = 'I have something to tell you!'
+                message = _('I have something to tell you!')
 
                 return (
                     plyer.notification.notify(
@@ -91,5 +91,5 @@ init python in fae_notifs:
     else:
         store.fae_notifs.can_show_notifs = False
 
-        store.fae_utilities.fae_log.warning("Cannot detect current session type, disabling notifications.")
+        print("Cannot detect current session type, disabling notifications.")
     

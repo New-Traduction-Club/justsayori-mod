@@ -21,7 +21,7 @@ init -1 python in fae_music:
 
 label music_menu:
     $ Sayori.setInChat(True)
-    $ music_title = "Why didn't this change?"
+    $ music_title = _("Why didn't this change?")
 
     python:
 
@@ -37,7 +37,7 @@ label music_menu:
 
             #player_music_options.insert(0, ("Sayonara", "mod_assets/bgm/Sayonara_Acoustic_Medley.ogg"))
             
-            player_music_options.append(("No music", "no_music"))
+            player_music_options.append((_("No music"), "no_music"))
             success = True
     
     if not success:
@@ -75,7 +75,7 @@ label music_menu:
     else:
         show sayori idle at t22
     
-    call screen neat_menu_scroll(player_music_options, ("Nevermind.", False))
+    call screen neat_menu_scroll(player_music_options, (_("Nevermind."), False))
 
     show sayori idle at t11
 
@@ -109,7 +109,7 @@ label music_menu:
         $ renpy.play(filename=_return, channel="music")
     
     $ fae_music._now_playing = music_title
-    $ renpy.notify("Now playing: {0}".format(fae_music._now_playing))
+    $ renpy.notify(_("Now playing: {0}").format(fae_music._now_playing))
 
     $ Sayori.setInChat(False)
 

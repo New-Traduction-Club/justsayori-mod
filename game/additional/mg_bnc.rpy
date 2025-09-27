@@ -49,8 +49,8 @@ screen mg_bnc_scr():
     vbox:
         label _("Tries left: [bnc.lifes]")
         label _("Last answer: [bnc.last]")
-        label "{color=#00cc00}Bulls: [bnc.bulls]{/color}"
-        label "{color=#ffff00}Cows: [bnc.cows]{/color}"
+        label _("{color=#00cc00}Bulls: [bnc.bulls]{/color}")
+        label _("{color=#ffff00}Cows: [bnc.cows]{/color}")
         if config.developer:
             yoffset 1
             label _("{i}Right answer: [bnc.guessed]{/i}")
@@ -134,7 +134,7 @@ label mg_bnc:
     call mg_bnc_s_comment(bnc.state) from _call_mg_bnc_s_comment_1
     return
 
-label mg_bnc_s_comment(state = -1, restart = False): #Sayori's comment. 0 = initial, -2 = annoyed, other = state reaction
+label mg_bnc_s_comment(state=-1, restart=False):
     hide screen mg_bnc_scr
     if state == 0: # Starting prompt
         s abaaaoa "I propose you a number of [bnc.guessed_len] digits..."
@@ -147,9 +147,9 @@ label mg_bnc_s_comment(state = -1, restart = False): #Sayori's comment. 0 = init
         if bnc.bulls + bnc.cows == bnc.guessed_len: # NO CLUE WHAT THIS IS. FUCK THIS CODE
             s "You were close to the right answer."
         elif restart:
-            s abaadaa"OK, I'll tell you the right answer."
+            s abaadaa "OK, I'll tell you the right answer."
         s abaaloa "The right number was {i}[bnc.guessed]{/i}."
-        s ebaacqa"Let me think of another number."
+        s ebaacqa "Let me think of another number."
         $ bnc(restart = True)
     elif state == 1: # Correct answer
         s abaacoa "You're right. It was {i}[bnc.guessed]{/i}!"

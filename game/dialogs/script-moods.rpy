@@ -39,7 +39,7 @@ label mood_init:
         ]
         mood_options.sort()
 
-    call screen neat_menu_scroll(mood_options, ("Nevermind", None))
+    call screen neat_menu_scroll(mood_options, (_("Nevermind"), None))
 
     if _return:
         $ ats(_return)
@@ -54,7 +54,7 @@ init python:
             persistent._mood_db,
             label="s_mood_angry",
             unlocked=True,
-            prompt="Angry"
+            prompt=_("Angry")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -100,7 +100,7 @@ init python:
             persistent._mood_db,
             label="s_mood_hungry",
             unlocked=True,
-            prompt="Hungry"
+            prompt=_("Hungry")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -127,7 +127,7 @@ init python:
             persistent._mood_db,
             label="s_mood_excited",
             unlocked=True,
-            prompt="Excited"
+            prompt=_("Excited")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -167,7 +167,7 @@ init python:
             persistent._mood_db,
             label="s_mood_happy",
             unlocked=True,
-            prompt="Happy"
+            prompt=_("Happy")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -187,7 +187,7 @@ init python:
             persistent._mood_db,
             label="s_mood_sad",
             unlocked=True,
-            prompt="Sad"
+            prompt=_("Sad")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -215,7 +215,7 @@ init python:
             persistent._mood_db,
             label="s_mood_bored",
             unlocked=True,
-            prompt="Bored",
+            prompt=_("Bored"),
             conditional="persistent.fae_bnc_unlocked or persistent.fae_reversi_unlocked",
             affection_range=(fae_affection.HAPPY, None)
         ),
@@ -237,7 +237,7 @@ init python:
             persistent._mood_db,
             label="s_mood_tired",
             unlocked=True,
-            prompt="Tired"
+            prompt=_("Tired")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -258,7 +258,7 @@ init python:
             persistent._mood_db,
             label="s_mood_sleepy",
             unlocked=True,
-            prompt="Sleepy"
+            prompt=_("Sleepy")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -278,7 +278,7 @@ init python:
             persistent._mood_db,
             label="s_mood_lonely",
             unlocked=True,
-            prompt="Lonely"
+            prompt=_("Lonely")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -304,7 +304,7 @@ init python:
             persistent._mood_db,
             label="s_mood_sick",
             unlocked=True,
-            prompt="Sick"
+            prompt=_("Sick")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -327,7 +327,7 @@ init python:
             persistent._mood_db,
             label="s_mood_nervous",
             unlocked=True,
-            prompt="Nervous"
+            prompt=_("Nervous")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -351,7 +351,7 @@ init python:
             persistent._mood_db,
             label="s_mood_unmotivated",
             unlocked=True,
-            prompt="Unmotivated"
+            prompt=_("Unmotivated")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
@@ -375,7 +375,7 @@ init python:
             persistent._mood_db,
             label="s_mood_depressed",
             unlocked=True,
-            prompt="Depressed"
+            prompt=_("Depressed")
         ),
         chat_group=CHAT_GROUP_MOOD
     )
