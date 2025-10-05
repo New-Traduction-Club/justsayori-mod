@@ -203,10 +203,17 @@ init python:
     build.classify("errors.txt", None)
     build.classify("log.txt", None)
     build.classify("game/dev.txt", None)
+    build.classify("game/cache/**", None)
+    build.classify("game/saves/**", None)
 
     build.classify("game/bgm/**", None)
     build.classify('/music/*.*', None)
     build.classify("game/bgm/**", None)
+
+    # original stuff
+    build.classify("game/sfx/**", None)
+    build.classify("game/images/**", None)
+    build.classify("game/gui/**", None)
 
     # this
     build.include_update = False
@@ -220,6 +227,10 @@ init python:
     build.classify("game/RPASongMetadata.json", "all")
     build.classify("renpy/**", "all")
     build.classify("lib/**", "all")
+
+    build.classify("game/images/bg/warning3.webp", "all")
+    build.classify("game/gui/scrollbar/horizontal_poem_bar_d.png", "all")
+    build.classify("game/gui/scrollbar/vertical_poem_bar_d.png", "all")
 
 
 
