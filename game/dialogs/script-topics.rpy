@@ -38,7 +38,6 @@ init -6 python in chats:
 
 
 
-
 label fae_room_switch:
     s "Sure!"
 
@@ -80,12 +79,24 @@ label fae_room_switch_return:
 
 
 
+init python:
 
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="fae_gift",
+            unlocked=True,
+            prompt=_("Look for gifts"),
+            random=False,
+            category=[_("Gifts")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
 
 label fae_gift:
     s "Sure!"
 
-    $ look_for_gift()
+    call check_for_gifts
 
     return
 
@@ -2996,7 +3007,8 @@ label s_topics_hemispheres:
             s abhfaoa "Oh that’s cool!"
             s abhfcaa "I hope it’s nice down there!"
 
-    $ store.fae_calendar.addSeasonEvents()
+    # we have a calendar???
+    # $ store.fae_calendar.addSeasonEvents()
 
     return {"derandom": None}
 

@@ -1,15 +1,22 @@
 
 
+default persistent.use_alt_font = False
 
 
-
-
+define -2 gui.default_font = "gui/font/s1.ttf"
+define -2 gui.text_size = 38
 
 
 init -2 python:
 
     gui.init(1280, 720)
 
+    if persistent.use_alt_font == False:
+        gui.default_font = "gui/font/s1.ttf"
+        gui.text_size = 38
+    elif persistent.use_alt_font == True:
+        gui.default_font = "gui/font/Aller_Rg.ttf"
+        gui.text_size = 22
 
 
 define -2 gui.hover_sound = "gui/sfx/hover.ogg"
@@ -49,9 +56,12 @@ define -2 gui.interface_text_color = '#ffffff'
 
 
 
+# define -2 gui.default_font = "gui/font/s1.ttf"
+# if persistent.use_alt_font == False:
+#     define -2 gui.default_font = "gui/font/s1.ttf"
+# elif persistent.use_alt_font == True:
+#     gui.default_font = "gui/font/Aller_Rg.ttf"
 
-
-define -2 gui.default_font = "gui/font/s1.ttf"
 
 
 define -2 gui.name_font = "gui/font/RifficFree-Bold.ttf"
@@ -60,7 +70,6 @@ define -2 gui.name_font = "gui/font/RifficFree-Bold.ttf"
 define -2 gui.interface_font = "gui/font/Aller_Rg.ttf"
 
 
-define -2 gui.text_size = 38
 
 
 define -2 gui.name_text_size = 24

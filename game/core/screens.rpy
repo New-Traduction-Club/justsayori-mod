@@ -872,6 +872,24 @@ screen preferences():
                     action Function(show_ps_overlay)
                     style "navigation_button"
 
+            vbox:
+                style_prefix "radio"
+                label _("Font Style")
+
+                textbutton _("Default Font"):
+                    action [
+                        SetVariable("persistent.use_alt_font", False),
+                        Show("dialog", message=_("You need to restart the game for the font change to take effect."), ok_action=Hide("dialog"))
+                    ]
+                    selected If(not persistent.use_alt_font, True, False)
+
+                textbutton _("Alternate Font"):
+                    action [
+                        SetVariable("persistent.use_alt_font", True),
+                        Show("dialog", message=_("You need to restart the game for the font change to take effect."), ok_action=Hide("dialog"))
+                    ]
+                    selected If(persistent.use_alt_font, True, False)
+
 screen ps_overlay(update_msg="Loading...", news=[]):
     zorder 250
     modal True
