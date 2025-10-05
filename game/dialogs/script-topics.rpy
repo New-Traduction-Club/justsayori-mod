@@ -3270,3 +3270,34 @@ label s_topics_location:
     extend abgccaa "I’m sure you’ll find somewhere with the perfect opportunities for you if you haven’t already!"
 
     return
+
+init python:
+
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="renpystein_demo",
+            unlocked=True,
+            prompt=_("Renpystein"),
+            random=False,
+            category=[_("Secret Games")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
+
+label renpystein_demo:
+    python:
+        reset_stein_state()
+    s "This is a secret..."
+    
+    # Show the UI overlay with controls.
+    show screen stein_controls_overlay
+    
+    # Call the game screen. This will display the game until it returns a value (e.g., from an exit).
+    call screen stein
+
+    "You found exit [_return]!"
+
+    hide screen stein_controls_overlay
+
+    return
