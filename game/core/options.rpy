@@ -22,7 +22,7 @@ define config.name = "Just Sayori"
 define gui.show_name = True
 
 
-define config.version = "1.0.2"
+define config.version = "1.0.3"
 
 
 
@@ -205,9 +205,11 @@ init python:
     build.classify("game/dev.txt", None)
     build.classify("game/cache/**", None)
     build.classify("game/saves/**", None)
+    build.classify("letter.txt", None)
 
-    build.classify("game/bgm/**", None)
     build.classify('/music/*.*', None)
+
+    ##### Check this for android builds
     build.classify("game/bgm/**", None)
 
     # original stuff
@@ -228,9 +230,9 @@ init python:
     build.classify("renpy/**", "all")
     build.classify("lib/**", "all")
 
-    build.classify("game/images/bg/warning3.webp", "all")
-    build.classify("game/gui/scrollbar/horizontal_poem_bar_d.png", "all")
-    build.classify("game/gui/scrollbar/vertical_poem_bar_d.png", "all")
+    # build.classify("game/images/bg/warning3.webp", "all")
+    # build.classify("game/gui/scrollbar/horizontal_poem_bar_d.png", "all")
+    # build.classify("game/gui/scrollbar/vertical_poem_bar_d.png", "all")
 
 
 
