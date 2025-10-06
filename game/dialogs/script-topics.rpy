@@ -96,7 +96,7 @@ init python:
 label fae_gift:
     s "Sure!"
 
-    call check_for_gifts
+    call check_for_gifts from _call_check_for_gifts
 
     return
 
