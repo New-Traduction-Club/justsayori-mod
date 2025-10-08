@@ -17,7 +17,7 @@ init -499 screen hidden1(active=False):
         textbutton _("Talk") action [ SensitiveIf(active==True), Function(dlg)]
 
 
-        textbutton _("Music") action [ SensitiveIf(active==True), Show("modern_music_player")]
+        textbutton _("Music") action [ SensitiveIf(active==True), Jump("js_music_player_entry")]
 
         textbutton _("Play") action [ SensitiveIf(active==True), Function(mg)]
 
@@ -34,7 +34,7 @@ init -499 screen hidden_fake(active=False):
 
         textbutton _("VGFsaw==") action [ SensitiveIf(active==True), Function(dlg)]
 
-        textbutton _("TXVzaWM=") action [ SensitiveIf(active==True), Jump("music_menu")]
+        textbutton _("TXVzaWM=") action [ SensitiveIf(active==True), Jump("js_music_player_entry")]
 
         textbutton _("UGxheQ==") action [ SensitiveIf(active==True), Function(mg)]
 

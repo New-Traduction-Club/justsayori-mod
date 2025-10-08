@@ -96,7 +96,7 @@ init python:
 label fae_gift:
     s "Sure!"
 
-    call check_for_gifts
+    call check_for_gifts from _call_check_for_gifts
 
     return
 
@@ -3313,3 +3313,47 @@ label renpystein_demo:
     hide screen stein_controls_overlay
 
     return
+
+label js_music_player_entry:
+    if not persistent.js_music_player_tutorial_seen:
+        s eabbaa "Welcome to the music player, [player]!"
+        s ebfbaa "You can use this to listen to all sorts of songs while we spend time together."
+        s ebfdac "It makes everything feel extra special, you know?"
+        s ebfcao "Oh! And the best part is that you can add your very own music for us to listen to!"
+        s ebbbas "It's really easy, I'll show you!"
+        s ebbbao "First, you need to find the 'game' folder in the mod's files."
+        s ebgbao "Inside there, you'll see a folder called 'custom_music'."
+        s ebhhao "You can just put your songs right in there."
+        s ebhejd "Just make sure they are in the .ogg format, okay? "
+        s ebhhao "That's the one the game likes to read."
+        s ebgcao "I'm so excited to hear your favorite songs! It'll be like sharing a little piece of your world with me."
+        s ebgbdia "Have fun!"
+        extend abhfaa " Here we go!{fast}"
+        $ persistent.js_music_player_tutorial_seen = True
+    
+    call screen modern_music_player
+    return
+
+init python:
+
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="js_music_reminder",
+            unlocked=True,
+            prompt=_("Can you remind me how to add custom music?"),
+            random=False,
+            conditional="store.persistent.js_music_player_tutorial_seen",
+            category=[_("Music")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
+
+# This is the dialogue for the reminder topic.
+label js_music_reminder:
+    s abbbaoa "Of course, [player]!"
+    s abfdaoa "If you want to add your own songs for us to listen to, you just need to create the 'custom_music' folder."
+    s abbbaoa "Inside the 'game' folder!"
+    s abgbaoa "Just remember to use .ogg, .opus, .wav, .mp2, .mp3 or .flac files."
+    s abfddab "I'm always happy to listen to songs that you like!"
+    return "seen"

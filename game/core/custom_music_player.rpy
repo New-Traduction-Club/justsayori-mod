@@ -1,3 +1,5 @@
+default persistent.js_music_player_tutorial_seen = False
+
 # Defines a dedicated audio channel for the music player to avoid conflicts
 init python:
     renpy.music.register_channel("custom_music", mixer="music", loop=True)
