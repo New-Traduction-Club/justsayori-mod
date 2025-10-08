@@ -19,7 +19,7 @@ init -499 screen hidden1(active=False):
 
         textbutton _("Music") action [ SensitiveIf(active==True), Jump("js_music_player_entry")]
 
-        textbutton _("Play") action [ SensitiveIf(active==True), Function(mg)]
+        textbutton _("Play") action [ SensitiveIf(active==True), Jump("mg_hub")]
 
 
 

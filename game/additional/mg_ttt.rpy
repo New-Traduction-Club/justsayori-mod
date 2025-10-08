@@ -74,34 +74,51 @@ init 10 python:
                         ttt(restart = True)
             
             def ttt_ai():
+                """
+                Simple AI priority:
+                1. Complete its own line (w_lines)
+                2. Block opponent (l_lines)
+                3. Extend a friendly line (f_lines)
+                4. Otherwise pick any empty cell
+                """
                 w_lines, l_lines, f_lines = [], [], []
-                
+
                 for i in range(1, 9):
                     clt, crt, line = ttt_check_line(i)
+                    # clt counts circles (False), crt counts crosses (True)
+                    # AI is Sayori when playerTurn just flipped to False (circle turn)
                     if clt == 2 and crt == 0:
-                        w_lines.append(line)
+                        w_lines.append(line)        # can win
                     elif crt == 2 and clt == 0:
-                        l_lines.append(line)
+                        l_lines.append(line)        # must block
                     elif clt > 0 and crt == 0:
-                        f_lines.append(line)
-                
-                if len(w_lines):
-                    line = renpy.random.choice(w_lines)
-                    for i in line:
-                        if ttt.field[i] is None:
-                            return ttt_turn(i)
-                if len(l_lines):
-                    line = renpy.random.choice(l_lines)
-                    for i in line:
-                        if ttt.field[i] is None:
-                            return ttt_turn(i)
-                if len(f_lines):
-                    line = renpy.random.choice(f_lines)
-                    line = filter(lambda x: ttt.field[x] is None, line)
-                    return ttt_turn(renpy.random.choice(line))
-                else:
-                    line = filter(lambda x: ttt.field[x] is None, range(9))
-                    return ttt_turn(renpy.random.choice(line))
+                        f_lines.append(line)        # favorable progress
+
+                # try to win
+                if w_lines:
+                    target = renpy.random.choice(w_lines)
+                    empties = [idx for idx in target if ttt.field[idx] is None]
+                    if empties:
+                        return ttt_turn(renpy.random.choice(empties))
+
+                # block opponent
+                if l_lines:
+                    target = renpy.random.choice(l_lines)
+                    empties = [idx for idx in target if ttt.field[idx] is None]
+                    if empties:
+                        return ttt_turn(renpy.random.choice(empties))
+
+                # favorable line
+                if f_lines:
+                    target = renpy.random.choice(f_lines)
+                    empties = [idx for idx in target if ttt.field[idx] is None]
+                    if empties:
+                        return ttt_turn(renpy.random.choice(empties))
+
+                # any empty cell
+                empties = [i for i, v in enumerate(ttt.field) if v is None]
+                if empties:
+                    return ttt_turn(renpy.random.choice(empties))
             
             self.new_state, self.check_state = ttt_new_state, ttt_check_state
             self.check_line, self.turn, self.ai = ttt_check_line, ttt_turn, ttt_ai
@@ -110,12 +127,26 @@ init 10 python:
             w = kwargs['winner']
             self.score[w] += 1
     
-    
+##### Wrapper for renpy 8.3.7
+init 11 python:
+    # Wrapper object so calls to work
+    class TTTWrapper(object):
+        def __call__(self, restart=False, winner=None):
+            # Forward to prep function
+            ttt_prep(self, restart, winner=winner)
+        def set_state(self, val):
+            self.state = val
+
+    # Ensure global exists even on first init pass (default is too late)
+    if "ttt" not in globals() or not isinstance(ttt, TTTWrapper):
+        ttt = TTTWrapper()
+        ttt()  # Initial setup
 
 
 image line_black = "mod_assets/images/minigames/line.png"
 image line_red = "mod_assets/images/minigames/line_red.png"
 image line_blue = "mod_assets/images/minigames/line_blue.png"
+image paper = "images/bg/poem.jpg"
 
 image ttt_cross:
     Text("X", font = "gui/font/s1.ttf", size = 240, color = "#f00", outlines = [])
@@ -201,8 +232,10 @@ screen mg_ttt_scr():
 
 label mg_ttt:
     #$justIsSitting = False
+    if not hasattr(ttt, "field"):
+        $ ttt()
     hide sayori
-    show sayori 1a zorder 2 at i44
+    show sayori abaaaa zorder 2 at i44
     call screen mg_ttt_scr() nopredict
     return
 
@@ -210,51 +243,51 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
     if id == 0: # If sayori wins
         $ random_id = renpy.random.randint(0, 2)
         if random_id == 0:
-            s 2q "Okay, I win this game."
+            s abfcao "Okay, I win this game."
             s "You should have a better strategy next time."
         elif random_id == 1:
-            s 2r "Three in a row!"
-            s 2a "Just work on your tactics and try again."
+            s abfcao "Three in a row!"
+            s abhhao "Just work on your tactics and try again."
         else:
-            s 2e "Don't worry!"
+            s abhaao "Don't worry!"
             s "Maybe you'll win next time."
     elif id == 1: # Sayori's win
         $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:
-            s 5b "Okay, you win!"
-            s 5a "Next time I'll be more crafty."
+            s abfcao "Okay, you win!"
+            s abfcao "Next time I'll be more crafty."
         else:
-            s 1n "Oh, you've just got three in a row."
-            s 1l "You seem to be more clever than me."
-            s "Next time I'll try harder."
+            s abhhah "Oh, you've just got three in a row."
+            s abhhah "You seem to be more clever than me."
+            s abfcaa "Next time I'll try harder."
     elif id == 2:
         $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:# Draw
-            s 1k "Oh, the board is full."
+            s abhhah "Oh, the board is full."
             s "And no one got three in a row."
-            s "Let's just try again."
+            s abfcaa "Let's just try again."
         else:
-            s 4q "Don't worry!"
+            s 4abfcaaq "Don't worry!"
             s "Tic-Tac-Toe games often end up in a draw."
-            s "Maybe there will be a winner in the next game."
+            s abhhas "Maybe there will be a winner in the next game."
     else:
         $ random_id = renpy.random.randint(0, 1)
         if random_id == 0:# Restart
-            s 4o "Are you giving up?"
-            s 4c "Then we'll start again, but I'll get a point for this round."
+            s dbhham "Are you giving up?"
+            s abhaaa "Then we'll start again, but I'll get a point for this round."
         else:
-            s 3g "What's up, [player]?"
-            s "Okay, I'll restart the game..."
-            s 3r "But I'll be this round's winner."
+            s nbhaao "What's up, [player]?"
+            s abhaao "Okay, I'll restart the game..."
+            s cbhhag "But I'll be this round's winner."
     return
 
 label mg_ttt_s_turn:
-    show sayori 1k zorder 2 at i44
+    show sayori abaaaa zorder 2 at i44
     python:
         randTime = renpy.random.triangular(0.25, 2)
         renpy.pause(randTime)
         ttt.ai()
-    show sayori 1a zorder 2 at i44
+    show sayori dbhhkd zorder 2 at i44
     pause 0.25
     return
     
