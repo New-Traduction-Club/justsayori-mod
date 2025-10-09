@@ -104,6 +104,7 @@ init -20 python:
             
             
             
+            
             daytime_path = "mod_assets/rooms/{0}/{1}".format(image_directory, id + Rooms.DAY + Rooms.IMG_EXTENSION)
             night_path = "mod_assets/rooms/{0}/{1}".format(image_directory, id + Rooms.NIGHT + Rooms.IMG_EXTENSION)
 
@@ -123,17 +124,18 @@ init -20 python:
             # Nighttime tag
             self.nighttime_tag = "{0}_night".format(id)
 
-            # Register images
-            renpy.display.image.images.update({
-                (self.daytime_tag,): Image(daytime_path),
-                (self.nighttime_tag,): Image(night_path)
-            })
+            # CORRECCIÓN: Registrar imágenes usando la función estándar renpy.image.
+            # Esto es más robusto y soluciona el problema de las vistas previas.
+            renpy.image(self.daytime_tag, daytime_path)
+            renpy.image(self.nighttime_tag, night_path)
 
             if decoration_permitted is None:
                 self.decoration_permitted = list()
             
             self.when_enter = when_enter
             self.when_leave = when_leave
+
+            store.fae_rooms.ROOM_DEFS[self.id] = self
 
         def find_room_now(self):
 
@@ -284,7 +286,8 @@ init -20 python:
             # If it's day and we're showing the night room, we need to reset
             if self.is_daytime() and self.__is_seeing_day is False:
                 self.__is_seeing_day = True
-                self.form(dissolve_all=True)
+                # self.form(dissolve_all=True)
+                self.render(dissolve_all=True)
 
                 # Run events
                 self.night_to_day_switch()
@@ -292,7 +295,8 @@ init -20 python:
             # If it's night and we're showing the day room we should reset
             elif not self.is_daytime() and self.__is_seeing_day is True:
                 self.__is_seeing_day = False
-                self.form(dissolve_all=True)
+                # self.form(dissolve_all=True)
+                self.render(dissolve_all=True)
 
                 # Run event
                 self.day_to_night_switch()
@@ -304,7 +308,39 @@ init -20 python:
 
             persistent._present_room = self.room.id
 
-init 0 python:
+        def transition_to_room(self, trans=Dissolve(1.0)):
+            """
+            Shows the current room with a transition, correctly replacing the old one.
+            """
+            current_room_tag = self.room.find_room_now()
+            
+            renpy.show(current_room_tag, tag="main_bg", zorder=FAE_ROOM_ZORDER)
+            renpy.with_statement(trans)
+
+init -5 python in fae_rooms:
+    import store
+
+    def register_room(id, image_directory, **kwargs):
+        """
+        Public helper so submods can add rooms safely...
+        Usage (in any submod .rpy):
+            init 5 python:
+                import store.fae_rooms as fr
+                fr.register_room("forest", "forest")
+        Expects files:
+            mod_assets/rooms/{image_directory}/{id}-day.png
+            mod_assets/rooms/{image_directory}/{id}-night.png
+        Real Example:
+            mod_assets/rooms/forest/forest-night.png
+            mod_assets/rooms/forest/forest-night.png
+        """
+        if id in ROOM_DEFS:
+            return ROOM_DEFS[id]
+        room = store.Rooms(id=id, image_directory=image_directory, **kwargs)
+        ROOM_DEFS[id] = room
+        return room
+
+init 100 python:
 
     main_background = FAERooms(
         fae_sunup=int(store.persistent.fae_sunup),
@@ -328,8 +364,15 @@ init 0 python:
 
 
     
-    # Register the event handler
-    main_background.select_room(spaceroom)
+    
+    initial_room_id = persistent._present_room
+    if not initial_room_id or initial_room_id not in fae_rooms.ROOM_DEFS:
+        initial_room_id = "spaceroom"
+        persistent._present_room = "spaceroom"
+        
+    initial_room_obj = fae_rooms.ROOM_DEFS[initial_room_id]
+    
+    main_background.room = initial_room_obj
 
     # Run the appropriate eventhandler
     # If it's day, we need to run the switch and vice versa
@@ -338,7 +381,100 @@ init 0 python:
     
     else:
         main_background.day_to_night_switch()
-    
-    if persistent._present_room in fae_rooms.ROOM_DEFS:
-        main_background.room_switcher(persistent._present_room)
-    
+
+##### BGs selector
+default bg_selected_index = 0
+
+init -1 python:
+    def _bg_get_rooms():
+        import store
+        return sorted(store.fae_rooms.ROOM_DEFS.values(), key=lambda r: r.id)
+
+    def _bg_apply(room_obj):
+        """
+        Safe apply from a screen action:
+        - No with_statement / transition (evita 'Cannot start an interaction...')
+        - Actualiza room y lo muestra directamente.
+        - Guarda selección en persistent.
+        """
+        import store
+        store.main_background.room_switcher(room_obj)
+        store.main_background.save()
+        persistent._present_room = room_obj.id
+        renpy.hide_screen("bg_hub")
+
+screen bg_hub():
+    zorder 100
+    tag menu
+    modal True
+
+    add Solid("#000000cc")
+
+    $ _rooms = _bg_get_rooms()
+    $ bg_selected_index = 0 if not _rooms else min(bg_selected_index, len(_rooms)-1)
+    $ _current = _rooms[bg_selected_index] if _rooms else None
+
+    $ THUMB_W = 180
+    $ THUMB_H = 102
+    $ DETAIL_W = 406
+    $ DETAIL_H = 228
+    $ BASE_H = 720.0
+
+    frame style "mg_hub_frame" xalign 0.5 yalign 0.5 xsize 1180 ysize 620:
+        hbox:
+            spacing 40
+
+            viewport style "mg_cards_viewport" xsize 620 yfill True scrollbars "vertical" mousewheel True:
+                grid 3 18:
+                    for idx, r in enumerate(_rooms):
+                        $ selected = (idx == bg_selected_index)
+                        $ _btn_style = "mg_card_button_selected" if selected else "mg_card_button"
+                        
+                        button style _btn_style:
+                            action [SetVariable("bg_selected_index", idx), Hide("bg_hub"), Show("bg_hub")]
+                            at mg_card_hover
+                            ysize THUMB_H + 30
+                            
+                            vbox:
+                                spacing 4
+                                frame:
+                                    background Solid("#000")
+                                    xsize THUMB_W
+                                    ysize THUMB_H
+                                    clipping True
+                                    
+                                    add r.daytime_tag:
+                                        zoom THUMB_H / BASE_H
+                                        xalign 0.5
+                                        yalign 0.5
+                                
+                                text r.id style "mg_card_title" size 14
+
+            vbox style "song_info_vbox" xsize DETAIL_W:
+                if _current:
+                    frame:
+                        background Solid("#000")
+                        xsize DETAIL_W
+                        ysize DETAIL_H
+                        clipping True
+                        
+                        add _current.daytime_tag:
+                            zoom DETAIL_H / BASE_H
+                            xalign 0.5
+                            yalign 0.5
+                        
+                    text _current.id style "mg_detail_title"
+                    text _("Ready to change!") style "mg_detail_desc"
+                    
+                    textbutton _("Change") style "big_play_button" text_style "big_play_button_text" action [
+                        Function(_bg_apply, _current),
+                        Return(True)
+                    ]
+                else:
+                    frame style "song_image_placeholder" xsize DETAIL_W ysize DETAIL_H
+                    text _("Select a background") style "mg_detail_title"
+
+                textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [
+                    Hide("bg_hub"),
+                    Return(False)
+                ]

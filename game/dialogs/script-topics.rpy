@@ -3357,3 +3357,34 @@ label js_music_reminder:
     s abgbaoa "Just remember to use .ogg, .opus, .wav, .mp2, .mp3 or .flac files."
     s abfddab "I'm always happy to listen to songs that you like!"
     return "seen"
+
+init python:
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="s_topic_backgrounds",
+            unlocked=True,
+            prompt=_("Change background"),
+            random=False,
+            category=[_("Environment"), _("Misc")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
+
+label s_topic_backgrounds:
+    if persistent.js_bgs_change_seen:
+        s abhaaca "Would you like to change the background where we are right now?"
+        call screen bg_hub
+        if _return:
+            $ main_background.transition_to_room(Dissolve(1.0))
+            s abgbcaa "All done? If you want another one, just ask me again!"
+    else:
+        s abhaaca "Would you like to change the background where we are right now?"
+        s abbbaoa "I've prepared a little selector for you!"
+        s abfcaaa "Just pick one and I'll change it right away!"
+        call screen bg_hub
+        if _return:
+            $ main_background.transition_to_room(Dissolve(1.0))
+            s abgbcaa "All done? If you want another one, just ask me again!"
+            $ persistent.js_bgs_change_seen = True
+    return

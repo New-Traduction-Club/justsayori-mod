@@ -36,7 +36,7 @@ init -499 screen hidden_fake(active=False):
 
         textbutton _("TXVzaWM=") action [ SensitiveIf(active==True), Jump("js_music_player_entry")]
 
-        textbutton _("UGxheQ==") action [ SensitiveIf(active==True), Function(mg)]
+        textbutton _("UGxheQ==") action [ SensitiveIf(active==True), Jump("mg_hub")]
 
 
 
