@@ -1388,228 +1388,228 @@ screen nvl_dialogue(dialogue):
 
 
 
-init python:
-    import subprocess
-    import platform
+# init python:
+#     import subprocess
+#     import platform
 
-    cursor = 0
+#     cursor = 0
 
-    def fakePercent(st, at, winver):
+#     def fakePercent(st, at, winver):
         
-        if int(0 + (st * 5)) < 100:
-            percent = int(0 + (st * 5))
-        else:
-            percent = 100
+#         if int(0 + (st * 5)) < 100:
+#             percent = int(0 + (st * 5))
+#         else:
+#             percent = 100
         
-        if winver == 8:
-            d = Text(_("we'll restart for you. (" + str(percent) + "% complete)\n"), style="bsod_win8_text", size=26)
-        else:
-            d = Text(str(percent) + "% complete", style="bsod_win10_text", line_leading=25)
+#         if winver == 8:
+#             d = Text(_("we'll restart for you. (" + str(percent) + "% complete)\n"), style="bsod_win8_text", size=26)
+#         else:
+#             d = Text(str(percent) + "% complete", style="bsod_win10_text", line_leading=25)
         
-        if percent < 100:
-            return d, renpy.random.randint(1, 3)
-        else:
-            return d, None
+#         if percent < 100:
+#             return d, renpy.random.randint(1, 3)
+#         else:
+#             return d, None
 
-    def constantCursor(st, at):
-        global cursor
-        if cursor == 0:
-            cursor = 1
-            return Text("  _", style="bsod_linux_text"), 0.5
-        else:
-            cursor = 0
-            return Text("   ", style="bsod_linux_text"), 0.5
-
-
-    if renpy.windows:
-        try: osVer = tuple(map(int, subprocess.check_output("powershell (Get-WmiObject -class Win32_OperatingSystem).Version", shell=True).split("."))) 
-        except: osVer = tuple(map(int, platform.version().split("."))) or (5, 1, 2600) 
-
-screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=False):
-
-    layer "master"
-
-    if renpy.windows:
-
-        if osVer < (6, 2, 9200):
-
-            add Solid("#000082")
-
-            vbox:
-
-                style_prefix "bsod_win7"
-
-                text _("A problem has been detected and Windows has been shut down to prevent damage to your computer.")
-                text _("The problem seems to be caused by the following file: ") + bsodFile.upper()
-                text bsodCode.upper()
-                text _("If this is the first time you've seen this Stop error screen, restart your computer. If this screens appears again, follow these steps:")
-                text _("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
-                text _("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
-                text _("Technical information:")
-                text _("*** STOP: 0x00000051 (OXFD69420, 0x00000005, OXFBF92317" + ", 0x00000000)\n")
-                text _("*** ") + bsodFile.upper() + _("  -  Address FBF92317 base at FBF102721, Datestamp 3d6dd67c")
-
-        elif osVer < (10, 0, 10240):
-
-            add Solid("#1273aa")
-
-            style_prefix "bsod_win8"
-
-            vbox:
-
-                xalign 0.5
-                yalign 0.4
-
-                text _(":(") style "bsod_win8_sad_text"
-                text _("Your PC ran into a problem and needs to restart.")
-                text _("We're just collecting some error info, and then")
-                add DynamicDisplayable(fakePercent, 8)
-                text _("If you'd like to know more, you can search online later for this error: ") + bsodCode.upper() style "bsod_win8_sub_text"
-
-        else:
-
-            if osVer < (10, 0, 22000):
-
-                add Solid("#0078d7")
-
-            else:
-
-                if not rsod:
-
-                    add Solid("#000000")
-                    python:
-                        blackCol = "#0078d7"
-
-                else:
-
-                    add Solid("#d40e0eff")
-                    python:
-                        blackCol = "#f00"
-
-            style_prefix "bsod_win10"
-
-            vbox:
-
-                xalign 0.3
-                yalign 0.3
-
-                text _(":(") style "bsod_win10_sad_text"
-
-                if osVer < (10, 0, 22000):
-
-                    text _("Your PC ran into a problem and needs to restart. We're")
-                    text _("just collecting some error info, and then we'll restart for")
-                    text _("you.")
-
-                else:
-
-                    text _("Your device ran into a problem and needs to restart.")
-                    text _("We're just collecting some error info, and then you can")
-                    text _("restart.")
-
-                add DynamicDisplayable(fakePercent, 10)
-
-                hbox:
-
-                    if osVer < (10, 0, 22000):
-
-                        vbox:
-                            text "" line_leading -3
-                            add im.MatrixColor("mod_assets/frame.png", im.matrix.colorize("#0078d7", "#fff"), ) at bsod_qrcode(100)
-                        vbox:
-                            xpos 0.03
-                            spacing 4
-                            text _("For more information about this issue and possible fixes, visit https://www.windows.com/stopcode") style "bsod_win10_info_text" line_leading 25
-                            text _("If you call a support person, give them this info:") style "bsod_win10_sub_text" line_leading 25
-                            text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
-
-                    else:
-
-                        vbox:
-                            text "" line_leading -3
-                            add im.MatrixColor("mod_assets/frame.png", im.matrix.colorize(blackCol, "#fff"), ) at bsod_qrcode(150)
-                        vbox:
-                            xpos 0.03
-                            spacing 4
-                            text _("For more information about this issue and possible fixes, visit") style "bsod_win10_info_text" line_leading 25
-                            text _("https://www.windows.com/stopcode\n") style "bsod_win10_info_text"
-                            text _("If you call a support person, give them this info:") style "bsod_win10_sub_text"
-                            text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
-
-    elif renpy.macintosh:
-
-        add Solid("#222")
-
-        add im.MatrixColor("mod_assets/DDLCModTemplateLogo.png", im.matrix.desaturate() * im.matrix.brightness(-0.36)) at bsod_qrcode(440) xalign 0.5 yalign 0.54
-        vbox:
-
-            style_prefix "bsod_mac"
-            xalign 0.53
-            yalign 0.51
-
-            text _("You need to restart your computer. Hold down the Power\n")
-            text _("button until it turns off, then press the Power button again.") line_spacing 25
-            text _("Redémarrez l'ordinateur. Enfoncez le bouton de démarrage\n")
-            text _("jusqu'à l'extinction, puis appuyez dessus une nouvelle fois.") line_spacing 25
-            text _("Debe reiniciar el o rdenador. Mantenga pulsado el botón de\n")
-            text _("arranque hasta que se apague y luego vuelva a pulsarlo.") line_spacing 25
-            text _("Sie müssen den Computer neu starten. Halten Sie den\n")
-            text _("Ein-/Ausschalter gedrückt bis das Gerät ausgeschaltet ist\n")
-            text _("und drücken Sie ihn dann erneut.") line_spacing 25
-            text _("Devi riavviare il computer. Tieni premuto il pulsante di\n")
-            text _("accensione finché non si spegne, quindi premi di nuovo il\n")
-            text _("pulsante di accensione.")
-
-    else:
-
-        add Solid("#000")
-
-        vbox:
-            style_prefix "bsod_linux"
-
-            text _("metaverse-pci.c:v[config.version] 9/22/2017 Metaverse Enterprise Solutions\n")
-            text _("  https://www.metaverse-enterprise.com/network/metaverse-pci.html")
-            text _("hda0: METAVERSE ENTERPRISE VIRTUAL HARDDISK, ATA DISK drive")
-            text _("ide0 at 0x1f0 - 0x1f7, 0x3f6 on irq 14")
-            text _("hdc: METAVERSE ENTERPRISE VIRTUAL CD-ROM, ATAPI CD/DVD-ROM drive")
-            text _("ide1 at 0x444 - 0x910, 0x211 on irq 15")
-            text _("fd0: METAVERSE ENTERPRISE VIRTUAL FLOPPY, ATA FLOPPY drive")
-            text _("ide2 at 0x7363-0x6e6565, 0x4569 on irq 16")
-            text _("ACPI: PCI Interrupt Link [[LNKC]] ebabked at IRQ 10")
-            text _("ACPI: PCI Interrupt 0000:00:03:.0[[A]] -> Link [[LNKC]] -> GSI 10 (level, low) -> IRQ 10")
-            text _("eno1: Metaverse Enterprise LIB-0922 found at 0xc453, IRQ 10, 09:10:21:86:75:30")
-            text _("hda: max request size: 512KiB")
-            text _("hda: 2147483648 sectors (1 TB) w/256KiB Cache, CHS=178/255/63, (U)DMA")
-            text _("hda: hda1")
-            text _("hdc: ATAPI 4x CD-ROM drive, 512kB Cache, (U)DMA")
-            text _("Uniform CD-ROM driver Revision: 3.20")
-            text _("Done.")
-            text _("Begin: DDLC.so")
-            text _("Done.")
-            text _("DDLC.so: global natsukiTime undeclared.")
-            text _("DDLC.so: global sayoriTime undeclared.")
-            text _("DDLC.so: global yuriTime undeclared.")
-            text _("DDLC.so: global monikaTime undeclared.")
-            text _("DDLC.so: SUCCESS.")
-            text _("Begin: DDLC.so -> linux-4.12.14")
-            text _("/init: /init: 151: ") + bsodCode.upper() + _(": 0xforce=panic")
-            text _("Kernel panic - not syncing: Attempted to kill init!")
-            add DynamicDisplayable(constantCursor)
-
-    add Solid("#000000") at bsod_transition
+#     def constantCursor(st, at):
+#         global cursor
+#         if cursor == 0:
+#             cursor = 1
+#             return Text("  _", style="bsod_linux_text"), 0.5
+#         else:
+#             cursor = 0
+#             return Text("   ", style="bsod_linux_text"), 0.5
 
 
-transform bsod_transition:
-    "black"
-    0.1
-    yoffset 250
-    0.1
-    yoffset 500
-    0.1
-    yoffset 750
+#     if renpy.windows:
+#         try: osVer = tuple(map(int, subprocess.check_output("powershell (Get-WmiObject -class Win32_OperatingSystem).Version", shell=True).split("."))) 
+#         except: osVer = tuple(map(int, platform.version().split("."))) or (5, 1, 2600) 
 
-transform bsod_qrcode(x):
-    size (x,x)
+# screen bsod(bsodCode="DDLC_ESCAPE_PLAN_FAILED", bsodFile="libGLESv2.dll", rsod=False):
+
+#     layer "master"
+
+#     if renpy.windows:
+
+#         if osVer < (6, 2, 9200):
+
+#             add Solid("#000082")
+
+#             vbox:
+
+#                 style_prefix "bsod_win7"
+
+#                 text _("A problem has been detected and Windows has been shut down to prevent damage to your computer.")
+#                 text _("The problem seems to be caused by the following file: ") + bsodFile.upper()
+#                 text bsodCode.upper()
+#                 text _("If this is the first time you've seen this Stop error screen, restart your computer. If this screens appears again, follow these steps:")
+#                 text _("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
+#                 text _("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
+#                 text _("Technical information:")
+#                 text _("*** STOP: 0x00000051 (OXFD69420, 0x00000005, OXFBF92317" + ", 0x00000000)\n")
+#                 text _("*** ") + bsodFile.upper() + _("  -  Address FBF92317 base at FBF102721, Datestamp 3d6dd67c")
+
+#         elif osVer < (10, 0, 10240):
+
+#             add Solid("#1273aa")
+
+#             style_prefix "bsod_win8"
+
+#             vbox:
+
+#                 xalign 0.5
+#                 yalign 0.4
+
+#                 text _(":(") style "bsod_win8_sad_text"
+#                 text _("Your PC ran into a problem and needs to restart.")
+#                 text _("We're just collecting some error info, and then")
+#                 add DynamicDisplayable(fakePercent, 8)
+#                 text _("If you'd like to know more, you can search online later for this error: ") + bsodCode.upper() style "bsod_win8_sub_text"
+
+#         else:
+
+#             if osVer < (10, 0, 22000):
+
+#                 add Solid("#0078d7")
+
+#             else:
+
+#                 if not rsod:
+
+#                     add Solid("#000000")
+#                     python:
+#                         blackCol = "#0078d7"
+
+#                 else:
+
+#                     add Solid("#d40e0eff")
+#                     python:
+#                         blackCol = "#f00"
+
+#             style_prefix "bsod_win10"
+
+#             vbox:
+
+#                 xalign 0.3
+#                 yalign 0.3
+
+#                 text _(":(") style "bsod_win10_sad_text"
+
+#                 if osVer < (10, 0, 22000):
+
+#                     text _("Your PC ran into a problem and needs to restart. We're")
+#                     text _("just collecting some error info, and then we'll restart for")
+#                     text _("you.")
+
+#                 else:
+
+#                     text _("Your device ran into a problem and needs to restart.")
+#                     text _("We're just collecting some error info, and then you can")
+#                     text _("restart.")
+
+#                 add DynamicDisplayable(fakePercent, 10)
+
+#                 hbox:
+
+#                     if osVer < (10, 0, 22000):
+
+#                         vbox:
+#                             text "" line_leading -3
+#                             add im.MatrixColor("mod_assets/frame.png", im.matrix.colorize("#0078d7", "#fff"), ) at bsod_qrcode(100)
+#                         vbox:
+#                             xpos 0.03
+#                             spacing 4
+#                             text _("For more information about this issue and possible fixes, visit https://www.windows.com/stopcode") style "bsod_win10_info_text" line_leading 25
+#                             text _("If you call a support person, give them this info:") style "bsod_win10_sub_text" line_leading 25
+#                             text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
+
+#                     else:
+
+#                         vbox:
+#                             text "" line_leading -3
+#                             add im.MatrixColor("mod_assets/frame.png", im.matrix.colorize(blackCol, "#fff"), ) at bsod_qrcode(150)
+#                         vbox:
+#                             xpos 0.03
+#                             spacing 4
+#                             text _("For more information about this issue and possible fixes, visit") style "bsod_win10_info_text" line_leading 25
+#                             text _("https://www.windows.com/stopcode\n") style "bsod_win10_info_text"
+#                             text _("If you call a support person, give them this info:") style "bsod_win10_sub_text"
+#                             text _("Stop code: ") + bsodCode.upper() style "bsod_win10_sub_text"
+
+#     elif renpy.macintosh:
+
+#         add Solid("#222")
+
+#         add im.MatrixColor("mod_assets/DDLCModTemplateLogo.png", im.matrix.desaturate() * im.matrix.brightness(-0.36)) at bsod_qrcode(440) xalign 0.5 yalign 0.54
+#         vbox:
+
+#             style_prefix "bsod_mac"
+#             xalign 0.53
+#             yalign 0.51
+
+#             text _("You need to restart your computer. Hold down the Power\n")
+#             text _("button until it turns off, then press the Power button again.") line_spacing 25
+#             text _("Redémarrez l'ordinateur. Enfoncez le bouton de démarrage\n")
+#             text _("jusqu'à l'extinction, puis appuyez dessus une nouvelle fois.") line_spacing 25
+#             text _("Debe reiniciar el o rdenador. Mantenga pulsado el botón de\n")
+#             text _("arranque hasta que se apague y luego vuelva a pulsarlo.") line_spacing 25
+#             text _("Sie müssen den Computer neu starten. Halten Sie den\n")
+#             text _("Ein-/Ausschalter gedrückt bis das Gerät ausgeschaltet ist\n")
+#             text _("und drücken Sie ihn dann erneut.") line_spacing 25
+#             text _("Devi riavviare il computer. Tieni premuto il pulsante di\n")
+#             text _("accensione finché non si spegne, quindi premi di nuovo il\n")
+#             text _("pulsante di accensione.")
+
+#     else:
+
+#         add Solid("#000")
+
+#         vbox:
+#             style_prefix "bsod_linux"
+
+#             text _("metaverse-pci.c:v[config.version] 9/22/2017 Metaverse Enterprise Solutions\n")
+#             text _("  https://www.metaverse-enterprise.com/network/metaverse-pci.html")
+#             text _("hda0: METAVERSE ENTERPRISE VIRTUAL HARDDISK, ATA DISK drive")
+#             text _("ide0 at 0x1f0 - 0x1f7, 0x3f6 on irq 14")
+#             text _("hdc: METAVERSE ENTERPRISE VIRTUAL CD-ROM, ATAPI CD/DVD-ROM drive")
+#             text _("ide1 at 0x444 - 0x910, 0x211 on irq 15")
+#             text _("fd0: METAVERSE ENTERPRISE VIRTUAL FLOPPY, ATA FLOPPY drive")
+#             text _("ide2 at 0x7363-0x6e6565, 0x4569 on irq 16")
+#             text _("ACPI: PCI Interrupt Link [[LNKC]] ebabked at IRQ 10")
+#             text _("ACPI: PCI Interrupt 0000:00:03:.0[[A]] -> Link [[LNKC]] -> GSI 10 (level, low) -> IRQ 10")
+#             text _("eno1: Metaverse Enterprise LIB-0922 found at 0xc453, IRQ 10, 09:10:21:86:75:30")
+#             text _("hda: max request size: 512KiB")
+#             text _("hda: 2147483648 sectors (1 TB) w/256KiB Cache, CHS=178/255/63, (U)DMA")
+#             text _("hda: hda1")
+#             text _("hdc: ATAPI 4x CD-ROM drive, 512kB Cache, (U)DMA")
+#             text _("Uniform CD-ROM driver Revision: 3.20")
+#             text _("Done.")
+#             text _("Begin: DDLC.so")
+#             text _("Done.")
+#             text _("DDLC.so: global natsukiTime undeclared.")
+#             text _("DDLC.so: global sayoriTime undeclared.")
+#             text _("DDLC.so: global yuriTime undeclared.")
+#             text _("DDLC.so: global monikaTime undeclared.")
+#             text _("DDLC.so: SUCCESS.")
+#             text _("Begin: DDLC.so -> linux-4.12.14")
+#             text _("/init: /init: 151: ") + bsodCode.upper() + _(": 0xforce=panic")
+#             text _("Kernel panic - not syncing: Attempted to kill init!")
+#             add DynamicDisplayable(constantCursor)
+
+#     add Solid("#000000") at bsod_transition
+
+
+# transform bsod_transition:
+#     "black"
+#     0.1
+#     yoffset 250
+#     0.1
+#     yoffset 500
+#     0.1
+#     yoffset 750
+
+# transform bsod_qrcode(x):
+#     size (x,x)
 
 
 
