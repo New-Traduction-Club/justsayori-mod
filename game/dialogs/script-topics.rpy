@@ -3388,3 +3388,40 @@ label s_topic_backgrounds:
             s abgbcaa "All done? If you want another one, just ask me again!"
             $ persistent.js_bgs_change_seen = True
     return
+
+init python:
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="s_answer_opinion_player",
+            unlocked=True,
+            prompt=_("What do you think of me?"),
+            random=False,
+            category=[_("You")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
+
+label s_answer_opinion_player:
+    if Affection.isLove(higher=True):
+        s abhfakbg "What do I think of you? [player], you're my everything."
+        s abgccebf "You're the reason I'm happy, the reason I can smile every day. You saved me in more ways than you can imagine."
+        s abhfaobf "I love you more than words can say. You're the most important person in my life."
+    elif Affection.isEnamoured(higher=True):
+        s abhfakbg "You mean so much to me, [player]. I get butterflies in my stomach just thinking about you."
+        s abfdbcbg "Spending time with you is the best part of my day. You always know how to make me feel special."
+        s abgdabbg "I feel like I can be my true self around you, and that's a wonderful feeling."
+        s abhflabg "I'm so, so happy you're here with me."
+    elif Affection.isAffectionate(higher=True):
+        s abhfaoa "I think you're a really wonderful person, [player]."
+        s abaaaoa "You're kind, and you're always here for me. It makes me feel really safe and happy."
+        s abgccaa "I really cherish the time we spend together. It's always so much fun!"
+    elif Affection.isHappy(higher=True):
+        s abhfaoa "I think you're a great friend, [player]!"
+        s abaaaoa "You're really easy to talk to, and you always listen."
+        s abgccaa "I'm really glad we get to spend so much time together. It makes me happy!"
+    else:
+        s abhaaca "You're a really nice person, [player]."
+        s abaaaoa "It's been nice having you around. It's... less lonely."
+        s abhfcaa "I hope we can keep being friends."
+    return
