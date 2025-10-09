@@ -124,8 +124,6 @@ init -20 python:
             # Nighttime tag
             self.nighttime_tag = "{0}_night".format(id)
 
-            # CORRECCIÓN: Registrar imágenes usando la función estándar renpy.image.
-            # Esto es más robusto y soluciona el problema de las vistas previas.
             renpy.image(self.daytime_tag, daytime_path)
             renpy.image(self.nighttime_tag, night_path)
 
