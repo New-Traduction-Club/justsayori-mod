@@ -109,7 +109,7 @@ This mod is designed for use with a copy of the original game by Team Salvato, a
 ### Android
 
 1. Download the latest port [here](https://link.traduction-club.live/7I8jSN).
-2. Updated your mod by click `Update` button when you try to install the APK.
+2. Update your mod by click `Update` button when you try to install the APK.
 3. Enjoy.
 
 ---
