@@ -267,7 +267,7 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
             s "And no one got three in a row."
             s abfcaa "Let's just try again."
         else:
-            s 4abfcaaq "Don't worry!"
+            s abfcaa "Don't worry!"
             s "Tic-Tac-Toe games often end up in a draw."
             s abhhas "Maybe there will be a winner in the next game."
     else:
