@@ -3349,7 +3349,6 @@ init python:
         chat_group=CHAT_GROUP_NORMAL
     )
 
-# This is the dialogue for the reminder topic.
 label js_music_reminder:
     s abbbaoa "Of course, [player]!"
     s abfdaoa "If you want to add your own songs for us to listen to, you just need to create the 'custom_music' folder."
@@ -3366,7 +3365,7 @@ init python:
             unlocked=True,
             prompt=_("Change background"),
             random=False,
-            category=[_("Environment"), _("Misc")]
+            category=[_("Location"), _("Misc")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )
