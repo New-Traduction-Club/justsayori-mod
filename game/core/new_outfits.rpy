@@ -5,6 +5,14 @@ init -2:
     default persistent.fae_outfit_list = {}
     default persistent.fae_wearable_list = {}
 
+    # Persistent variables for the current custom outfit
+    default persistent.sayo_hairstyle = None
+    default persistent.sayo_clothes = None
+    default persistent.sayo_accessory = None
+    default persistent.sayo_eyewear = None
+    default persistent.sayo_headgear = None
+    default persistent.sayo_necklace = None
+
 init -1 python in fae_outfits:
     from Enum import Enum
     import json
@@ -20,7 +28,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__CUSTOM_WEARABLES_DIRECTORY = os.path.join(renpy.config.basedir, "game/mod_assets/sayori/sitting/jsons/").replace("\\", "/")
     _m1_new_outfits__CUSTOM_OUTFITS_DIRECTORY = os.path.join(renpy.config.basedir, "game/mod_assets/sayori/sitting/jsons/").replace("\\", "/")
-    _m1_new_outfits__WEARABLE_BASE_PATH = os.path.join(renpy.config.basedir, "game/mod_assets/sayori/sitting/")
+    _m1_new_outfits__WEARABLE_BASE_PATH = os.path.join(renpy.config.basedir, "game", "mod_assets", "sayori", "sitting")
 
     _m1_new_outfits__RESTRICTED_CHARACTERS_REGEX = "((\.)|(\[)|(\])|(\})|(\{)|(,)|(\!))"
 
@@ -52,13 +60,15 @@ init -1 python in fae_outfits:
             reference_name,
             display_name,
             unlocked,
-            is_fae_wearable
+            is_fae_wearable,
+            author="Unknown"
         ):
             
             self.reference_name = reference_name
             self.display_name = display_name
             self.unlocked = unlocked
             self.is_fae_wearable = is_fae_wearable
+            self.author = author
         
         
         @staticmethod
@@ -447,14 +457,33 @@ init -1 python in fae_outfits:
         
         
         if isinstance(wearable, FAEClothes):
-            
-            sleeves_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "arms", wearable.reference_name, "{0}.png".format(pose.name))
-            clothes_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "body", wearable.reference_name, "{0}.png".format(pose.name))
-            
-            if not fae_utilities.doesExist(sleeves_path) or not fae_utilities.doesExist(clothes_path):
-                fae_utilities.log("Missing body/arms sprite(s) for {0}".format(wearable.reference_name))
+            # Check the main body sprite
+            body_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "body", wearable.reference_name, "1.png")
+            if not fae_utilities.doesExist(body_path):
+                fae_utilities.log("Missing body sprite for {0}: {1}".format(wearable.reference_name, body_path))
                 return False
-        
+
+            # Check all arm poses
+            for pose_key, pose_value in fae_sprites.ARMS_DEF.items():
+                sleeves_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "arms", wearable.reference_name, "{0}.png".format(pose_value))
+                if not fae_utilities.doesExist(sleeves_path):
+                    fae_utilities.log("Missing arms sprite for {0} (pose {1}): {2}".format(wearable.reference_name, pose_key, sleeves_path))
+                    return False
+
+            # Check all arm2 poses
+            for pose_key, pose_value in fae_sprites.ARMS2_DEF.items():
+                sleeves_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "arms", wearable.reference_name, "{0}.png".format(pose_value))
+                if not fae_utilities.doesExist(sleeves_path):
+                    fae_utilities.log("Missing arms2 sprite for {0} (pose {1}): {2}".format(wearable.reference_name, pose_key, sleeves_path))
+                    return False
+
+            # Check all backarm poses
+            for pose_key, pose_value in fae_sprites.BACKARM_DEF.items():
+                backarm_path = os.path.join(_m1_new_outfits__WEARABLE_BASE_PATH, "backarms", wearable.reference_name, "{0}.png".format(pose_value))
+                if not fae_utilities.doesExist(backarm_path):
+                    fae_utilities.log("Missing backarms sprite for {0} (pose {1}): {2}".format(wearable.reference_name, pose_key, backarm_path))
+                    return False
+
         elif isinstance(wearable, FAEHairstyle):
             hair_path = os.path.join(WEARABLE_COMMON_PATH, "hair", wearable.reference_name, "a.png")
             
@@ -478,6 +507,7 @@ init -1 python in fae_outfits:
             or "display_name" not in json
             or "unlocked" not in json
             or "category" not in json
+            or "author" not in json
         ):
             fae_utilities.log("Cannot load wearable as one or more key attributes do not exist.")
             return False
@@ -488,6 +518,7 @@ init -1 python in fae_outfits:
             or not isinstance(json["unlocked"], bool)
             or not isinstance(json["category"], basestring)
             or not json["category"] in WEARABLE_CATEGORIES
+            or not isinstance(json["author"], basestring)
         ):
             fae_utilities.log("Cannot load wearable {0} as one or more attributes are the wrong data type.".format(json["reference_name"]))
             return False
@@ -506,7 +537,8 @@ init -1 python in fae_outfits:
                 "reference_name": json["reference_name"],
                 "display_name": json["display_name"],
                 "unlocked": json["unlocked"],
-                "is_fae_wearable": False
+                "is_fae_wearable": False,
+                "author": json["author"]
             }
             
             if json["category"] == "hairstyle":
@@ -846,9 +878,10 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEWearable(
         reference_name="fae_none",
-        display_name="None",
+        display_name="Nothing",
         unlocked=False,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Nothing..."
     )
     )
 
@@ -856,28 +889,32 @@ init -1 python in fae_outfits:
         reference_name="fae_bow",
         display_name="Bow",
         unlocked=True,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Forever & Ever Team"
     ))
 
     _m1_new_outfits__register_wearable(FAEHairstyle(
         reference_name="fae_bowless",
         display_name="Bowless",
         unlocked=True,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Forever & Ever Team"
     ))
 
     _m1_new_outfits__register_wearable(FAEClothes(
         reference_name="fae_uniform",
         display_name="School Uniform",
         unlocked=True,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Forever & Ever Team"
     ))
 
     _m1_new_outfits__register_wearable(FAEClothes(
         reference_name="base",
         display_name="Base",
         unlocked=True,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Forever & Ever Team"
     ))
 
 
@@ -885,29 +922,33 @@ init -1 python in fae_outfits:
         reference_name="fae_hoodie",
         display_name="Black Hoodie",
         unlocked=True,
-        is_fae_wearable = True
+        is_fae_wearable = True,
+        author="Forever & Ever Team"
     ))
 
-    _m1_new_outfits__register_wearable(FAEClothes(
-        reference_name="casual",
-        display_name="Tank Top",
-        unlocked=True,
-        is_fae_wearable=True
-    ))
+    # _m1_new_outfits__register_wearable(FAEClothes(
+    #     reference_name="casual",
+    #     display_name="Tank Top",
+    #     unlocked=True,
+    #     is_fae_wearable=True,
+    #     author="Forever & Ever Team"
+    # ))
 
     _m1_new_outfits__register_wearable(FAENecklace(
         reference_name="fae_scarf",
         display_name="Scarf",
         unlocked=False,
-        is_fae_wearable=True
+        is_fae_wearable=True,
+        author="Forever & Ever Team"
     ))
 
-    _m1_new_outfits__register_wearable(FAEAccessory(
-        reference_name="fae_headphones",
-        display_name="Headphones",
-        unlocked=True,
-        is_fae_wearable=True
-    ))
+    # _m1_new_outfits__register_wearable(FAEAccessory(
+    #     reference_name="fae_headphones",
+    #     display_name="Headphones",
+    #     unlocked=True,
+    #     is_fae_wearable=True,
+    #     author="Forever & Ever Team"
+    # ))
 
 
     _m1_new_outfits__register_outfit(FAEOutfit(

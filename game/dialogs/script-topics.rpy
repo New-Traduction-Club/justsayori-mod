@@ -3425,3 +3425,22 @@ label s_answer_opinion_player:
         s abaaaoa "It's been nice having you around. It's... less lonely."
         s abhfcaa "I hope we can keep being friends."
     return
+
+init python:
+    chatReg(
+        Chat(
+            persistent._chat_db,
+            label="fae_change_outfits",
+            unlocked=True,
+            prompt=_("Suggest a new outfit"),
+            random=False,
+            category=[_("Outfit")]
+        ),
+        chat_group=CHAT_GROUP_NORMAL
+    )
+
+label fae_change_outfits:
+    s "Of course! Let's see what I have."
+    call screen outfit_changer
+    s "How do I look?"
+    return

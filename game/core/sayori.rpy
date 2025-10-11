@@ -131,3 +131,55 @@ init python:
             
             if int(regret_type) in store.persistent._fae_player_awaiting_apologies:
                 store.persistent._fae_player_awaiting_apologies.remove(int(regret_type))
+
+        @staticmethod
+        def save_outfit_to_persistent():
+            """Saves the current outfit's components to persistent data"""
+            if Sayori._outfit:
+                persistent.sayo_hairstyle = Sayori._outfit.hairstyle.reference_name if Sayori._outfit.hairstyle else None
+                persistent.sayo_clothes = Sayori._outfit.clothes.reference_name if Sayori._outfit.clothes else None
+                persistent.sayo_accessory = Sayori._outfit.accessory.reference_name if Sayori._outfit.accessory else None
+                persistent.sayo_eyewear = Sayori._outfit.eyewear.reference_name if Sayori._outfit.eyewear else None
+                persistent.sayo_headgear = Sayori._outfit.headgear.reference_name if Sayori._outfit.headgear else None
+                persistent.sayo_necklace = Sayori._outfit.necklace.reference_name if Sayori._outfit.necklace else None
+                renpy.save_persistent()
+
+        @staticmethod
+        def load_persistent_outfit():
+            """
+            Loads the player's custom outfit from persistent variables
+            If no custom outfit is set, defaults to the uniform
+            """
+            if persistent.sayo_clothes and persistent.sayo_hairstyle:
+                # Get the wearable objects from their reference names
+                clothes = fae_outfits.get_wearable(persistent.sayo_clothes)
+                hairstyle = fae_outfits.get_wearable(persistent.sayo_hairstyle)
+                accessory = fae_outfits.get_wearable(persistent.sayo_accessory) if persistent.sayo_accessory else None
+                eyewear = fae_outfits.get_wearable(persistent.sayo_eyewear) if persistent.sayo_eyewear else None
+                headgear = fae_outfits.get_wearable(persistent.sayo_headgear) if persistent.sayo_headgear else None
+                necklace = fae_outfits.get_wearable(persistent.sayo_necklace) if persistent.sayo_necklace else None
+                
+                # If the essential parts don't exist, change to a default instead
+                if not clothes or not hairstyle:
+                    Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
+                else:
+                    # Create a new FAEOutfit object with the persistent wearables
+                    custom_outfit = fae_outfits.FAEOutfit(
+                        reference_name="persistent_custom",
+                        display_name="Custom Outfit",
+                        unlocked=True,
+                        is_fae_outfit=False,
+                        clothes=clothes,
+                        hairstyle=hairstyle,
+                        accessory=accessory,
+                        eyewear=eyewear,
+                        headgear=headgear,
+                        necklace=necklace
+                    )
+                    Sayori.setOutfit(custom_outfit)
+            else:
+                Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
+
+# Maybe...?
+init python:
+    config.after_load_callbacks.append(Sayori.load_persistent_outfit)

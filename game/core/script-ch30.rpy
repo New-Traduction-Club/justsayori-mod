@@ -193,11 +193,6 @@ label ch30_setup:
         fae_outfits.FAEWearable.load_all()
         fae_outfits.FAEOutfit.load_all()
         fae_utilities.log("Outfit data loaded.")
-        if fae_outfits.outfit_exists(persistent.fae_outfit_quit):
-            Sayori.setOutfit(fae_outfits.get_outfit(persistent.fae_outfit_quit))
-        else:
-            Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
-
         try:
             setupRPC("In the spaceroom")
         except:
@@ -268,16 +263,9 @@ label ch30_init:
         fae_outfits.FAEOutfit.load_all()
         fae_utilities.log("Outfit data loaded.")
 
-        if fae_outfits.outfit_exists(persistent.fae_outfit_quit):
-            
-            Sayori.setOutfit(fae_outfits.get_outfit(persistent.fae_outfit_quit))
-
-        else:
-            Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
-
-        Sayori.setOutfit(fae_outfits.get_outfit("fae_hoodie"))
-
         fae_utilities.log("Outfit Set.")
+
+        Sayori.load_persistent_outfit()
 
         fae_events.EVENT_RETURN_OUTFIT = fae_outfits.get_outfit(store.persistent.fae_outfit_quit)
 
