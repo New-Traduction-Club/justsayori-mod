@@ -96,7 +96,7 @@ define config.save_directory = "JustSayori"
 
 
 
-define config.window_icon = "gui/window_icon.png"
+define config.window_icon = "mod_assets/Logo.webp"
 
 
 
