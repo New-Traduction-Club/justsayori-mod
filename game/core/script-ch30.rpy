@@ -187,6 +187,13 @@ label ch30_setup:
 
         fae_atmosphere.showSky(fae_atmosphere.WEATHER_SUNNY, with_transition=False)
 
+        # Load outfit data here
+        fae_outfits.load_custom_wearables()
+        fae_outfits.load_custom_outfits()
+        fae_outfits.FAEWearable.load_all()
+        fae_outfits.FAEOutfit.load_all()
+        Sayori.load_persistent_outfit()
+        fae_utilities.log("Outfit data loaded.")
         Affection.checkResetDailyAffectionGain()
         fae_outfits.load_custom_wearables()
         fae_outfits.load_custom_outfits()
@@ -257,15 +264,11 @@ label ch30_init:
         persistent.fae_visit_counter += 1
         persistent.fae_last_visit_date = datetime.datetime.now()
 
-        fae_outfits.load_custom_wearables()
-        fae_outfits.load_custom_outfits()
-        fae_outfits.FAEWearable.load_all()
-        fae_outfits.FAEOutfit.load_all()
-        fae_utilities.log("Outfit data loaded.")
-
-        fae_utilities.log("Outfit Set.")
-
-        Sayori.load_persistent_outfit()
+        # fae_outfits.load_custom_wearables()
+        # fae_outfits.load_custom_outfits()
+        # fae_outfits.FAEWearable.load_all()
+        # fae_outfits.FAEOutfit.load_all()
+        # fae_utilities.log("Outfit data loaded.")
 
         fae_events.EVENT_RETURN_OUTFIT = fae_outfits.get_outfit(store.persistent.fae_outfit_quit)
 
