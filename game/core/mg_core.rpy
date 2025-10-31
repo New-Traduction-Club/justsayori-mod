@@ -220,7 +220,7 @@ screen modern_minigame_player():
 
 # The transition handler
 label mg_launcher_label(mg_label):
-    call expression mg_label
+    call expression mg_label from _call_expression_2
     with Fade(2.0, 2.0, 2.0, color="#000")
     return
 
