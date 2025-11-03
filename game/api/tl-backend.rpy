@@ -33,24 +33,30 @@ screen choose_language():
                     SetScreenVariable("chosen_lang", "english"),
                     Show("dialog", message="It is recommended to restart to apply the changes.", ok_action=Quit())
                 ]
-                # textbutton "한국어" text_font "gui/font/NotoSansKR-Regular.ttf" action [
-                #     Language("ko"),
-                #     SetField(persistent, "language", "ko"),
-                #     SetScreenVariable("chosen_lang", "ko"),
-                #     Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
-                # ]
-                # textbutton "中文" text_font "gui/font/NotoSansSC-Regular.ttf" action [
-                #     Language("zh_CN"),
-                #     SetField(persistent, "language", "zh_CN"),
-                #     SetScreenVariable("chosen_lang", "zh_CN"),
-                #     Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
-                # ]
                 textbutton "Español" text_font "gui/font/Aller_Rg.ttf" action [
                     Language("spanish"),
                     SetField(persistent, "language", "spanish"),
                     SetScreenVariable("chosen_lang", "spanish"),
                     Show("dialog", message="Se recomienda reiniciar el juego\npara aplicar los cambios.", ok_action=Quit())
                 ]
+                textbutton "Português (BR)" text_font "gui/font/Aller_Rg.ttf" action [
+                    Language("ptbr"),
+                    SetField(persistent, "language", "ptbr"),
+                    SetScreenVariable("chosen_lang", "ptbr"),
+                    Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.", ok_action=Quit())
+                ]
+                textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf" action [
+                    Language("chinese"),
+                    SetField(persistent, "language", "chinese"),
+                    SetScreenVariable("chosen_lang", "chinese"),
+                    Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
+                ]
+                # textbutton "한국어" text_font "gui/font/NotoSansKR-Regular.ttf" action [
+                #     Language("ko"),
+                #     SetField(persistent, "language", "ko"),
+                #     SetScreenVariable("chosen_lang", "ko"),
+                #     Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
+                # ]
                 # textbutton "Français" text_font "gui/font/Aller_Rg.ttf" action [
                 #     Language("fr"),
                 #     SetField(persistent, "language", "fr"),
@@ -63,12 +69,6 @@ screen choose_language():
                 #     SetScreenVariable("chosen_lang", "ja"),
                 #     Show("dialog", message="変更を適用するにはゲームを再起動することをおすすめします。", ok_action=Quit())
                 # ]
-                textbutton "Português (BR)" text_font "gui/font/Aller_Rg.ttf" action [
-                    Language("ptbr"),
-                    SetField(persistent, "language", "ptbr"),
-                    SetScreenVariable("chosen_lang", "ptbr"),
-                    Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.", ok_action=Quit())
-                ]
                 # textbutton "Español (MX)" text_font "DejaVuSans.ttf" action [
                 #     Language("spanish_mx"),
                 #     SetField(persistent, "language", "spanish_mxF"),

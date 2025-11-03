@@ -278,8 +278,8 @@ label splashscreen:
             raise InstallError("Please re-install the mod")
 
     ### Screen to select language for the fist time
-    # if persistent.language == None:
-    #     call screen choose_language
+    if persistent.language == None:
+        call screen choose_language
 
 
 

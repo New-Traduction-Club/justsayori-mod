@@ -1,5 +1,6 @@
 
-init 1 python:
+python early:
+    import re
 
     class Author(object):
         """
@@ -17,8 +18,6 @@ init 1 python:
             self.paper = paper
             self.separate_title_from_text = separate_title_from_text
             self.music = music
-
-    author_s = Author("sayori")
 
     class Poem(renpy.text.text.Text):
         """
@@ -84,6 +83,22 @@ init 1 python:
             self.paper = renpy.easy.displayable_or_none(paper) or Null()
             self.music = music
 
+init python:
+
+    if persistent._poem_trans_db is None:
+        persistent._poem_trans_db = {}
+
+    def reg_poem_trans(original_poem_name, translated_poem):
+        """
+        Registers a translated poem.
+        original_poem_name: The variable name of the original poem (like: "poem_sunshine").
+        translated_poem: The poem object for the translation.
+        """
+        lang = persistent.language
+        if lang and lang != "english":
+            persistent._poem_trans_db.setdefault(lang, {})[original_poem_name] = translated_poem
+    author_s = Author("sayori")
+
     def format_music_string(music, pos=0):
         """
         Given a filename `music` and a position `pos`, returns a string that will make the music start from `pos`,
@@ -141,6 +156,20 @@ init 1 python:
         if poem is None:
             return
         
+        lang = persistent.language
+        if lang and lang != "english":
+            # attempt to find the original poems variable name
+            original_poem_name = None
+            for name, obj in globals().items():
+                if obj is poem:
+                    original_poem_name = name
+                    break
+            
+            if original_poem_name:
+                translated_poem = persistent._poem_trans_db.get(lang, {}).get(original_poem_name)
+                if translated_poem:
+                    poem = translated_poem # use the translated poem
+
         if not isinstance(poem, Poem):
             raise TypeError(f"poem must be a Poem instance, not {type(poem).__name__}")
         
