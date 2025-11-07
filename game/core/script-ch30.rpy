@@ -195,11 +195,7 @@ label ch30_setup:
         Sayori.load_persistent_outfit()
         fae_utilities.log("Outfit data loaded.")
         Affection.checkResetDailyAffectionGain()
-        fae_outfits.load_custom_wearables()
-        fae_outfits.load_custom_outfits()
-        fae_outfits.FAEWearable.load_all()
-        fae_outfits.FAEOutfit.load_all()
-        fae_utilities.log("Outfit data loaded.")
+
         try:
             setupRPC("In the spaceroom")
         except:
