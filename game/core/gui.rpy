@@ -3,12 +3,12 @@
 default persistent.use_alt_font = False
 
 
-define -2 gui.default_font = "mod_assets/fonts/NotoSerifCJK.ttc"
-define -2 gui.name_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.default_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.name_font = "mod_assets/fonts/NotoSerifCJK.ttc"
 
 
-define -2 gui.interface_font = "mod_assets/fonts/NotoSerifCJK.ttc"
-define -2 gui.text_size = 22
+# define -2 gui.interface_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.text_size = 22
 
 
 init -2 python:

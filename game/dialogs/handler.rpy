@@ -50,7 +50,7 @@ init -3 python:
 
     from collections import OrderedDict
     import datetime
-    from Enum import Enum
+    from enum import Enum
     import re
     import store.fae_affection as fae_affection
     import store.fae_utilities as fae_utilities

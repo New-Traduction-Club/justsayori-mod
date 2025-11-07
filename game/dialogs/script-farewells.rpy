@@ -6,7 +6,7 @@ default -5 persistent.fae_player_force_quit_state = 1
 
 
 init -6 python in fae_farewells:
-    from Enum import Enum
+    from enum import Enum
     import random
     import store
     import store.fae_affection as fae_affection

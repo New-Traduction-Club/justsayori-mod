@@ -2,7 +2,7 @@ init python in fae_intro:
     import random
     import store
     import store.fae_utilities as fae_utilities
-    from Enum import Enum
+    from enum import Enum
 
     class FAEIntroStatus(Enum):
         

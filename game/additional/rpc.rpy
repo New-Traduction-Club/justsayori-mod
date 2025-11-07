@@ -12,4 +12,4 @@ init -999 python:
         if status is None:
             raise Exception("Must provide status")
 
-        print(RPC.update(state=status, large_image='faelogo', details=_("Spending Time With Sayori"), start=time.time(), large_text="Just Sayori"))  
+        print(RPC.update(state=status, large_image='faelogo', details=___("Spending Time With Sayori"), start=time.time(), large_text=___("Just Sayori")))  

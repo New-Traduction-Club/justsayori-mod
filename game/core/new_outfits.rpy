@@ -14,7 +14,7 @@ init -2:
     default persistent.sayo_necklace = None
 
 init -1 python in fae_outfits:
-    from Enum import Enum
+    from enum import Enum
     import json
     import os
     import random

@@ -46,7 +46,7 @@ init -3 python:
     import re
     import store.fae_utilities as fae_utilities
     import store.fae_affection as fae_affection
-    from Enum import Enum
+    from enum import Enum
 
 
     def fae_is_weekday():

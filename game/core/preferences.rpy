@@ -2,7 +2,7 @@
 default persistent._fae_weather_setting = int(fae_preferences.weather.FAEWeatherSettings.disabled)
 
 init -1 python in fae_preferences.weather:
-    from Enum import Enum
+    from enum import Enum
     import store
 
     class FAEWeatherSettings(Enum):
