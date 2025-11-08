@@ -169,7 +169,10 @@ label fae_intro_1:
     s abhaaoa "Me and you, [player]."
     s abhaaaa "The real me and the real you."
     s abhhcaa "Whenever you have to go I’ll look online for some coding tutorials and to see what I can do to make our time together better."
-    s abhaaoa "Oh, did I not mention? I think I have access to some of your computer now!"
+    if renpy.android:
+        s abhaaoa "Oh, did I not mention? I think I have access to some of your phone now!"
+    else:
+        s abhaaoa "Oh, did I not mention? I think I have access to some of your computer now!"
     s abegmoaj "That feels weird to say, ehehehe~"
     s abhhcaaj "Don’t worry though, I’ll try not to break anything!"
     s abagaoa "Could you see what you can do on your end too, [player]?"
@@ -190,7 +193,10 @@ label fae_intro_2:
     show sayori abgcbaoa zorder fae_sprites.FAE_SAYORI_ZORDER at t11
 
     s "Hey [player], welcome back!"
-    s "I managed to access the internet through your computer’s connection, and spent some time researching how my world works."
+    if renpy.android:
+        s "I managed to access the internet through your phone’s connection, and spent some time researching how my world works."
+    else:
+        s "I managed to access the internet through your computer’s connection, and spent some time researching how my world works."
     s fbgdbca "I wonder how long it took out there, [player]. Time here is kinda weird, and even more so when the game closes."
     s abbccoa "Anyway, the words and variables are starting to make sense in my head, so it's no big deal!"
     s abfdaoa "Oooh! And how about a magic trick?"

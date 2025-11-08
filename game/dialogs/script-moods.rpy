@@ -245,7 +245,10 @@ init python:
 label s_mood_tired:
     s abhfaca "Oh, you’re feeling tired, [player]? I think you should rest for a little while, okay?"
     s abbbaaa "Perhaps you could take a nap or listen to your favorite music, that helps me whenever I feel burnt out."
-    s bbgciaa "Don't worry about me, I completely understand if you need to spend some time away from the computer."
+    if renpy.android:
+        s bbgciaa "Don't worry about me, I completely understand if you need to spend some time away from the cellphone."
+    else:
+        s bbgciaa "Don't worry about me, I completely understand if you need to spend some time away from the computer."
     s abgccaa "See you soon, [player]!"
     s abgccaa "Rest well."
     jump confirm_quit

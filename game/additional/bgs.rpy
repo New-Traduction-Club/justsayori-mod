@@ -65,6 +65,7 @@ init -20 python:
         def __init__(
             self,
             id,
+            display_name,
             image_directory,
             image_failsafe=None,
             decoration_permitted=None,
@@ -77,6 +78,7 @@ init -20 python:
             
             Feed:
                 id - a unique id for this background. Will raise exceptions if a Location with a duplicate initialized
+                display_name - The translatable name shown to the player.
                 image_directory - Path to images
                 image_failsafe - a dict of image tags with the following keys:
                     "DAY", "NIGHT", these will have image tags as their values, which should be used to display
@@ -118,6 +120,7 @@ init -20 python:
 
             # Create object
             self.id = id
+            self.display_name = display_name
 
             # Make Daytime tag
             self.daytime_tag = "{0}_day".format(id)
@@ -347,18 +350,20 @@ init 100 python:
 
     spaceroom = Rooms(
         id="spaceroom",
-        image_directory="spaceroom"
+        image_directory="spaceroom",
+        display_name=__("Spaceroom")
     )
 
     bedroom = Rooms(
         id="bedroom",
-        image_directory="bedroom"
+        image_directory="bedroom",
+        display_name=__("Bedroom")
     )
 
-    d25room = Rooms(
-        id="d25room",
-        image_directory="d25room"
-    )
+    # d25room = Rooms(
+    #     id="d25room",
+    #     image_directory="d25room"
+    # )
 
 
     
@@ -446,7 +451,7 @@ screen bg_hub():
                                         xalign 0.5
                                         yalign 0.5
                                 
-                                text r.id style "mg_card_title" size 14
+                                text r.display_name style "mg_card_title" size 14
 
             vbox style "song_info_vbox" xsize DETAIL_W:
                 if _current:
@@ -461,7 +466,7 @@ screen bg_hub():
                             xalign 0.5
                             yalign 0.5
                         
-                    text _current.id style "mg_detail_title"
+                    text _current.display_name style "mg_detail_title"
                     text _("Ready to change!") style "mg_detail_desc"
                     
                     textbutton _("Change") style "big_play_button" text_style "big_play_button_text" action [

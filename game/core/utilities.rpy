@@ -172,13 +172,25 @@ init -1 python in fae_random_chat_rate:
         OFTEN: OFTEN_WAIT
     }
 
-    SLIDER_DEFS_DISP = {
-        NEVER: "Never",
-        RARELY: "Rarely",
-        SOMETIMES: "Sometimes",
-        FREQUENT: "Frequent",
-        OFTEN: "Often"
-    }
+    if store.persistent.language == "spanish":
+
+        SLIDER_DEFS_DISP = {
+            NEVER: "Nunca",
+            RARELY: "Raramente",
+            SOMETIMES: "A veces",
+            FREQUENT: "Frecuente",
+            OFTEN: "A menudo"
+        }
+    
+    else:
+
+        SLIDER_DEFS_DISP = {
+            NEVER: "Never",
+            RARELY: "Rarely",
+            SOMETIMES: "Sometimes",
+            FREQUENT: "Frequent",
+            OFTEN: "Often"
+        }
 
     _RANDOM_CHAT_FREQUENCY_TIMER_DEFS = {
         0: 999,

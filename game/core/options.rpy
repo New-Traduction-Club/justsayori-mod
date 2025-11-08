@@ -22,7 +22,7 @@ define config.name = "Just Sayori"
 define gui.show_name = True
 
 
-define config.version = "1.1.1"
+define config.version = "1.1.2"
 
 
 
@@ -209,13 +209,16 @@ init python:
 
     build.classify('/music/*.*', None)
 
-    ##### Check this for android builds
+    ###### START | Check this for android builds ######
+
     build.classify("game/bgm/**", None)
 
     # original stuff
     build.classify("game/sfx/**", None)
     build.classify("game/images/**", None)
     build.classify("game/gui/**", None)
+
+    ###### END | Check this for android builds ######
 
     # this
     build.include_update = False

@@ -1,4 +1,4 @@
-define CURRENT_VERSION = "1.1.1"
+define CURRENT_VERSION = "1.1.2"
 
 ### load json
 init python:

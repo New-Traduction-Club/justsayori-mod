@@ -1,4 +1,4 @@
-default persistent.language = None
+# default persistent.language = None
 
 screen choose_language():
     default local_lang = _preferences.language
@@ -39,18 +39,18 @@ screen choose_language():
                     SetScreenVariable("chosen_lang", "spanish"),
                     Show("dialog", message="Se recomienda reiniciar el juego\npara aplicar los cambios.", ok_action=Quit())
                 ]
-                textbutton "Português (BR)" text_font "gui/font/Aller_Rg.ttf" action [
-                    Language("ptbr"),
-                    SetField(persistent, "language", "ptbr"),
-                    SetScreenVariable("chosen_lang", "ptbr"),
-                    Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.", ok_action=Quit())
-                ]
-                textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf" action [
-                    Language("chinese"),
-                    SetField(persistent, "language", "chinese"),
-                    SetScreenVariable("chosen_lang", "chinese"),
-                    Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
-                ]
+                # textbutton "Português (BR)" text_font "gui/font/Aller_Rg.ttf" action [
+                #     Language("ptbr"),
+                #     SetField(persistent, "language", "ptbr"),
+                #     SetScreenVariable("chosen_lang", "ptbr"),
+                #     Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.", ok_action=Quit())
+                # ]
+                # textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf" action [
+                #     Language("chinese"),
+                #     SetField(persistent, "language", "chinese"),
+                #     SetScreenVariable("chosen_lang", "chinese"),
+                #     Show("dialog", message="변경 사항을 적용하려면 게임을 재시작하는 것이 좋습니다.", ok_action=Quit())
+                # ]
                 # textbutton "한국어" text_font "gui/font/NotoSansKR-Regular.ttf" action [
                 #     Language("ko"),
                 #     SetField(persistent, "language", "ko"),
