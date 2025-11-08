@@ -4,13 +4,13 @@ translate spanish strings:
 
     # game/api/api.rpy:19
     old "New Update available! ({})"
-    new ""
+    new "¡Nueva actualización disponible! ({})"
 
     # game/api/api.rpy:21
     old "You have the latest version ({})"
-    new ""
+    new "Tienes la última versión ({})"
 
     # game/api/api.rpy:25
     old "Failed to load web features."
-    new ""
+    new "Fallo al cargar las funciones web."
 

@@ -4,5 +4,5 @@ translate spanish strings:
 
     # game/additional/rpc.rpy:15
     old "Spending Time With Sayori"
-    new ""
+    new "Pasando el rato con Sayori"
 
