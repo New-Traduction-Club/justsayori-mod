@@ -19,6 +19,16 @@ This a based-version on the original [Forever and Ever](https://github.com/Forev
 (Trying to make a long-term support for the mod and/or continue with the project.)\
 All the original code belongs to original Forever and Ever Team (and contributors) for more details see [here](https://github.com/ForeverAndEverTeam/fae-mod)
 
+---
+
+## Language
+
+Only available in two official languages:
+- English
+- Spanish
+
+We are working to have more languages, thanks for all good people that are helping us!!
+
 <!-- # COMPLETION NOTICE
 
 # THE MOD IS COMPLETE AND THE FOREVER & EVER TEAM IS NOW DISBANDED
@@ -191,7 +201,7 @@ If so, then please consider joining us on [Discord](https://discord.gg/nUWzgVZ9W
 # New Credits
 
 - [Traduction Club!](https://traduction-club.live/)
-  - Just: Programmer
+  - Just: Programmer, translator for Spanish
   - Fran: Translator for Spanish, writer
   - Nico: Translator for Spanish
   - Moav: Translator for Italian
