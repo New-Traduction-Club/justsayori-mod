@@ -107,6 +107,7 @@ screen outfit_changer():
                 style "outfit_nav_vbox"
                 label _("Categories") style "outfit_hub_title"
                 for category_name in sorted(categorized_wearables.keys()):
+                    # Use the translatable name from the dictionary
                     $ display_name = fae_outfits.WEARABLE_CATEGORY_NAMES.get(category_name, category_name.capitalize())
                     if categorized_wearables[category_name]:
                         textbutton display_name action [SetScreenVariable("current_category", category_name), SetScreenVariable("selected_wearable", None)] style "outfit_nav_button" text_style "outfit_nav_button_text" selected (current_category == category_name)

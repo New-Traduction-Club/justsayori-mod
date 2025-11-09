@@ -81,7 +81,9 @@ label s_mood_angry:
             menu:
                 "Yes":
                     s fbgciea "Alright, give me your best!"
-                    call screen minigame_ui
+                    ### TODO: fix about you can call the modern screen instead
+                    ###       if you call it, you cant return to anything
+                    # call screen minigame_ui
                 "No":
                     s abfcaca "Not in the mood? That's okay too."
                     s bbhfmoaj "In that case, I have one last suggestion, but it might sound a bit silly..."

@@ -5,7 +5,7 @@ init -999 python:
 
     def setupRPC(status=None):
 
-        client_id = '966384640489295964'  # Fake ID, put your real one here
+        client_id = '1436898855886131212'  # Fake ID, put your real one here
         RPC = Presence(client_id)  # Initialize the client class
         RPC.connect() # Start the handshake loop
 

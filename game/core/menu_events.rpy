@@ -2,7 +2,7 @@ screen tcs(items):
     style_prefix "choice"
 
 
-    vbox:
+    vbox at fade_in:
         xcenter 250
 
         for i in items:
@@ -11,7 +11,7 @@ screen tcs(items):
 screen scs(items):
     style_prefix "choice"
 
-    vbox:
+    vbox at fade_in:
         xcenter 250
 
         for i in items:
@@ -28,7 +28,7 @@ screen scroll(items):
             mousewheel True
             draggable True
 
-        vbox:
+        vbox at fade_in:
             spacing 20
             for i in items:
                 textbutton i.caption action i.action

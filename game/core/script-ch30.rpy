@@ -475,13 +475,14 @@ label force_quit:
         $ renpy.jump("confirm_quit")
     else:
 
+        if not config.developer:
+            $ renpy.jump("confirm_quit")
+        else:
 
+            s ebgchga "YOU CAN'T LEAVE LIKE THAT!"
 
-        s ebgchga "YOU CAN'T LEAVE LIKE THAT!"
-
-        python:
-            Affection.percentageAffectionLoss(2)
-            Sayori.add_new_regret_awaiting(fae_regrets.RegretTypes.unexpected_quit)
-            Sayori.add_regret_quit(fae_regrets.RegretTypes.unexpected_quit)
-
-        $ renpy.jump("confirm_quit")
+            python:
+                Affection.percentageAffectionLoss(2)
+                Sayori.add_new_regret_awaiting(fae_regrets.RegretTypes.unexpected_quit)
+                Sayori.add_regret_quit(fae_regrets.RegretTypes.unexpected_quit)
+            $ renpy.jump("confirm_quit")

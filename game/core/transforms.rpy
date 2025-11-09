@@ -587,6 +587,14 @@ transform chibi_hide(x=64):
     pos (x, 0.795)
     easeout 0.5 ypos 1.25
 
+transform fade_in:
+    on show:
+        alpha 0.0
+        linear 0.3 alpha 1.0
+    on hide:
+        linear 0.2 alpha 0.0
+
+
 init -5 python:
     dissolve_sayori = {"master": Dissolve(0.25, alpha=True)}
 

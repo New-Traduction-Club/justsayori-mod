@@ -127,7 +127,7 @@ screen input(prompt):
 screen choice(items):
     style_prefix "choice"
 
-    vbox:
+    vbox at fade_in:
 
         for i in items:
 
@@ -174,7 +174,7 @@ style talk_choice_button is choice_button
 screen talk_choice(items):
     style_prefix "talk_choice"
 
-    vbox:
+    vbox at fade_in:
         for i in items:
             textbutton i.caption action i.action
 

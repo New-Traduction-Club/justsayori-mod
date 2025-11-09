@@ -10,7 +10,7 @@ init -999 python:
 
 
 
-
+define config.developer = "auto"
 
 
 

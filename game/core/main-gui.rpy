@@ -8,7 +8,7 @@ init -499 screen hidden1(active=False):
 
         hotspot (608, 276, 48, 45) action [ Function(boop)]
     zorder 50
-    vbox:
+    vbox at fade_in:
         xpos 0.090
         yanchor 1.0
         ypos 715
@@ -27,7 +27,7 @@ init -499 screen hidden1(active=False):
 init -499 screen hidden_fake(active=False):
     style_prefix "tc"
     zorder 50
-    vbox:
+    vbox at fade_in:
         xpos 0.090
         yanchor 1.0
         ypos 715
@@ -169,7 +169,7 @@ style t_m_button_text_italic is categorized_menu_button_text:
 screen neat_menu1(items):
     style_prefix "tcs_b"
 
-    vbox:
+    vbox at fade_in:
         xcenter 250
         for i in items:
             textbutton i.caption action i.action
@@ -190,7 +190,7 @@ screen neat_menu(menu_parts, cls, ols, cat_length):
             style "sayo_scroller"
             xalign -0.1
 
-        vbox:
+        vbox at fade_in:
             ypos 0
             yanchor 0
 
@@ -236,7 +236,7 @@ screen neat_menu(menu_parts, cls, ols, cat_length):
                 style "sayo_scroller"
                 xalign -0.1
 
-            vbox:
+            vbox at fade_in:
                 ypos 0
                 yanchor 0
 
@@ -281,7 +281,7 @@ screen neat_menu_scroll(items, last_item=None):
     fixed:
 
         area (70, 40, 560, 440)
-        vbox:
+        vbox at fade_in:
             ypos 0
             yanchor 0.0
 
