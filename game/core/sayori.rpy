@@ -19,8 +19,9 @@ init python:
         @staticmethod
         def setOutfit(outfit):
             
-            Sayori._outfit = outfit
-            store.persistent.fae_outfit_quit = Sayori._outfit.reference_name
+            if outfit:
+                Sayori._outfit = outfit
+                store.persistent.fae_outfit_quit = Sayori._outfit.reference_name
         
         @staticmethod
         def isWearingOutfit(reference_name):
@@ -151,6 +152,8 @@ init python:
             If no custom outfit is set, defaults to the uniform
             """
             if persistent.sayo_clothes and persistent.sayo_hairstyle:
+                fae_utilities.log("  [load_persistent_outfit] Found persistent clothes: '{}' and hairstyle: '{}'".format(persistent.sayo_clothes, persistent.sayo_hairstyle))
+
                 # Get the wearable objects from their reference names
                 clothes = fae_outfits.get_wearable(persistent.sayo_clothes)
                 hairstyle = fae_outfits.get_wearable(persistent.sayo_hairstyle)
@@ -158,12 +161,18 @@ init python:
                 eyewear = fae_outfits.get_wearable(persistent.sayo_eyewear) if persistent.sayo_eyewear else None
                 headgear = fae_outfits.get_wearable(persistent.sayo_headgear) if persistent.sayo_headgear else None
                 necklace = fae_outfits.get_wearable(persistent.sayo_necklace) if persistent.sayo_necklace else None
+
+                fae_utilities.log("  [load_persistent_outfit] get_wearable results: clothes={}, hairstyle={}".format(
+                    "Found" if clothes else "None",
+                    "Found" if hairstyle else "None"
+                ))
                 
-                # If the essential parts don't exist, change to a default instead
                 if not clothes or not hairstyle:
-                    Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
+                    fae_utilities.log("  [load_persistent_outfit] Essential parts (clothes or hairstyle) not found. Aborting persistent outfit load.")
+                    return
                 else:
                     # Create a new FAEOutfit object with the persistent wearables
+                    fae_utilities.log("  [load_persistent_outfit] Essential parts found. Creating and setting custom outfit.")
                     custom_outfit = fae_outfits.FAEOutfit(
                         reference_name="persistent_custom",
                         display_name="Custom Outfit",
@@ -178,8 +187,4 @@ init python:
                     )
                     Sayori.setOutfit(custom_outfit)
             else:
-                Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
-
-# Maybe...?
-init python:
-    config.after_load_callbacks.append(Sayori.load_persistent_outfit)
+                fae_utilities.log("  [load_persistent_outfit] No persistent clothes/hairstyle found. Skipping.")

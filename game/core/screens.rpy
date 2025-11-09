@@ -7,7 +7,7 @@ init offset = -1
 init python:
 
     layout.FAE_TT_NOTIF = (
-        _("Enabling this will let Sayori use your system notifications, and check if JS is your active window")
+        __("Enabling this will let Sayori use your system notifications, and check if JS is your active window")
     )
 
 
@@ -849,16 +849,16 @@ screen preferences():
 #begin language_picker
                 ## Additional vboxes of type "radio_pref" or "check_pref" can be
                 ## added here, to add additional creator-defined preferences.
-                
-                vbox:
-                    style_prefix "radio"
-                    label _("Language")
+                if not renpy.android:
+                    vbox:
+                        style_prefix "radio"
+                        label _("Language")
 
-                    # Real languages should go alphabetical order by English name.
-                    textbutton "English" text_font "DejaVuSans.ttf" action [Language(None), SetField(persistent, "language", "english"), Show("dialog", message="It is recommended to restart to apply the changes.\n\nOtherwise, some things may remain in other languages.", ok_action=Hide("dialog"))]
-                    textbutton "Español" text_font "DejaVuSans.ttf" action [Language("spanish"), SetField(persistent, "language", "spanish"), Show("dialog", message="Se recomienda reiniciar el juego\npara aplicar los cambios.\n\nDe lo contrario, es posible\nque algunas cosas se\nconserven en otros idiomas.", ok_action=Hide("dialog"))]
-                    textbutton "Português (BR)" text_font "DejaVuSans.ttf" action [Language("ptbr"), SetField(persistent, "language", "ptbr"), Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.\n\nCaso contrário, alguns itens podem permanecer em outros idiomas.", ok_action=Hide("dialog"))]
-                    textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf"  action [Language("chinese"), SetField(persistent, "language", "chinese"), Show("dialog", message="建议重新启动游戏以应用更改。\n\n否则，部分内容可能仍会显示为其他语言。", ok_action=Quit(), font="gui/font/NotoSansSC-Regular.ttf")]
+                        # Real languages should go alphabetical order by English name.
+                        textbutton "English" text_font "DejaVuSans.ttf" action [Language(None), SetField(persistent, "language", "english"), Show("dialog", message="It is recommended to restart to apply the changes.\n\nOtherwise, some things may remain in other languages.", ok_action=Hide("dialog"))]
+                        textbutton "Español" text_font "DejaVuSans.ttf" action [Language("spanish"), SetField(persistent, "language", "spanish"), Show("dialog", message="Se recomienda reiniciar el juego\npara aplicar los cambios.\n\nDe lo contrario, es posible\nque algunas cosas se\nconserven en otros idiomas.", ok_action=Hide("dialog"))]
+                        # textbutton "Português (BR)" text_font "DejaVuSans.ttf" action [Language("ptbr"), SetField(persistent, "language", "ptbr"), Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.\n\nCaso contrário, alguns itens podem permanecer em outros idiomas.", ok_action=Hide("dialog"))]
+                        # textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf"  action [Language("chinese"), SetField(persistent, "language", "chinese"), Show("dialog", message="建议重新启动游戏以应用更改。\n\n否则，部分内容可能仍会显示为其他语言。", ok_action=Quit(), font="gui/font/NotoSansSC-Regular.ttf")]
 
             hbox:
 
@@ -1083,7 +1083,7 @@ screen name_input(message, ok_action):
     frame:
         vbox:
             xalign .5
-            yalign .5
+            yalign .3
             spacing 30
 
             hbox:

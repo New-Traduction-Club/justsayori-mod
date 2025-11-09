@@ -7,6 +7,10 @@ init 999 python:
         
         fae_random_chat_rate.adjustRandFrequency(persistent._fae_random_chat_freq)
 
+define JS_GLOBAL_MAP_ESP = {
+    "end_letter_gender": {"M": "o", "F": "a", "X": "o"}
+}
+
 if persist.language == "spanish":
     define FAE_PRONOUN_GENDER_MAP = {
         "his": {"M": "su", "F": "su", "X": "su"},
@@ -119,14 +123,19 @@ init python:
         
         if key is None:
             key = store.persistent.gender
-        
-        for word, sub_map in store.FAE_PRONOUN_GENDER_MAP.items():
-            if key in sub_map:
-                value = sub_map[key]
-            else:
-                value = sub_map["X"]
-            setattr(store, word, value)
 
+        maps_to_process = [store.FAE_PRONOUN_GENDER_MAP]
+
+        if hasattr(store, 'JS_GLOBAL_MAP_ESP'):
+            maps_to_process.append(store.JS_GLOBAL_MAP_ESP)
+
+        for gender_map in maps_to_process:
+            for word, sub_map in gender_map.items():
+                if key in sub_map:
+                    value = sub_map[key]
+                else:
+                    value = sub_map["X"]
+                setattr(store, word, value)
 
 label ch30_main:
 
@@ -187,13 +196,6 @@ label ch30_setup:
 
         fae_atmosphere.showSky(fae_atmosphere.WEATHER_SUNNY, with_transition=False)
 
-        # Load outfit data here
-        fae_outfits.load_custom_wearables()
-        fae_outfits.load_custom_outfits()
-        fae_outfits.FAEWearable.load_all()
-        fae_outfits.FAEOutfit.load_all()
-        Sayori.load_persistent_outfit()
-        fae_utilities.log("Outfit data loaded.")
         Affection.checkResetDailyAffectionGain()
 
         try:
@@ -260,13 +262,7 @@ label ch30_init:
         persistent.fae_visit_counter += 1
         persistent.fae_last_visit_date = datetime.datetime.now()
 
-        # fae_outfits.load_custom_wearables()
-        # fae_outfits.load_custom_outfits()
-        # fae_outfits.FAEWearable.load_all()
-        # fae_outfits.FAEOutfit.load_all()
-        # fae_utilities.log("Outfit data loaded.")
-
-        fae_events.EVENT_RETURN_OUTFIT = fae_outfits.get_outfit(store.persistent.fae_outfit_quit)
+        Sayori.load_persistent_outfit()
 
 
         if not cielp("^greeting_"):

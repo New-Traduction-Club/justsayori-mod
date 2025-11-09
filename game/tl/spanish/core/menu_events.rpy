@@ -4,25 +4,25 @@ translate spanish strings:
 
     # game/core/menu_events.rpy:49
     old "Hey, [s_name]..."
-    new ""
+    new "Oye, [s_name]..."
 
     # game/core/menu_events.rpy:50
     old "Can you tell me again about..."
-    new ""
+    new "Puedes hablarme otra vez de..."
 
     # game/core/menu_events.rpy:51
     old "I feel..."
-    new ""
+    new "Me siento..."
 
     # game/core/menu_events.rpy:53
     old "Outfits"
-    new ""
+    new "Atuendos"
 
     # game/core/menu_events.rpy:54
     old "I want to say..."
-    new ""
+    new "Quiero decir..."
 
     # game/core/menu_events.rpy:55
     old "Nevermind"
-    new ""
+    new "No importa"
 

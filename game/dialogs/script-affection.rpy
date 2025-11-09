@@ -1,7 +1,7 @@
-default persistent.affection_day_gain = 5
+default persistent.affection_day_gain = 25
 default persistent.affection_reset_date = None
 default persistent.affection = 0
-default persistent._affection_daily_bypasses = 5
+default persistent._affection_daily_bypasses = 25
 init -2 python:
     def _fae_AffStart():
         

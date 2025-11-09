@@ -4,61 +4,61 @@
 translate spanish boop_90f0707f:
 
     # s "Did you just boop me?"
-    s ""
+    s "¿Me acabas de tocar la nariz?"
 
 # game/core/main-gui.rpy:96
 translate spanish boop_0661005f:
 
     # s "Ehehehe~"
-    s ""
+    s "Je, je, je."
 
 translate spanish strings:
 
     # game/core/main-gui.rpy:17
     old "Talk"
-    new ""
+    new "Hablar"
 
     # game/core/main-gui.rpy:20
     old "Music"
-    new ""
+    new "Música"
 
     # game/core/main-gui.rpy:22
     old "Play"
-    new ""
+    new "Jugar"
 
     # game/core/main-gui.rpy:35
     old "VGFsaw=="
-    new ""
+    new "VGFsaw=="
 
     # game/core/main-gui.rpy:37
     old "TXVzaWM="
-    new ""
+    new "TXVzaWM="
 
     # game/core/main-gui.rpy:39
     old "UGxheQ=="
-    new ""
+    new "UGxheQ=="
 
     # game/core/main-gui.rpy:53
     old "I love you too!"
-    new ""
+    new "¡Yo también te quiero!"
 
     # game/core/main-gui.rpy:56
     old "I love you!"
-    new ""
+    new "¡Te quiero!"
 
     # game/core/main-gui.rpy:59
     old "I want to tell you something..."
-    new ""
+    new "Quiero decirte algo..."
 
     # game/core/main-gui.rpy:61
     old "I'm sorry."
-    new ""
+    new "Lo siento."
 
     # game/core/main-gui.rpy:63
     old "Goodbye"
-    new ""
+    new "Adiós"
 
     # game/core/main-gui.rpy:66
     old "Back"
-    new ""
+    new "Volver"
 

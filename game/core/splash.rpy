@@ -273,6 +273,12 @@ image tos3 = "bg/warning3.webp"
 
 
 label splashscreen:
+
+    if persistent.language == "spanish":
+        $ renpy.change_language("spanish")
+    elif persistent.language == "english":
+        $ renpy.change_language(None)
+
     python:
         if RELOADCHECK():
             raise InstallError("Please re-install the mod")

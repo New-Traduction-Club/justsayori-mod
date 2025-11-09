@@ -577,9 +577,9 @@ init 5 python:
             persistent._chat_db,
             label="poem_redux",
             unlocked=True,
-            prompt=_("Let's talk about a poem"),
+            prompt=__("Let's talk about a poem"),
             random=False,
-            category=[_("Poetry")]
+            category=[__("Poetry")]
         ),
         chat_group=CHAT_GROUP_NORMAL
     )

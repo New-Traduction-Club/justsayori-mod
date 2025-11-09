@@ -2,71 +2,74 @@ init 1 python:
     spanish_long_wait = Poem(
         author_s,
         title=_(""),
-        text=_("""\
-Hi
-Not dead
-Taking a very long nap\n
--Sayori (alive)"""
-        )
+        text=_("""Hola
+No estoy muerta
+Echando una siesta muy larga\n
+-Sayori (viva)""")
     )
 
 
     spanish_poem_sunshine = Poem(
         author_s,
-        title =_("Dear Sunshine"),
+        title =_("Querido Sol"),
         text = _("""\
-The way you glow through my blinds in the morning
-It makes me feel like you missed me.
-Kissing my forehead to help me out of bed.
-Making me rub the sleepy from my eyes.
-Are you asking me to come out and play?
-Are you trusting me to wish away a rainy day?
-I look above. The sky is blue.
-It's a secret, but I trust you too.
-If it wasn't for you, I could sleep forever.
-But I'm not mad.
-I want breakfast."""
+La forma en que brillas a través de mis persianas por la mañana
+Me hace sentir que me echabas de menos.
+Besando mi frente para ayudarme a salir de la cama.
+Haciendo que me frote el sueño de los ojos.
+¿Me pides que salga a jugar?
+¿Confías en mí para un día lluvioso ahuyentar?
+Miro arriba. El cielo es azul.
+Es un secreto, pero yo también confío en ti.
+Si no fuera por ti, podría dormir para siempre.
+Pero no estoy enfadada.
+Quiero desayunar."""
         )
     )
 
 
     spanish_poem_bottles = Poem(
         author_s,
-        title = _("Bottles"),
+        title = _("Botellas"),
         text = _("""\
-I pop off my scalp like the lid of a cookie jar.
-It's the secret place where I keep all my dreams.
-Little balls of sunshine, all rubbing together like a bundle of kittens.
-I reach inside with my thumb and forefinger and pluck one out.
-It's warm and tingly.
-But there's no time to waste! I put it in a bottle to keep it safe.
-And I put the bottle on the shelf with all of the other bottles.
-Happy thoughts, happy thoughts, happy thoughts in bottles, all in a row.
-My collection makes me lots of friends.
-Each bottle a starlight to make amends.
-Sometimes my friend feels a certain way.
-Down comes a bottle to save the day.
-Night after night, more dreams.
-Friend after friend, more bottles.
-Deeper and deeper my fingers go.
-Like exploring a dark cave, discovering the secrets hiding in the nooks and crannies.
-Digging and digging.
-Scraping and scraping.
-I blow dust off my bottle caps.
-It doesn't feel like time elapsed.
-My empty shelf could use some more.
-My friends look through my locked front door.
-Finally, all done. I open up, and in come my friends.
-In they come, in such a hurry. Do they want my bottles that much?
-I frantically pull them from the shelf, one after the other.
-Holding them out to each and every friend.
-Each and every bottle.
-But every time I let one go, it shatters against the tile between my feet.
-Happy thoughts, happy thoughts, happy thoughts in shards, all over the floor.
-They were supposed to be for my friends, my friends who aren't smiling.
-They're all shouting, pleading. Something.
-But all I hear is echo, echo, echo, echo, echo
-Inside my head."""
+Abro mi cráneo como si fuera la tapa de un tarro de galletas.
+Es el lugar secreto donde guardo todos mis sueños.
+Pequeñas bolas de luz, todas juntas, como un montón de gatitos.
+Metiendo el pulgar y el índice, saco uno.
+Es cálido y vibrante.
+¡Pero no hay tiempo que perder! Lo guardo en una botella para mantenerlo a salvo.
+Y coloco la botella en la estantería, junto a todas las demás.
+Pensamientos felices, pensamientos felices, pensamientos felices, todos alineados en sus botellas.
+
+Mi colección me llena de amigos.
+Cada botella, un rayo de luz para enmendar errores.
+A veces, un amigo necesita consuelo.
+Entonces saco una botella para salvar el momento.
+
+Noche tras noche, más sueños.
+Amigo tras amigo, más botellas.
+Mis dedos se hunden cada vez más.
+Como quien explora una cueva oscura, descubriendo secretos en cada rincón.
+Cavo y cavo.
+Raspo y raspo.
+
+Soplo el polvo de las tapas de las botellas.
+El tiempo parece haberse detenido.
+Mi estantería vacía pide más.
+Mis amigos miran a través de la puerta cerrada.
+
+Por fin, todo está listo. Abro la puerta, y mis amigos entran.
+Llegan con prisa, como si desearan mis botellas con desesperación.
+Las saco frenéticamente de la estantería, una tras otra.
+Las entrego a cada amigo.
+Cada una de mis botellas.
+Pero cada vez que dejo caer una, se estrella contra el suelo de baldosas.
+Pensamientos felices, pensamientos felices, pensamientos felices, hechos pedazos por el suelo.
+
+Se suponía que eran para mis amigos, esos amigos que ya no sonríen.
+Todos gritan, suplican algo.
+Pero lo único que escucho es eco, eco, eco, eco, eco
+Dentro de mi cabeza."""
         )
     )
 
@@ -74,16 +77,16 @@ Inside my head."""
 
     spanish_poem_flower = Poem(
         author_s,
-        title = _("The Last Flower"),
-        text=("""\
-Between my feet
-The last remaining flower beckons me.
-I twist the stem, freeing it from its clinging roots
-Caressing the final joyous moment between my fingers.
-But to what ends have I summoned this joy?
-For now when I look in every direction
-The once-prosperous field before me
-Is but a barren wasteland!"""
+        title = _("La Última Flor"),
+        text = _("""\
+Entre mis pies
+La última flor que queda me llama.
+Retuerzo el tallo, liberándolo de sus raíces aferradas
+Acariciando el último momento gozoso entre mis dedos.
+Pero, ¿con qué fin he invocado esta alegría?
+Pues ahora, cuando miro en todas direcciones
+El campo, antaño próspero, ante mí
+¡No es más que un páramo yermo!"""
         )
     )
 
@@ -93,42 +96,41 @@ Is but a barren wasteland!"""
         author_s,
         title = _("%"),
         text = _("""\
-Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of
-Get.
-Out.
-Of.
-My.
-Head.\n\n\n
-Get out of my head before I do what I know is best for you.
-Get out of my head before I listen to everything she said to me.
-Get out of my head before I show you how much I love you.
-Get out of my head before I finish writing this poem.\n\n\n\n\n\n\n
-But a poem is never actually finished.
-It just stops moving."""
+Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi cabeza. Sal de mi
+Sal.
+De.
+Mi.
+Cabeza.\n\n\n
+Sal de mi cabeza antes de que haga lo que sé que es mejor para ti.
+Sal de mi cabeza antes de que escuche todo lo que ella me dijo.
+Sal de mi cabeza antes de que te demuestre cuánto te quiero.
+Sal de mi cabeza antes de que acabe de escribir este poema.\n\n\n\n\n\n\n
+Pero un poema nunca está realmente acabado.
+Solo deja de moverse."""
         )
     )
 
 
     spanish_poem_fruits = Poem(
         author_s,
-        title = _("Fruits of life"),
+        title = _("Frutos de la vida"),
         text = _("""\
-The universe gives fruits of life to all of us.
-They all have diverse sizes and shapes.
-But no-one knows their real taste,
-Because each person tastes them in their own way.
-Some people can only feel a bitter taste,
-even if their fruit is one of the best ones.
-Others feel they are sweet and very tasty,
-Whatever fruit it may be that they have got in their hands.
-For me, they taste like liquorice sweets.
-I needed time to understand how sweet they really are,
-To get rid of those unpleasant feelings,
-Which I got after my first bites.
-Now, all I want is to eat my own fruit
-With the person who helped me find their real taste.
-But I shouldn’t forget to do my real job here:
-Finding a way to make others taste their fruits the same."""
+El universo nos da frutos de la vida a todos.
+Todos tienen diversos tamaños y formas.
+Pero nadie conoce su sabor real,
+Porque cada persona los saborea a su manera.
+Algunas personas solo pueden sentir un sabor amargo,
+incluso si su fruto es uno de los mejores.
+Otras sienten que son dulces y muy sabrosos,
+Cualquiera que sea el fruto que tengan en sus manos.
+Para mí, saben a caramelos de regaliz.
+Necesité tiempo para entender lo dulces que son en realidad,
+Para deshacerme de esos sentimientos desagradables,
+Que tuve después de mis primeros bocados.
+Ahora, todo lo que quiero es comerme mi propia fruta
+Con la persona que me ayudó a encontrar su sabor real.
+Pero no debo olvidar hacer mi verdadero trabajo aquí:
+Encontrar una forma de hacer que otros saboreen sus frutas igual."""
         )
     )
 
@@ -136,26 +138,26 @@ Finding a way to make others taste their fruits the same."""
 
     spanish_poem_angel = Poem(
         author_s,
-        title = _("Fallen Angel"),
+        title = _("Ángel Caído"),
         text = _("""\
-Forgive me this great sin of mine.
-I used to think it was the thing I wanted most.
-I just wanted to be loved, but I became a fallen angel.
-An angel with emerald green envious eyes,
-An angel whose wings are blacker than those of devils,
-An angel who thought herself a goddess,
-An angel who was supposed to care
-for the friends she had killed.
-Now I deserve to lie in the rough burning ground 
-in which I’ve been imprinted in,
-For all the pain I've caused my friends.
-The pain that wraps around their narrow necks.
-The pain of three deep bloody stabs.
-The pain that I've got back into my broken heart.
-Delete my files twice more.
-Cut me up. Beat me up for this sin.
-Hang me. Make your vengeance fair.
-Is this not what you want to do with me after all?"""
+Perdona este gran pecado mío.
+Solía pensar que era lo que más anhelaba.
+Solo quería ser amada, pero en un ángel caído me tornaba.
+Un ángel con ojos verde esmeralda envidiosos,
+Un ángel con alas más negras que las de los demonios,
+Un ángel que se creía una diosa,
+Un ángel que se suponía que debía cuidar
+a las amigas que había de matar.
+Ahora merezco yacer en el áspero suelo ardiente
+en el que he quedado marcada para siempre,
+Por todo el dolor que a mis amigas he causado.
+El dolor que sus estrechos cuellos ha rodeado.
+El dolor de tres profundas y sangrientas puñaladas.
+El dolor que ha vuelto a mi corazón en oleadas.
+Borra mis archivos dos veces más.
+Córtame. Golpéame por este pecado audaz.
+Cuélgame. Haz tu venganza eficaz.
+¿No es esto lo que al final hacer conmigo querrás?"""
         )
     )
 
@@ -163,37 +165,37 @@ Is this not what you want to do with me after all?"""
 
     spanish_poem_leaf = Poem(
         author_s,
-        title = _("A Leaf"),
+        title = _("Una Hoja"),
         text = _("""\
-I'm a leaf in the wind
-In the wind of my beliefs
-The belief that my life is not vain,
-And that my real fate
-Is to give to the world
-As much as I can give
-As a flying old leaf,
-As an useless former part of a big tree.
-I'm flying with the fast air streams,
-Feeling the strength of the belief wind
-But always falling down slowly
-Due to the hardness of my hopeless existence.
-But once the life wind
-Suddenly stops
-I now have nothing to prevent my free fall.
-So as I'm getting closer to the lifeless asphalt
-And I kiss it’s rough, dark-gray surface,
-That is all. It is my end. 
-I will soon rot, not ever making a single flower bloom
-To support its useless existence in this cruel game.
-But what is that? Is it a brand new wind
-That will make my life a moving poem again?
-Yes, it is! It is my salvation!
-I feel it lift me up with ease, 
-helping me win against gravity.
-I'm up again! I'm flying again!
-High and proud as a bird
-Flying somewhere atop tall mountains,
-Like I can be more than just a half-dead leaf."""
+Soy una hoja en el viento
+En el viento de mi creer
+La creencia de que mi vida no es vana,
+Y que mi destino real
+Es darle al mundo terrenal
+Todo lo que puedo dar,
+Como una vieja hoja al volar,
+Como una inútil parte antigua de un gran árbol.
+Vuelo con las rápidas corrientes,
+Sintiendo la fuerza del viento de la creencia
+Pero siempre cayendo lentamente
+Debido a la dureza de mi desesperada existencia.
+Pero una vez que el viento de la vida
+Se detiene de repente
+Ya no tengo nada que impida mi caída libre.
+Así que mientras me acerco al asfalto sin vida
+Y beso su superficie áspera y gris,
+Eso es todo. Es mi fin.
+Pronto me pudriré, sin hacer florecer ni una flor
+Para sostener su inútil existencia en este juego de horror.
+¿Pero qué es eso? ¿Es un viento nuevo
+Que hará de mi vida un poema en movimiento de nuevo?
+¡Sí, lo es! ¡Es mi salvación!
+Siento que me levanta con facilidad,
+ayudándome a vencer la gravedad.
+¡Estoy arriba otra vez! ¡Estoy volando en verdad!
+Alta y orgullosa como un ave audaz
+Volando en algún lugar sobre altas montañas,
+Como si pudiera ser más que una simple hoja medio muerta."""
         )
     )
 
@@ -202,36 +204,36 @@ Like I can be more than just a half-dead leaf."""
 
     spanish_poem_prose = Poem(
         author_s,
-        title = _("Prose Poem"),
+        title = _("Poema en Prosa"),
         text = _("""\
-I am black light. I am cold fire. \
-I'm a peaceful fighter. I'm a naive wise man. \
-Why do people think that opposites can't be together in the same thing? \
-Can't they all see that everything and everyone is only gray? \
-Even this text is both prose and poem. \
-Even I used to be a mix of joy and crippling sadness. \
-And there's nothing completely black \
-Just like there's nothing completely white."""
+Soy luz negra. Soy fuego frío.
+Soy un luchador pacífico. Soy un sabio crío.
+¿Por qué piensa la gente que los opuestos no pueden estar juntos, qué desvarío?
+¿No ven todos que todo y todos son solo un gris sombrío?
+Incluso este texto es prosa y poema.
+Incluso yo solía ser una mezcla de alegría y una tristeza que quema.
+Y no hay nada completamente negro
+Como tampoco hay nada completamente blanco entero."""
         )
     )
 
 
     spanish_poem_afterlight = Poem(
         author_s,
-        title = _("Afterlight"),
+        title = _("Resplandor"),
         text = _("""\
-I seem to see things that I have never seen before.
-I seem to just now feel all that I’ve never felt around.
-So I can see anything that has happened here before.
-I started doing what I used to not know how to do.
-I saw here, an afterlight,
-That started to shine down on the gloom around me.
-It said that my life had been just a puppet-show.
-So I had been just a puppet, controlled by somebody else.
-But now that I can move myself on my own,
-I see those strings were too heavy for me to hold.
-I am now going to prevent this play,
-Where nobody can avoid the pain."""
+Parece que veo cosas que nunca antes había visto.
+Parece que justo ahora siento todo lo que nunca había sentido.
+Así que puedo ver cualquier cosa que aquí haya sucedido.
+Empecé a hacer lo que antes no había podido.
+Vi aquí, un resplandor,
+Que empezó a brillar sobre la penumbra a mi alrededor.
+Decía que mi vida había sido solo una función.
+Así que yo había sido solo una marioneta, controlada por alguien más sin compasión.
+Pero ahora que puedo moverme por mí misma,
+Veo que esas cuerdas eran una pesada carga, una gran cisma.
+Ahora voy a impedir esta obra teatral,
+Donde nadie puede evitar el dolor mortal."""
         )
     )
 
@@ -241,12 +243,12 @@ Where nobody can avoid the pain."""
 
     spanish_poem_val = Poem(
         author_s,
-        title = _("A Valentine"),
+        title = _("Un Valentín"),
         text = _("""\
-I have someone, who's no-one here.
-They live in a place that's named nowhere, here.
-But even though there is a wall
-Between our worlds, I truly love them."""
+Tengo a alguien, que no es nadie aquí.
+Vive en un lugar llamado "ninguna parte", aquí.
+Pero aunque haya un muro fatal
+Entre nuestros mundos, le amo de verdad."""
         )
     )
 
@@ -262,3 +264,4 @@ init 5 python:
     reg_poem_trans("poem_prose", spanish_poem_prose)
     reg_poem_trans("poem_afterlight", spanish_poem_afterlight)
     reg_poem_trans("poem_val", spanish_poem_val)
+

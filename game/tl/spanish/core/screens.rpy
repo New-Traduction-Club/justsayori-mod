@@ -4,285 +4,293 @@ translate spanish strings:
 
     # game/core/screens.rpy:9
     old "Enabling this will let Sayori use your system notifications, and check if JS is your active window"
-    new ""
+    new "Activar esto permitirá a Sayori usar las notificaciones de tu sistema y comprobar si JS es tu ventana activa"
 
     # game/core/screens.rpy:268
     old "History"
-    new ""
+    new "Historial"
 
     # game/core/screens.rpy:269
     old "Skip"
-    new ""
+    new "Saltar"
 
     # game/core/screens.rpy:270
     old "Auto"
-    new ""
+    new "Auto"
 
     # game/core/screens.rpy:271
     old "Save"
-    new ""
+    new "Guardar"
 
     # game/core/screens.rpy:272
     old "Load"
-    new ""
+    new "Cargar"
 
     # game/core/screens.rpy:275
     old "Settings"
-    new ""
+    new "Ajustes"
 
     # game/core/screens.rpy:278
     old "Hide"
-    new ""
+    new "Ocultar"
 
     # game/core/screens.rpy:296
     old "There's no point in saving anymore.\nDon't worry, I'm not going anywhere."
-    new ""
+    new "Ya no tiene sentido guardar.\nNo te preocupes, no me voy a ir a ninguna parte."
 
     # game/core/screens.rpy:347
     old "Invalid Name"
-    new ""
+    new "Nombre inválido"
 
     # game/core/screens.rpy:377
     old "Just Sayori"
-    new ""
+    new "Just Sayori"
 
     # game/core/screens.rpy:377
     old "Please enter your name"
-    new ""
+    new "Por favor, introduce tu nombre"
 
     # game/core/screens.rpy:383
     old "Save Game"
-    new ""
+    new "Guardar Partida"
 
     # game/core/screens.rpy:385
     old "Load Game"
-    new ""
+    new "Cargar Partida"
 
     # game/core/screens.rpy:390
     old "End Replay"
-    new ""
+    new "Terminar Repetición"
 
     # game/core/screens.rpy:394
     old "Main Menu"
-    new ""
+    new "Menú Principal"
 
     # game/core/screens.rpy:394
     old "There's no point!\nYou'll just get back here!"
-    new ""
+    new "¡No tiene sentido!\n¡Solo volverás aquí!"
 
     # game/core/screens.rpy:398
     old "Submods"
-    new ""
+    new "Submods"
 
     # game/core/screens.rpy:400
     old "QABs"
-    new ""
+    new "QABs"
 
     # game/core/screens.rpy:405
     old "Alerts"
-    new ""
+    new "Alertas"
 
     # game/core/screens.rpy:413
     old "Quit"
-    new ""
+    new "Salir"
 
     # game/core/screens.rpy:568
     old "About"
-    new ""
+    new "Créditos"
 
     # game/core/screens.rpy:575
     old "Version [config.version!t]\n"
-    new ""
+    new "Versión [config.version!t]\n"
 
     # game/core/screens.rpy:581
     old "Made with {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]"
-    new ""
+    new "Hecho con {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only].\n\n[renpy.license!t]"
 
     # game/core/screens.rpy:615
     old "There's no point in saving. \nNot when we're sitting here doing nothing..."
-    new ""
+    new "No tiene sentido guardar. \nNo cuando estamos aquí sentados sin hacer nada..."
 
     # game/core/screens.rpy:664
     old "{#file_time}%A, %B %d %Y, %H:%M"
-    new ""
+    new "{#file_time}%A, %d de %B de %Y, %H:%M"
 
     # game/core/screens.rpy:664
     old "empty slot"
-    new ""
+    new "espacio vacío"
 
     # game/core/screens.rpy:733
     old "Display"
-    new ""
+    new "Pantalla"
 
     # game/core/screens.rpy:734
     old "Window"
-    new ""
+    new "Ventana"
 
     # game/core/screens.rpy:735
     old "Fullscreen"
-    new ""
+    new "Pantalla Completa"
 
     # game/core/screens.rpy:740
     old "Rollback Side"
-    new ""
+    new "Lado de Retroceso"
 
     # game/core/screens.rpy:742
     old "Left"
-    new ""
+    new "Izquierda"
 
     # game/core/screens.rpy:743
     old "Right"
-    new ""
+    new "Derecha"
 
     # game/core/screens.rpy:755
     old "Gameplay"
-    new ""
+    new "Jugabilidad"
 
     # game/core/screens.rpy:757
     old "Repeat Topics"
-    new ""
+    new "Repetir Temas"
 
     # game/core/screens.rpy:767
     old "Notifications"
-    new ""
+    new "Notificaciones"
 
     # game/core/screens.rpy:804
-    old "Random Chatter  "
-    new ""
+    old "Random Chatter  "
+    new "Charla Aleatoria  "
 
     # game/core/screens.rpy:826
     old "Text Speed"
-    new ""
+    new "Velocidad del Texto"
 
     # game/core/screens.rpy:830
     old "Auto-Forward Time"
-    new ""
+    new "Tiempo de Auto-Avance"
 
     # game/core/screens.rpy:835
     old "Music Volume"
-    new ""
+    new "Volumen de la Música"
 
     # game/core/screens.rpy:839
     old "Sound Volume"
-    new ""
+    new "Volumen del Sonido"
 
     # game/core/screens.rpy:846
     old "Mute All"
-    new ""
+    new "Silenciar Todo"
 
     # game/core/screens.rpy:868
     old "Import DDLC Save Data"
-    new ""
+    new "Importar Datos Guardados de DDLC"
 
     # game/core/screens.rpy:872
     old "Web functions"
-    new ""
+    new "Funciones Web"
 
     # game/core/screens.rpy:878
     old "Font Style"
-    new ""
+    new "Estilo de Fuente"
 
     # game/core/screens.rpy:880
     old "Default Font"
-    new ""
+    new "Fuente Predeterminada"
 
     # game/core/screens.rpy:881
     old "You need to restart the game for the font change to take effect."
-    new ""
+    new "Necesitas reiniciar el juego para que el cambio de fuente surta efecto."
 
     # game/core/screens.rpy:887
     old "Alternate Font"
-    new ""
+    new "Fuente Alternativa"
 
     # game/core/screens.rpy:920
     old "There is no recent news."
-    new ""
+    new "No hay noticias recientes."
 
     # game/core/screens.rpy:1006
     old "The dialogue history is empty."
-    new ""
+    new "El historial de diálogos está vacío."
 
     # game/core/screens.rpy:1171
     old "Restart"
-    new ""
+    new "Reiniciar"
 
     # game/core/screens.rpy:1178
     old "I'll do it myself"
-    new ""
+    new "Lo haré yo mismo"
 
     # game/core/screens.rpy:1243
     old "Skipping"
-    new ""
+    new "Saltando"
 
     # game/core/screens.rpy:1302
     old "User Notifications"
-    new ""
+    new "Notificaciones de Usuario"
 
     # game/core/screens.rpy:1633
     old "General"
-    new ""
+    new "General"
 
     # game/core/screens.rpy:1638
     old "Bookmark"
-    new ""
+    new "Marcador"
 
     # game/core/screens.rpy:1640
     old "Screenshot"
-    new ""
+    new "Captura de Pantalla"
 
     # game/core/screens.rpy:1646
     old "M"
-    new ""
+    new "M"
 
     # game/core/screens.rpy:1647
     old "P"
-    new ""
+    new "P"
 
     # game/core/screens.rpy:1648
     old "T"
-    new ""
+    new "T"
 
     # game/core/screens.rpy:1649
     old "B"
-    new ""
+    new "B"
 
     # game/core/screens.rpy:1650
     old "F"
-    new ""
+    new "F"
 
     # game/core/screens.rpy:1651
     old "S"
-    new ""
+    new "S"
 
     # game/core/screens.rpy:1652
     old "Esc"
-    new ""
+    new "Esc"
 
     # game/core/screens.rpy:1659
     old "Volume Up"
-    new ""
+    new "Subir Volumen"
 
     # game/core/screens.rpy:1660
     old "Volume Down"
-    new ""
+    new "Bajar Volumen"
 
     # game/core/screens.rpy:1661
     old "Mute"
-    new ""
+    new "Silenciar"
 
     # game/core/screens.rpy:1666
     old "+"
-    new ""
+    new "+"
 
     # game/core/screens.rpy:1667
     old "-"
-    new ""
+    new "-"
 
     # game/core/screens.rpy:1668
     old "Shift-M"
-    new ""
+    new "Shift-M"
 
     # game/core/screens.rpy:1671
     old "Click 'Help' for the complete list."
-    new ""
+    new "Haz clic en 'Ayuda' para ver la lista completa."
+
+# TODO: Translation updated at 2025-11-08 08:47
+
+translate spanish strings:
+
+    # game/core/screens.rpy:804
+    old "Random Chatter  "
+    new "Charla aleatoria  "
 

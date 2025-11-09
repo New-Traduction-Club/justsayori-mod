@@ -4,17 +4,17 @@ translate spanish strings:
 
     # game/core/mg_core.rpy:199
     old "No minigames registered."
-    new ""
+    new "No hay minijuegos registrados."
 
     # game/core/mg_core.rpy:212
     old "Ready to play!"
-    new ""
+    new "¡Listo para jugar!"
 
     # game/core/mg_core.rpy:217
     old "Select a game"
-    new ""
+    new "Seleccionar un juego"
 
     # game/core/mg_core.rpy:237
     old "Tic Tac Toe"
-    new ""
+    new "Tres en raya"
 

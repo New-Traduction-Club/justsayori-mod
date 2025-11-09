@@ -52,6 +52,15 @@ init -1 python in fae_outfits:
         "necklace"
     ]
 
+    # Translatable names for the categories
+    WEARABLE_CATEGORY_NAMES = {
+        "hairstyle": __("Hairstyle"),
+        "eyewear": __("Eyewear"),
+        "accessory": __("Accessory"),
+        "clothes": __("Clothes"),
+        "headgear": __("Headgear"),
+        "necklace": __("Necklace")
+    }
 
     class FAEWearable():
         
@@ -878,16 +887,16 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEWearable(
         reference_name="fae_none",
-        display_name="Nothing",
+        display_name=__("Nothing"),
         unlocked=False,
         is_fae_wearable=True,
-        author="Nothing..."
+        author=__("Nothing...")
     )
     )
 
     _m1_new_outfits__register_wearable(FAEHairstyle(
         reference_name="fae_bow",
-        display_name="Bow",
+        display_name=__("Bow"),
         unlocked=True,
         is_fae_wearable=True,
         author="Forever & Ever Team"
@@ -895,7 +904,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEHairstyle(
         reference_name="fae_bowless",
-        display_name="Bowless",
+        display_name=__("Bowless"),
         unlocked=True,
         is_fae_wearable=True,
         author="Forever & Ever Team"
@@ -903,7 +912,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEClothes(
         reference_name="fae_uniform",
-        display_name="School Uniform",
+        display_name=__("School Uniform"),
         unlocked=True,
         is_fae_wearable=True,
         author="Forever & Ever Team"
@@ -911,7 +920,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEClothes(
         reference_name="base",
-        display_name="Base",
+        display_name=__("Base"),
         unlocked=True,
         is_fae_wearable=True,
         author="Forever & Ever Team"
@@ -920,7 +929,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAEClothes(
         reference_name="fae_hoodie",
-        display_name="Black Hoodie",
+        display_name=__("Black Hoodie"),
         unlocked=True,
         is_fae_wearable = True,
         author="Forever & Ever Team"
@@ -936,7 +945,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_wearable(FAENecklace(
         reference_name="fae_scarf",
-        display_name="Scarf",
+        display_name=__("Scarf"),
         unlocked=False,
         is_fae_wearable=True,
         author="Forever & Ever Team"
@@ -953,7 +962,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_outfit(FAEOutfit(
         reference_name="fae_uniform",
-        display_name="School Uniform",
+        display_name=__("School Uniform"),
         unlocked=True,
         is_fae_outfit=True,
         clothes=get_wearable("fae_uniform"),
@@ -963,7 +972,7 @@ init -1 python in fae_outfits:
 
     _m1_new_outfits__register_outfit(FAEOutfit(
         reference_name="fae_hoodie",
-        display_name="Black Hoodie",
+        display_name=__("Black Hoodie"),
         unlocked=True,
         is_fae_outfit=True,
         clothes=get_wearable("fae_hoodie"),

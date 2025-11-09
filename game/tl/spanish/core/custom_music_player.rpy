@@ -4,5 +4,5 @@ translate spanish strings:
 
     # game/core/custom_music_player.rpy:259
     old "Music Player"
-    new ""
+    new "Reproductor de música"
 
