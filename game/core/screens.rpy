@@ -1080,7 +1080,7 @@ screen name_input(message, ok_action):
     add "gui/overlay/confirm.png"
     key "K_RETURN" action [Play("sound", gui.activate_sound), ok_action]
 
-    frame:
+    frame at fade_in:
         vbox:
             xalign .5
             yalign .3
@@ -1118,7 +1118,7 @@ screen dialog(message, ok_action):
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    frame at fade_in:
 
         has vbox
         xalign .5
@@ -1188,7 +1188,7 @@ screen confirm(message, yes_action, no_action):
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    frame at fade_in:
 
         has vbox
         xalign .5
