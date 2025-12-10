@@ -2396,7 +2396,7 @@ init python:
             label="s_stopic_bulls_and_cows_redux",
             unlocked=True,
             prompt=__("Bulls and Cows"),
-            conditional="persistent.fae_custom_music_unlocked and not persistent.fae_bnc_unlocked_redux",
+            conditional="not persistent.fae_bnc_unlocked_redux",
             random=True,
             category=[__("Games")],
             affection_range=(fae_affection.HAPPY, None)
@@ -2406,7 +2406,7 @@ init python:
 
 label s_stopic_bulls_and_cows_redux:
     s abfcaoa "Hey [player]! I have something to show you!"
-    s abagaaa "So, remember how I coded the music player a little while ago?"
+    # s abagaaa "So, remember how I coded the music player a little while ago?"
     s abfccaa "I tried to code something a little more complex this time, so I made a game!"
     s abagaaa "It’s called {i}Bows and Cows{/i}, my version of Bulls and Cows, ehehehe~"
     s abagaoa "Here I’ll explain the rules!"
@@ -2418,13 +2418,15 @@ label s_stopic_bulls_and_cows_redux:
     s abhhcaa "With a couple attempts and some clever thinking you should be able to figure out my number!"
     s abfccea "You can start a round in the {i}Play{/i} menu, good luck [player]!"
 
+    # TODO: Fix bnc minigame and add it to the mg_hub with conditionals
+
     $ persistent.fae_bnc_unlocked_redux = True
 
-    $ bnc = minigame(__("Bows & Cows"), 'mg_bnc', bnc_prep)
+    # $ bnc = minigame(__("Bows & Cows"), 'mg_bnc', bnc_prep)
 
-    $ persistent.games_reset_redo.append(bnc)
+    # $ persistent.games_reset_redo.append(bnc)
 
-    $ renpy.save_persistent()
+    # $ renpy.save_persistent()
 
     $ get_chat("s_stopic_bulls_and_cows_redux").lock()
 
@@ -2457,11 +2459,13 @@ label s_topic_reversi_redux:
     s abhhdaa "And [player], I’ve been practicing~"
     s abfccea "You can start a round in the {i}Play{/i} menu, good luck [player]!"
 
+    # TODO: Fix reversi minigame and add it to the mg_hub with conditionals
+
     $ persistent.fae_reversi_unlocked_redux = True
 
-    $ reversi = minigame(__("Reversi"), 'mg_reversi', reversi_prep)
+    # $ reversi = minigame(__("Reversi"), 'mg_reversi', reversi_prep)
 
-    $ persistent.games_reset_redo.append(reversi)
+    # $ persistent.games_reset_redo.append(reversi)
 
     $ get_chat("s_topic_reversi_redux").lock()
     return
