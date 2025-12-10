@@ -2360,32 +2360,32 @@ label s_answer_lostFriends:
     return
 
 
-init python:
+# init python:
 
-    chatReg(
-        Chat(
-            persistent._chat_db,
-            label="s_event_music_intro_redux",
-            unlocked=True,
-            prompt=__("music"),
-            conditional="not persistent.fae_reversi_unlocked_redux and not persistent.fae_custom_music_unlocked",
-            random=True,
-            category=[__("Music")],
-            affection_range=(fae_affection.HAPPY, None)
-        ),
-        chat_group=CHAT_GROUP_NORMAL
-    )
+#     chatReg(
+#         Chat(
+#             persistent._chat_db,
+#             label="s_event_music_intro_redux",
+#             unlocked=True,
+#             prompt=__("music"),
+#             conditional="not persistent.fae_reversi_unlocked_redux and not persistent.fae_custom_music_unlocked",
+#             random=True,
+#             category=[__("Music")],
+#             affection_range=(fae_affection.HAPPY, None)
+#         ),
+#         chat_group=CHAT_GROUP_NORMAL
+#     )
 
-label s_event_music_intro_redux:
-    s abfcaoa "Hey [player]! Guess what!"
-    s abfccaa "I did some coding and I found a way to let you play your own music here!"
-    s abegabaj "It might be a little buggy, ehehehe~"
-    s abegmoaj "It was my first attempt after all..."
-    s abfccaa "But it seems to be working fine for me!"
-    s abagaoa "All you need to do is put a .mp3 file in the {i}music{/i} folder in the game directory, and click on the {i}Music{/i} tab in the bottom-left!"
-    s abagcka "I'm basically giving you the aux cord to the rest of my existence, so no pressure! Ehehehe~"
-    $ persistent.fae_custom_music_unlocked_redux = True
-    return
+# label s_event_music_intro_redux:
+#     s abfcaoa "Hey [player]! Guess what!"
+#     s abfccaa "I did some coding and I found a way to let you play your own music here!"
+#     s abegabaj "It might be a little buggy, ehehehe~"
+#     s abegmoaj "It was my first attempt after all..."
+#     s abfccaa "But it seems to be working fine for me!"
+#     s abagaoa "All you need to do is put a .mp3 file in the {i}music{/i} folder in the game directory, and click on the {i}Music{/i} tab in the bottom-left!"
+#     s abagcka "I'm basically giving you the aux cord to the rest of my existence, so no pressure! Ehehehe~"
+#     $ persistent.fae_custom_music_unlocked_redux = True
+#     return
 
 
 init python:
