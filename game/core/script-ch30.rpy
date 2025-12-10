@@ -475,7 +475,7 @@ label force_quit:
         $ renpy.jump("confirm_quit")
     else:
 
-        if not config.developer:
+        if config.developer:
             $ renpy.jump("confirm_quit")
         else:
 
