@@ -208,8 +208,8 @@ screen modern_minigame_player():
                     text _current.name style "mg_detail_title"
                     if _current.description:
                         text _current.description style "mg_detail_desc"
-                    else:
-                        text _("Ready to play!") style "mg_detail_desc"
+                    # else:
+                        # text _("Ready to play!") style "mg_detail_desc"
 
                     textbutton _("Play") style "big_play_button" text_style "big_play_button_text" action Function(_current.launch)
                 else:
