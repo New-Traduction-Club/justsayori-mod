@@ -2,10 +2,7 @@ init 5 python:
     import store.fae_outfits as fae_outfits
     import store.fae_utilities as fae_utilities
     
-    fae_outfits.load_custom_wearables()
-    fae_outfits.FAEWearable.load_all()
-    fae_outfits.load_custom_outfits()
-    fae_outfits.FAEOutfit.load_all()
+    # NOTE: Custom outfits and persistent data are now loaded automatically by the OutfitManager.
     fae_utilities.log("Custom outfits loaded.")
 
     store.Sayori.load_persistent_outfit()
