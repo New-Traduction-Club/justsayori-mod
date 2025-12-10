@@ -45,6 +45,11 @@ init -2 python:
         gui.interface_font = "mod_assets/fonts/NotoSansSC-Regular.ttf"
         gui.text_size = 22
 
+    if renpy.android:
+        gui.scrollbar_size = 18
+    else:
+        gui.scrollbar_size = 12
+
 
 define -2 gui.hover_sound = "gui/sfx/hover.ogg"
 define -2 gui.activate_sound = "gui/sfx/select.ogg"
@@ -300,7 +305,7 @@ define gui.frame_tile = False
 
 
 define gui.bar_size = 36
-define gui.scrollbar_size = 12
+# define gui.scrollbar_size = 12
 define gui.slider_size = 30
 
 
