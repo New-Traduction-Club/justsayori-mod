@@ -179,10 +179,10 @@ style outfit_nav_vbox:
 
 style outfit_nav_button is button:
     properties gui.button_properties("navigation_button")
-    background Frame("gui/button/choice_idle_background.png", gui.choice_button_borders, tile=True)
-    hover_background Frame("gui/button/choice_hover_background.png", gui.choice_button_borders, tile=True)
-    selected_background Frame("gui/button/slot_hover_background.png", gui.choice_button_borders, tile=True)
-    selected_hover_background Frame("gui/button/slot_hover_background.png", gui.choice_button_borders, tile=True)
+    background Frame("mod_assets/buttons/idle_bg2.png", gui.choice_button_borders, tile=True)
+    hover_background Frame("mod_assets/buttons/hover_bg2.png", gui.choice_button_borders, tile=True)
+    selected_background Frame("mod_assets/buttons/idle_bg2.png", gui.choice_button_borders, tile=True)
+    selected_hover_background Frame("mod_assets/buttons/hover_bg2.png", gui.choice_button_borders, tile=True)
     # xfill True
     xsize 125
     padding (10, 8)
