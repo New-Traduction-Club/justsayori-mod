@@ -9,7 +9,7 @@ screen choose_language():
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    frame at fade_in:
         style "confirm_frame"
 
         vbox:

@@ -83,6 +83,18 @@ python early:
             self.paper = renpy.easy.displayable_or_none(paper) or Null()
             self.music = music
 
+        def __eq__(self, other):
+            if not isinstance(other, Poem):
+                return NotImplemented
+
+            return (
+                self.text == other.text and
+                self.author == other.author and
+                self.paper == other.paper and
+                self.music == other.music
+            )
+
+
 init python:
 
     if persistent._poem_trans_db is None:

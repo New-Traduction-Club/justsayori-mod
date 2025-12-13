@@ -467,7 +467,7 @@ screen bg_hub():
                             yalign 0.5
                         
                     text _current.display_name style "mg_detail_title"
-                    text _("Ready to change!") style "mg_detail_desc"
+                    # text _("Ready to change!") style "mg_detail_desc"
                     
                     textbutton _("Change") style "big_play_button" text_style "big_play_button_text" action [
                         Function(_bg_apply, _current),
