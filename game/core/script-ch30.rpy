@@ -184,7 +184,11 @@ label ch30_setup:
 
 
 
-    show white zorder 99
+    show black zorder 99
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 5.0
+    hide chibi_dvd with dissolve
 
     if not persistent.mg_merge:
         $ game_reset()
@@ -286,7 +290,7 @@ label ch30_init:
                 renpy.call("cnc")
 
 
-    hide white with dissolve
+    hide black with dissolve
     show sayori idle zorder store.fae_sprites.FAE_SAYORI_ZORDER at t11
     show screen hidden1(True)
 
@@ -297,7 +301,7 @@ label after_holiday:
 
 label ch30_loop:
 
-    hide white with dissolve
+    hide black with dissolve
 
     $ init_qabs()
 
@@ -361,7 +365,7 @@ label cnc(show_sayori=True):
 
     if show_sayori:
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER at fae_center
-    hide white with dissolve
+    hide black with dissolve
 
     if persistent._event_list:
         $ _chat = persistent._event_list.pop(0)
@@ -410,7 +414,7 @@ label cnc_notify(show_sayori=True):
 
     if show_sayori:
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER at fae_center
-    hide white with dissolve
+    hide black with dissolve
 
     if persistent._event_list:
         $ _chat_notify = persistent._event_list.pop(0)
