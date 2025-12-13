@@ -301,6 +301,7 @@ init python:
 label s_return_long_absence:
 
     $ persistent._fae_long_absence = False
+    hide sayori
     scene black
 
     show desknote
