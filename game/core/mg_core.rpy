@@ -216,7 +216,7 @@ screen modern_minigame_player():
                     frame style "song_image_placeholder"
                     text _("Select a game") style "mg_detail_title"
 
-                textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action Return()
+                textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [Hide("modern_minigame_player"), Jump("ch30_loop")]
 
 # The transition handler
 label mg_launcher_label(mg_label):
