@@ -864,10 +864,10 @@ screen preferences():
 
 
 
-                if not renpy.android:
-                    textbutton _("Import DDLC Save Data"):
-                        action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
-                        style "navigation_button"
+                # if not renpy.android:
+                #     textbutton _("Import DDLC Save Data"):
+                #         action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
+                #         style "navigation_button"
                 
                 textbutton _("Web functions"):
                     action Function(show_ps_overlay)
