@@ -2418,15 +2418,8 @@ label s_stopic_bulls_and_cows_redux:
     s abhhcaa "With a couple attempts and some clever thinking you should be able to figure out my number!"
     s abfccea "You can start a round in the {i}Play{/i} menu, good luck [player]!"
 
-    # TODO: Fix bnc minigame and add it to the mg_hub with conditionals
-
+    # Fixed...
     $ persistent.fae_bnc_unlocked_redux = True
-
-    # $ bnc = minigame(__("Bows & Cows"), 'mg_bnc', bnc_prep)
-
-    # $ persistent.games_reset_redo.append(bnc)
-
-    # $ renpy.save_persistent()
 
     $ get_chat("s_stopic_bulls_and_cows_redux").lock()
 
