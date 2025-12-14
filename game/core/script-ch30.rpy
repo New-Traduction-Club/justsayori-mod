@@ -202,10 +202,9 @@ label ch30_setup:
 
         Affection.checkResetDailyAffectionGain()
 
-        try:
-            setupRPC("In the spaceroom")
-        except:
-            pass
+        # Start RPC
+        js_start_rpc()
+        js_update_rpc(state="In the spaceroom")
 
         random_chat()
 

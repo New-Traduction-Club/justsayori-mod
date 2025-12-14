@@ -436,5 +436,6 @@ label before_main_menu:
 label confirm_quit:
     python:
         fae_utilities.save_game()
+        js_stop_rpc()
         renpy.quit()
     return
