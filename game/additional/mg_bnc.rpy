@@ -76,6 +76,7 @@ screen bnc_game_screen(mg_obj, prompt):
 
 label mg_bnc(mg_obj=None):
     $ Sayori.setInGame(True)
+    $ js_update_rpc(state="Playing Bows and Cows")
     #$justIsSitting = False
     #$show_s_mood(ss1)
     # TODO: LEAVE CONDITION
@@ -238,6 +239,7 @@ label mg_bnc_s_comment(state=-1, restart=False, mg_obj=None):
 label mg_bnc_quit:
     $ Sayori.setInGame(False)
     hide screen mg_bnc_scr
+    $ js_update_rpc(state="In the spaceroom")
     # $ setupRPC("In the spaceroom")
     #$s_mood = 'h'
     #$show_s_mood(ss1)
