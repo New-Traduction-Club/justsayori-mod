@@ -230,7 +230,7 @@ screen mg_ttt_scr():
         textbutton _("Quit (Q)") xpadding 0 xsize 200 keysym 'q' action Jump("mg_ttt_quit")
     
 
-label mg_ttt:
+label mg_ttt(mg_obj=None):
     #$justIsSitting = False
     if not hasattr(ttt, "field"):
         $ ttt()
