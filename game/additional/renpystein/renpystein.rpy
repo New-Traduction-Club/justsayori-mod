@@ -21,7 +21,11 @@ init python:
 
     # Global flag to switch between keyboard and touch/mouse controls.
     # This is controlled by the in-game UI.
-    simulate_touch = False
+    # Automatically enable touch controls on Android.
+    if renpy.android:
+        simulate_touch = True
+    else:
+        simulate_touch = False
 
     # --- Constants ---
     texWidth = 64   # Texture width in pixels
