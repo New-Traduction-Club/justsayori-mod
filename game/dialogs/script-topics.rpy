@@ -3300,36 +3300,19 @@ label s_topics_location:
 
     return
 
-init python:
+# init python:
 
-    chatReg(
-        Chat(
-            persistent._chat_db,
-            label="renpystein_demo",
-            unlocked=True,
-            prompt=__("Renpystein"),
-            random=False,
-            category=[__("Secret Games")]
-        ),
-        chat_group=CHAT_GROUP_NORMAL
-    )
-
-label renpystein_demo:
-    python:
-        reset_stein_state()
-    s "This is a secret..."
-    
-    # Show the UI overlay with controls.
-    show screen stein_controls_overlay
-    
-    # Call the game screen. This will display the game until it returns a value (e.g., from an exit).
-    call screen stein
-
-    "You found exit [_return]!"
-
-    hide screen stein_controls_overlay
-
-    return
+#     chatReg(
+#         Chat(
+#             persistent._chat_db,
+#             label="renpystein_demo",
+#             unlocked=True,
+#             prompt=__("Renpystein"),
+#             random=False,
+#             category=[__("Secret Games")]
+#         ),
+#         chat_group=CHAT_GROUP_NORMAL
+#     )
 
 label js_music_player_entry:
     if not persistent.js_music_player_tutorial_seen:

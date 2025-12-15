@@ -1,13 +1,10 @@
 # RenPyStein - Main Script and Data File
 
 # --- Persistent Data ---
-# 'persistent' variables keep their value even when the game is closed and reopened.
-# We use it to remember the player's preferred quality setting.
 default persistent.performance_mode = False
 
 # --- Save-Specific Data ---
-# 'default' variables are part of Ren'Py's save system. They are reset when a new game starts.
-# We use them to store the state of the game world and the player's position.
+# These variables hold the LIVE game state. They are initialized by reset_stein_state.
 default player_x = 22.0
 default player_y = 11.5
 default player_dirx = -1.0
@@ -16,131 +13,219 @@ default player_planex = 0.0
 default player_planey = 0.66
 default stein_enemies = []
 default stein_sprites = []
+default worldMap = []
+default exits = []
 
 
 init python:
-    # The world map and level exits are static and can be defined once at startup.
-    # --- World Map Legend ---
-    # 0: Empty space
-    # 1-8: Different wall textures
-    worldMap = [
-        [8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4],#0
-        [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
-        [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,6],
-        [8,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
-        [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
-        [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,6,6,6,0,6,4,6],#5
-        [8,8,8,8,0,8,8,8,8,8,8,4,4,4,4,4,4,6,0,0,0,0,0,6],
-        [7,7,7,7,0,7,7,7,7,0,8,0,8,0,8,0,8,4,0,4,0,6,0,6],
-        [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,0,0,0,0,0,6],
-        [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,0,0,0,0,4],
-        [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,6,0,6,0,6],#10
-        [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,4,6,0,6,6,6],
-        [7,7,7,7,0,7,7,7,7,8,8,4,0,6,8,4,8,3,3,3,0,3,3,3],
-        [2,2,2,2,0,2,2,2,2,4,6,4,0,0,6,0,6,3,0,0,0,0,0,3],
-        [2,2,0,0,0,0,0,2,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
-        [2,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],#15
-        [1,0,0,0,0,0,0,0,1,4,4,4,4,4,6,0,6,3,3,0,0,0,3,3],
-        [2,0,0,0,0,0,0,0,2,2,2,1,2,2,2,6,6,0,0,5,0,5,0,5],
-        [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
-        [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
-        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],#20
-        [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
-        [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
-        [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5]
-    ]
+    # --- Level 1 Data ---
+    level1_data = {
+        "worldMap": [
+            [8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4],
+            [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
+            [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,6],
+            [8,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+            [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
+            [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,6,6,6,0,6,4,6],
+            [8,8,8,8,0,8,8,8,8,8,8,4,4,4,4,4,4,6,0,0,0,0,0,6],
+            [7,7,7,7,0,7,7,7,7,0,8,0,8,0,8,0,8,4,0,4,0,6,0,6],
+            [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,0,0,0,0,0,6],
+            [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,0,0,0,0,4],
+            [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,6,0,6,0,6],
+            [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,4,6,0,6,6,6],
+            [7,7,7,7,0,7,7,7,7,8,8,4,0,6,8,4,8,3,3,3,0,3,3,3],
+            [2,2,2,2,0,2,2,2,2,4,6,4,0,0,6,0,6,3,0,0,0,0,0,3],
+            [2,2,0,0,0,0,0,2,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
+            [2,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
+            [1,0,0,0,0,0,0,0,1,4,4,4,4,4,6,0,6,3,3,0,0,0,3,3],
+            [2,0,0,0,0,0,0,0,2,2,2,1,2,2,2,6,6,0,0,5,0,5,0,5],
+            [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
+            [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
+            [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5]
+        ],
+        "player_x": 22.0, "player_y": 11.5,
+        "player_dirx": -1.0, "player_diry": 0.0,
+        "player_planex": 0.0, "player_planey": 0.66,
+        "enemies": [
+            (18.5, 10.5, 4, 5), (5.5, 16.5, 4, 5)
+        ],
+        "sprites": [
+            (20.5, 11.5, 2), (18.5,4.5, 2), (10.0,4.5, 2), (10.0,12.5,2),
+            (3.5, 6.5, 2), (3.5, 20.5,2), (3.5, 14.5,2), (14.5,20.5,2)
+        ],
+        "exits": [
+            (1.5, 1.5, "Exit 1"), (1.5, 22.5, "Exit 2"),
+            (21.5, 1.5, "Exit 3"), (21.5, 22.5, "Exit 4")
+        ]
+    }
 
-    def reset_stein_state():
+    # --- Level 2 Data ---
+    level2_data = {
+        "worldMap": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,2,2,0,0,3,3,0,0,2,2,2,0,1],
+            [1,0,2,0,0,0,0,3,0,0,0,0,0,2,0,1],
+            [1,0,2,0,0,5,5,5,5,5,5,0,0,2,0,1],
+            [1,0,0,0,0,5,0,0,0,0,5,0,0,0,0,1],
+            [1,0,3,3,0,5,0,4,4,0,5,0,3,3,0,1],
+            [1,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1],
+            [1,0,3,3,0,5,0,4,4,0,5,0,3,3,0,1],
+            [1,0,0,0,0,5,0,0,0,0,5,0,0,0,0,1],
+            [1,0,2,0,0,5,5,5,5,5,5,0,0,2,0,1],
+            [1,0,2,0,0,0,0,3,0,0,0,0,0,2,0,1],
+            [1,0,2,2,2,0,0,3,3,0,0,2,2,2,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ],
+        "player_x": 8.0, "player_y": 8.0,
+        "player_dirx": 0.0, "player_diry": 1.0,
+        "player_planex": 0.66, "player_planey": 0.0,
+        "enemies": [ (13.5, 2.5, 4, 5), (2.5, 13.5, 4, 5), (7.5, 13.5, 4, 5) ],
+        "sprites": [ (2.5, 2.5, 2), (13.5, 13.5, 2) ],
+        "exits": [ (1.5, 1.5, "Exit") ]
+    }
+
+    # --- Level 3 Data ---
+    level3_data = {
+        "worldMap": [
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,2],
+            [2,0,2,2,2,2,2,0,2,0,4,4,4,4,4,4,4,4,0,5,0,4,4,4,0,4,4,4,4,4,0,2],
+            [2,0,2,0,0,0,2,0,2,0,4,0,0,0,0,0,0,4,0,5,0,4,0,0,0,0,0,0,0,4,0,2],
+            [2,0,2,0,2,0,2,0,0,0,4,0,4,4,4,4,0,4,0,0,0,4,0,4,4,4,4,4,0,4,0,2],
+            [2,0,2,0,2,0,2,2,2,0,4,0,4,0,0,4,0,4,4,4,4,4,0,4,0,0,0,0,0,4,0,2],
+            [2,0,0,0,2,0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0,0,4,4,0,4,4,4,4,0,2],
+            [2,2,2,2,2,2,2,2,2,5,5,5,5,0,5,5,5,5,5,5,5,5,0,4,0,0,0,0,0,4,0,2],
+            [6,6,6,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,0,6,0,2],
+            [6,0,0,0,0,0,6,0,6,0,6,6,6,6,6,6,0,6,6,6,6,6,6,6,0,6,0,0,0,6,0,2],
+            [6,0,3,3,0,0,0,0,0,0,0,0,0,0,0,6,0,6,0,0,0,0,0,6,0,6,0,6,6,6,0,2],
+            [6,0,3,3,0,0,6,0,6,0,6,6,6,6,0,6,0,6,0,6,6,6,0,6,0,0,0,0,0,0,0,2],
+            [6,0,0,0,0,0,6,0,6,0,6,0,0,0,0,0,0,0,0,6,0,6,0,6,6,6,6,6,6,6,6,6],
+            [6,6,6,6,6,6,6,0,6,0,6,0,6,6,6,6,6,6,6,6,0,6,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,1],
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1],
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,1,0,0,0,1,0,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,1,0,1,0,1],
+            [1,1,1,1,1,1,1,1,8,8,8,8,8,8,8,8,8,8,8,0,8,8,0,0,0,0,0,0,0,1,0,1],
+            [3,3,3,3,3,3,3,3,8,0,0,0,8,0,0,0,0,0,8,0,8,0,0,1,1,1,1,1,0,0,0,1],
+            [3,0,0,0,0,0,0,3,8,0,8,0,8,0,8,8,8,0,8,0,8,0,8,8,0,0,0,8,0,8,8,8],
+            [3,0,3,3,3,3,0,3,8,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,8],
+            [3,0,3,0,0,3,0,3,8,8,8,8,8,0,8,8,8,8,8,8,8,8,8,8,0,8,8,8,8,8,0,8],
+            [3,0,3,0,0,3,0,3,3,3,3,3,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,8],
+            [3,0,3,3,3,3,0,0,0,0,0,3,8,8,8,8,8,0,8,8,8,8,8,8,8,8,8,8,0,8,0,8],
+            [3,0,0,0,0,0,0,3,3,3,0,3,7,7,7,7,8,0,8,7,7,7,7,7,7,7,0,0,0,8,0,8],
+            [3,3,3,3,3,3,3,3,0,0,0,0,7,0,0,0,0,0,0,0,0,0,7,0,0,0,0,7,7,7,0,8],
+            [7,7,7,7,7,7,7,7,0,7,7,7,7,0,7,7,7,7,7,7,7,0,7,0,7,7,7,7,0,0,0,8],
+            [7,0,0,0,0,0,0,0,0,7,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,8],
+            [7,0,7,7,7,7,7,7,7,7,0,7,7,7,7,0,7,7,7,7,7,7,7,7,7,7,7,7,0,0,0,8],
+            [7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8]
+        ],
+        "player_x": 1.5, "player_y": 1.5,
+        "player_dirx": 1.0, "player_diry": 0.0,
+        "player_planex": 0.0, "player_planey": 0.66,
+        "enemies": [
+            (3.5, 4.5, 4, 5, 100), (6.5, 7.5, 4, 5, 100),
+            (7.5, 12.5, 4, 5, 100), (7.5, 20.5, 4, 5, 100),
+            (10.5, 2.5, 4, 5, 100), (10.5, 5.5, 4, 5, 100), (11.5, 4.5, 4, 5, 100),
+            (12.5, 15.5, 4, 5, 100), (12.5, 18.5, 4, 5, 100),
+            (15.5, 3.5, 4, 5, 100), (15.5, 7.5, 4, 5, 100), (15.5, 11.5, 4, 5, 100),
+            (16.5, 5.5, 4, 5, 100), (16.5, 9.5, 4, 5, 100),
+            (21.5, 2.5, 4, 5, 100), (22.5, 12.5, 4, 5, 100), (24.5, 5.5, 4, 5, 100),
+            (25.5, 28.5, 4, 5, 100), (20.5, 29.5, 4, 5, 100),
+            (29.5, 25.5, 4, 5, 150), (29.5, 27.5, 4, 5, 150),
+            (30.5, 28.5, 4, 5, 300)
+        ],
+        "sprites": [
+            (10.5, 10.5, 1), (10.5, 20.5, 1), (12.5, 12.5, 1),
+            (1.5, 10.5, 0), (1.5, 20.5, 0),
+            (28.5, 28.5, 2), (28.5, 29.5, 2), (28.5, 27.5, 2)
+        ],
+        "exits": [
+            (30.5, 30.5, "Level 3 Complete")
+        ]
+    }
+
+
+    def reset_stein_state(level=1):
         """
-        Initializes or resets the game state by directly setting the renpy.store variables. 
-        This is called at the start of a new game or when re-entering the minigame.
+        Initializes or resets the game state for a specific level.
         """
-        # Player's starting position and orientation
-        renpy.store.player_x = 22.0
-        renpy.store.player_y = 11.5
-        renpy.store.player_dirx = -1.0
-        renpy.store.player_diry = 0.0
-        renpy.store.player_planex = 0.0
-        renpy.store.player_planey = 0.66
+        if level == 2:
+            level_data = level2_data
+        elif level == 3:
+            level_data = level3_data
+        else: # Default to level 1
+            level_data = level1_data
+
+        renpy.store.worldMap = level_data["worldMap"]
+        renpy.store.exits = level_data["exits"]
+        renpy.store.player_x = level_data["player_x"]
+        renpy.store.player_y = level_data["player_y"]
+        renpy.store.player_dirx = level_data["player_dirx"]
+        renpy.store.player_diry = level_data["player_diry"]
+        renpy.store.player_planex = level_data["player_planex"]
+        renpy.store.player_planey = level_data["player_planey"]
         renpy.store.stein_player_health = 100
         renpy.store.stein_current_weapon = "fist"
+        renpy.store.stein_enemies = list(level_data["enemies"])
+        
+        # Initialize sprites list with defined sprites and add barrel for each exit
+        temp_sprites = list(level_data["sprites"])
+        for exit_coord in level_data["exits"]:
+            temp_sprites.append((exit_coord[0], exit_coord[1], 0)) # 0 is the barrel sprite index
+        renpy.store.stein_sprites = temp_sprites
 
-        # Enemy data format: (x, y, sprite_index, destroyed_sprite_index)
-        renpy.store.stein_enemies = [
-            (18.5, 10.5, 4, 5),
-            (5.5, 16.5, 4, 5)
-        ]
-        # Sprite data format: (x, y, sprite_index)
-        renpy.store.stein_sprites = [
-            (20.5, 11.5, 2), #green light in front of playerstart
-            (18.5,4.5, 2),
-            (10.0,4.5, 2),
-            (10.0,12.5,2),
-            (3.5, 6.5, 2),
-            (3.5, 20.5,2),
-            (3.5, 14.5,2),
-            (14.5,20.5,2),
-            (1.5,1.5,0),
-            (1.5,22.5,0),
-            (21.5,1.5,0),
-            (21.5,22.5,0),
-        ]
-
-    # Exit data format: (x, y, return_value)
-    exits = [
-        (1.5, 1.5, "Exit 1"),
-        (1.5, 22.5, "Exit 2"),
-        (21.5, 1.5, "Exit 3"),
-        (21.5, 22.5, "Exit 4")
-    ]
 
 # The screen that displays the main game engine.
 screen stein:
-    # Disable the default 's' key for screenshots while this screen is active
     key "s" action None
-    # Disable right-click from opening the game menu
     key "mouseup_3" action None
-    
-    # This python block runs every time the screen is shown.
+
     python:
-        # Check the persistent quality setting to determine the internal rendering resolution.
         if persistent.performance_mode:
-            # Low quality = half resolution (4x faster)
             internal_width = 640
             internal_height = 360
         else:
-            # High quality = full resolution
             internal_width = 1280
             internal_height = 720
-    
-    # Add the Renpystein displayable to the screen.
-    # It will read the player and world state from the `default` variables.
+
     add Renpystein(
         1280, 720,
         worldMap=worldMap,
         exits=exits,
-        internal_width=internal_width, 
+        internal_width=internal_width,
         internal_height=internal_height
-    ):
-        xalign 0.5
-        yalign 0.3
+    )
 
-# The main game label.
-# label start:
-#     # When a new game starts, reset the game state.
-#     python:
-#         reset_stein_state()
-    
-#     "This is a test of Ren'PyStein."
-    
-#     "Using concepts from the Python code Gh0stenstein, with many thanks to gh0st."
-    
-#     # Show the UI overlay with controls.
-#     show screen stein_controls_overlay
-    
-#     # Call the game screen. This will display the game until it returns a value (e.g., from an exit).
-#     call screen stein
+label renpystein_game:
+    show screen stein_controls_overlay
+    call screen stein
+    s "You found exit [_return]!"
+    hide screen stein_controls_overlay
+    return
 
-#     "You found exit [_return]!"
+label start_level_1:
+    $ reset_stein_state(level=1)
+    jump renpystein_game
 
-#     return
+label start_level_2:
+    $ reset_stein_state(level=2)
+    jump renpystein_game
+
+label start_level_3:
+    $ reset_stein_state(level=3)
+    jump renpystein_game
+
+# This is for backwards compatibility / direct calls
+label renpystein_demo:
+    jump start_level_1
+
+label sayoristein_main_menu:
+    call screen sayoristein_menu
+    return

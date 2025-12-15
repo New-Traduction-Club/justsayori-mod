@@ -251,3 +251,11 @@ init 10 python:
             prep=bnc_prep,
             description=_("Guess the secret number!")
         )
+    
+    if not any(g.label == "sayoristein_main_menu" for g in _MG_OBJECTS):
+        register_minigame(
+            label="sayoristein_main_menu",
+            name=_("Sayoristein 3D"),
+            image="mod_assets/images/minigames/covers/sayoristein.png",
+            unlocked=True
+        )
