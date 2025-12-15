@@ -1,11 +1,13 @@
 init python:
 
     class Weapon(object):
-        def __init__(self, weaponName="fist", frameCount = 5, zoom_factor = 1):
+        def __init__(self, weaponName="fist", frameCount = 5, zoom_factor = 11, damage=25, projectile_type=None):
             self.images = []
             self.playing = False
             self.frame = 0
             self.oldst = None
+            self.damage = damage
+            self.projectile_type = projectile_type
             for i in range(frameCount):
                 img = Transform("pics/weapons/%s%s.png" % (weaponName, i+1), zoom = zoom_factor)
                 self.images.append(img)

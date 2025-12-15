@@ -44,6 +44,9 @@ init python:
             self.planex = float(planex)
             self.planey = float(planey)
             
+            self.health = 100
+            self.current_weapon_name = "fist"
+            
             # --- Movement state variables ---
             self.rot = math.atan2(diry, dirx) # Player rotation in radians
             self.planerot = math.atan2(planey, planex) # Camera plane rotation
@@ -118,7 +121,258 @@ init python:
             # but for this engine, this basic check is sufficient.
             
             return pos 
+
+    class Projectile(object):
+        """
+        Represents a moving projectile (a bullet).
+        """
+        def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False):
+            self.wm = wm
+            self.x = x
+            self.y = y
+            self.dir_x = dir_x
+            self.dir_y = dir_y
+            self.texture_index = texture_index
+            self.damage = damage
+            self.fired_by_player = fired_by_player
+            self.speed = 8.0 # Projectile speed in units per second
+
+        def update(self, dt):
+            """
+            Moves the projectile and checks for collisions.
+            Returns:
+                bool: False if the projectile should be destroyed, True otherwise.
+            """
+            new_x = self.x + self.dir_x * self.speed * dt
+            new_y = self.y + self.dir_y * self.speed * dt
+
+            # Check for collision with walls
+            if self.wm.worldMap[int(new_x)][int(new_y)] > 0:
+                return False # Hit a wall, destroy projectile
+
+            self.x = new_x
+            self.y = new_y
+
+            if not self.fired_by_player:
+                # Projectile from enemy, check against player
+                player = self.wm.player
+                dist_to_player = math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2)
+                if dist_to_player < 0.5: # Player hitbox
+                    player.health -= self.damage
+                    self.wm.damage_flash_timer = 0.2
+                    renpy.sound.play("sounds/ow.ogg", channel=2)
+                    return False # Hit the player, destroy projectile
+            else:
+                # Projectile from player, check against enemies
+                for enemy in self.wm.enemies:
+                    dist_to_enemy = math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2)
+                    if dist_to_enemy < 0.5: # Enemy hitbox
+                        enemy.health -= self.damage
+                        if enemy.health <= 0:
+                            renpy.sound.play("sounds/ow.ogg", channel=1)
+                            self.wm.enemies.remove(enemy)
+                            self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
+                        return False
+
+            return True # Projectile is still active
+
+    class BaseEnemy(object):
+        """
+        A generic base class for all enemies. Handles shared logic like
+        state management, line-of-sight, and movement.
+        """
+        def __init__(self, wm, x, y, health=100):
+            self.wm = wm
+            self.x = x
+            self.y = y
+            self.health = health
+            self.state = 'idle' # 'idle', 'chasing', 'attacking'
             
+            # These will be overridden by subclasses
+            self.texture_index = 0
+            self.destroyed_texture_index = 0
+            self.moveSpeed = 1.5 
+            self.rotSpeed = 75 * math.pi / 180
+            self.attack_range = 8.0
+            self.sight_range = 15.0
+            self.attack_cooldown = 1.5
+            self.damage = 10
+            
+            self.attack_timer = 0.0
+            self.mapWidth = len(wm.worldMap[0])
+            self.mapHeight = len(wm.worldMap)
+
+        def update(self, dt, player):
+            """
+            Updates the enemy's state machine and acts accordingly.
+            Can be overridden for more complex behaviors.
+            """
+            self.attack_timer = max(0, self.attack_timer - dt)
+
+            player_x, player_y = player.x, player.y
+            dist_to_player = math.sqrt((player_x - self.x)**2 + (player_y - self.y)**2)
+
+            # State transitions
+            if self.state == 'idle':
+                if dist_to_player < self.sight_range and self.has_line_of_sight(player_x, player_y):
+                    self.state = 'chasing'
+            
+            elif self.state == 'chasing':
+                # Check if we should go back to idle
+                if dist_to_player > self.sight_range or not self.has_line_of_sight(player_x, player_y):
+                    self.state = 'idle'
+                    return
+
+                # Move if not in the ideal attack sweet spot
+                if dist_to_player > self.attack_range or dist_to_player < self.attack_range * 0.8:
+                    self.move(dt, player_x, player_y)
+                
+                # Attack if in range and cooldown is ready
+                if dist_to_player < self.attack_range and self.attack_timer == 0:
+                    self.attack(player)
+
+        def attack(self, player):
+            """
+            Placeholder for the attack action. To be overridden by subclasses.
+            """
+            self.attack_timer = self.attack_cooldown
+            # Base enemy does nothing XD
+            pass
+
+        def move(self, dt, target_x, target_y):
+            """
+            Moves the enemy towards a target position.
+            """
+            angle_to_target = math.atan2(target_y - self.y, target_x - self.x)
+            moveStep = self.moveSpeed * dt
+            
+            newX = self.x + math.cos(angle_to_target) * moveStep
+            newY = self.y + math.sin(angle_to_target) * moveStep
+            
+            position = self.checkCollision(self.x, self.y, newX, newY, 0.45)
+            self.x = position[0]
+            self.y = position[1]
+
+        def has_line_of_sight(self, target_x, target_y):
+            """
+            Checks for a clear line of sight to the target using a DDA-like grid traversal.
+            """
+            ray_start_x, ray_start_y = self.x, self.y
+            ray_dir_x = target_x - ray_start_x
+            ray_dir_y = target_y - ray_start_y
+            
+            ray_len = math.sqrt(ray_dir_x**2 + ray_dir_y**2)
+            if ray_len == 0: return True
+
+            ray_dir_x /= ray_len
+            ray_dir_y /= ray_len
+
+            if ray_dir_x == 0: ray_dir_x = 1e-9
+            if ray_dir_y == 0: ray_dir_y = 1e-9
+            
+            delta_dist_x = abs(1 / ray_dir_x)
+            delta_dist_y = abs(1 / ray_dir_y)
+            
+            map_x, map_y = int(ray_start_x), int(ray_start_y)
+            
+            if ray_dir_x < 0:
+                step_x = -1
+                side_dist_x = (ray_start_x - map_x) * delta_dist_x
+            else:
+                step_x = 1
+                side_dist_x = (map_x + 1.0 - ray_start_x) * delta_dist_x
+
+            if ray_dir_y < 0:
+                step_y = -1
+                side_dist_y = (ray_start_y - map_y) * delta_dist_y
+            else:
+                step_y = 1
+                side_dist_y = (map_y + 1.0 - ray_start_y) * delta_dist_y
+
+            current_dist = 0
+            while current_dist < ray_len:
+                if side_dist_x < side_dist_y:
+                    side_dist_x += delta_dist_x
+                    map_x += step_x
+                    current_dist = side_dist_x
+                else:
+                    side_dist_y += delta_dist_y
+                    map_y += step_y
+                    current_dist = side_dist_y
+                
+                if self.isBlocking(map_x, map_y):
+                    return False
+            
+            return True
+
+        def isBlocking(self, x, y):
+            """Checks if a map tile is a solid wall."""
+            if not (0 <= x < self.mapWidth and 0 <= y < self.mapHeight):
+                return True
+            return self.wm.worldMap[int(x)][int(y)] != 0 
+
+        def checkCollision(self, fromX, fromY, toX, toY, radius):
+            """A simple collision detection."""
+            pos = [fromX, fromY]
+ 
+            if toY < 0 or toY >= self.mapHeight or toX < 0 or toX >= self.mapWidth:
+                return pos
+   
+            blockX = math.floor(toX)
+            blockY = math.floor(toY)
+   
+            if self.isBlocking(blockX, blockY):
+                return pos
+ 
+            pos[0] = toX
+            pos[1] = toY
+            
+            return pos
+
+    class Guard(BaseEnemy):
+        """
+        A specific enemy type: the fucking Guard.
+        """
+        def __init__(self, wm, x, y, texture_index, destroyed_texture_index, health=100):
+            super(Guard, self).__init__(wm, x, y, health)
+            self.texture_index = texture_index
+            self.destroyed_texture_index = destroyed_texture_index
+            self.moveSpeed = 1.5
+            self.damage = 10
+            self.bullet_texture_index = 6 # The index of bullet.png in sprite_paths
+
+        def attack(self, player):
+            """
+            The Guard's attack: fire a projectile at the player.
+            """
+            super(Guard, self).attack(player) # Handles attack timer reset
+            
+            # Calculate direction vector towards player
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
+            dist = math.sqrt(dir_x**2 + dir_y**2)
+            
+            # Normalize the direction vector
+            if dist > 0:
+                dir_x /= dist
+                dir_y /= dist
+
+            # Create and spawn the projectile
+            bullet = Projectile(
+                wm=self.wm, 
+                x=self.x, 
+                y=self.y, 
+                dir_x=dir_x, 
+                dir_y=dir_y, 
+                texture_index=self.bullet_texture_index, 
+                damage=self.damage,
+                fired_by_player=False
+            )
+            self.wm.projectiles.append(bullet)
+            
+            # pew
+            renpy.sound.play("sounds/pew.ogg", channel=3)
+
     class Renpystein(renpy.Displayable):
         """
         The main class for the raycasting engine. It's a Ren'Py Displayable,
@@ -145,6 +399,9 @@ init python:
             self.sprite_paths = [  
                 "pics/items/barrel.png", "pics/items/pillar.png",
                 "pics/items/greenlight.png", "pics/items/pillar_destroyed.png",
+                "pics/enemies/guard.png",
+                "pics/enemies/guard_d.png",
+                "pics/items/bullet.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -158,12 +415,33 @@ init python:
             # This ensures that the game resumes at the exact same spot after UI interactions (like menus or changing settings).
             self.worldMap = worldMap
             self.player = Player(self, renpy.store.player_x, renpy.store.player_y, renpy.store.player_dirx, renpy.store.player_diry, renpy.store.player_planex, renpy.store.player_planey)
-            
+            if hasattr(renpy.store, 'stein_player_health'):
+                self.player.health = renpy.store.stein_player_health
+            if hasattr(renpy.store, 'stein_current_weapon'):
+                self.player.current_weapon_name = renpy.store.stein_current_weapon
+
             self.sprite_positions = renpy.store.stein_sprites
             self.exits = exits
-            self.enemies = renpy.store.stein_enemies
-            self.weapon = Weapon("fist", 5, 8)
+            
+            self.enemies = []
+            for e_data in renpy.store.stein_enemies:
+                # e_data can be a 4-element tuple (legacy) or 5-element (with health)
+                if len(e_data) == 5:
+                    self.enemies.append(Guard(self, e_data[0], e_data[1], e_data[2], e_data[3], health=e_data[4]))
+                else:
+                    self.enemies.append(Guard(self, e_data[0], e_data[1], e_data[2], e_data[3]))
+
+            self.projectiles = []
+            
+            self.weapons = {
+                "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None),
+                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet')
+            }
+            self.bullet_texture_index = 6 
+
             self.won = None
+            self.damage_flash_timer = 0.0
+            self.mouse_initialized = False
             
         def render(self, width, height, st, at):
             """ The main rendering loop, called by Ren'Py on every frame. """
@@ -207,21 +485,47 @@ init python:
             dtime = st - self.oldst
             self.oldst = st
             
-            # Update player state from touch/mouse inputs
-            if simulate_touch:
-                self.update_player_from_touch_state()
+            if self.won is None:
+                # Update timers
+                self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
 
-            # Move the player
-            self.player.move(dtime)
-            
+                # Update player state from touch/mouse inputs
+                if simulate_touch:
+                    self.update_player_from_touch_state()
+
+                # Move the player
+                self.player.move(dtime)
+                
+                # Update enemies
+                self.update_enemies(dtime)
+
+                # Update projectiles
+                self.update_projectiles(dtime)
+
+                if self.player.health <= 0:
+                    self.player.health = 0
+                    self.won = 'game_over'
+
             # --- 3. SAVE PERSISTENT STATE ---
-            # After moving, save the player's current state. This makes the game "survive" reloads.
+            # After moving, save the current state to the persistent store
+            # This makes the game "survive" menu calls and save/loads
             renpy.store.player_x = self.player.x
             renpy.store.player_y = self.player.y
             renpy.store.player_dirx = self.player.dirx
             renpy.store.player_diry = self.player.diry
             renpy.store.player_planex = self.player.planex
             renpy.store.player_planey = self.player.planey
+            renpy.store.stein_player_health = self.player.health
+            renpy.store.stein_current_weapon = self.player.current_weapon_name
+
+            # Serialize and save the state of all living enemies
+            current_enemies_data = []
+            for enemy in self.enemies:
+                enemy_tuple = (enemy.x, enemy.y, enemy.texture_index, enemy.destroyed_texture_index, enemy.health)
+                current_enemies_data.append(enemy_tuple)
+            renpy.store.stein_enemies = current_enemies_data
+            
+            renpy.store.stein_sprites = self.sprite_positions
 
             # --- 4. RENDER 3D SCENE ---
             # Create the canvas at the internal (potentially smaller) resolution for performance.
@@ -319,7 +623,10 @@ init python:
                 zBuffer.append(perpWallDist)       
 
             # --- 4b. SPRITE CASTING ---
-            mergedlist = self.sprite_positions + self.enemies
+            renderable_enemies = [(e.x, e.y, e.texture_index) for e in self.enemies]
+            renderable_projectiles = [(p.x, p.y, p.texture_index) for p in self.projectiles]
+            mergedlist = self.sprite_positions + renderable_enemies + renderable_projectiles
+            
             # Sort sprites from far to near to handle transparency correctly
             mergedlist.sort(key=self.sprite_sort_key, reverse=True)
             for sprite in mergedlist:
@@ -376,9 +683,22 @@ init python:
             canvas_tex = renpy.display.draw.load_texture(final_canvas)
             final_render.blit(canvas_tex, (0, 0))
             
-            # Render the weapon model over the 3D scene
-            self.weapon.render_to(final_render, self.width, self.height, st, at)
-            
+            # Render the currently equipped weapon model over the 3D scene
+            current_weapon_obj = self.weapons[self.player.current_weapon_name]
+            current_weapon_obj.render_to(final_render, self.width, self.height, st, at)
+
+            # --- 6. RENDER HUD AND EFFECTS ---
+            hp_text = Text("HP: {}".format(self.player.health), style="default", size=32)
+            hp_render = renpy.render(hp_text, self.width, self.height, st, at)
+            final_render.blit(hp_render, (15, self.height - 45))
+
+            # Render damage flash
+            if self.damage_flash_timer > 0:
+                flash_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+                alpha = 128 * (self.damage_flash_timer / 0.2)
+                flash_surf.fill((255, 0, 0, alpha))
+                final_render.blit(flash_surf, (0, 0))
+
             # Check for win condition (player is near an exit)
             for e in self.exits:
                 if math.fabs(e[0] - self.player.x) < 0.5 and math.fabs(e[1] - self.player.y) < 0.5:
@@ -392,6 +712,12 @@ init python:
             """ The main event handler, called by Ren'Py for every input event. """
             global simulate_touch
 
+            # On first event (or after returning from menu), hide mouse and grab cursor
+            if not self.mouse_initialized and not simulate_touch:
+                pygame.mouse.set_visible(False)
+                pygame.event.set_grab(True)
+                self.mouse_initialized = True
+
             if simulate_touch:
                 # On Android, fingers generate FINGER* events for true multitouch.
                 if ev.type in (pygame.FINGERDOWN, pygame.FINGERMOTION, pygame.FINGERUP):
@@ -400,14 +726,33 @@ init python:
                 elif ev.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP):
                     self.handle_mouse_simulation(ev, x, y)
             else:
-                # Handle standard keyboard input.
-                self.handle_keyboard_events(ev)
+                # Handle standard PC (keyboard + mouse) input.
+                self.handle_pc_input(ev)
 
             if self.won is None:
                 renpy.retain_after_load() # Prevents the game from advancing if an event is handled
             else:
+                if self.mouse_initialized:
+                    pygame.mouse.set_visible(True)
+                    pygame.event.set_grab(False)
                 return self.won # If an exit is reached, return the exit name to Ren'Py
         
+        def update_enemies(self, dt):
+            """
+            Update the state and position of all enemies.
+            """
+            for enemy in self.enemies:
+                enemy.update(dt, self.player)
+
+        def update_projectiles(self, dt):
+            """
+            Update all active projectiles and remove ones that have hit something.
+            """
+            # We iterate over a copy of the list because we might modify it during the loop
+            for p in list(self.projectiles):
+                if not p.update(dt):
+                    self.projectiles.remove(p)
+
         def handle_multitouch_events(self, ev):
             """ Handles true multitouch input from a touchscreen. """
             LOOK_THRESHOLD_X = 0.5  # The vertical line at 50% of the screen width
@@ -536,41 +881,90 @@ init python:
                     self.player.dir += (info['dx_accum'] / self.width) * 25.0
                     info['dx_accum'] = 0.0 # Reset accumulator for the next frame
 
-        def handle_keyboard_events(self, ev):
-            """ Handles traditional keyboard input. """
-            if ev.type not in (pygame.KEYDOWN, pygame.KEYUP):
-                return
+        def handle_pc_input(self, ev):
+            """ Handles traditional PC input (WASD + Mouse). """
+            # Handle mouse look
+            if ev.type == pygame.MOUSEMOTION:
+                sensitivity = 0.003
+                self.player.rot -= ev.rel[0] * sensitivity
+                self.player.planerot -= ev.rel[0] * sensitivity
 
             if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_ESCAPE:
+                    pygame.mouse.set_visible(True)
+                    pygame.event.set_grab(False)
+                    self.mouse_initialized = False
+                    return # Let Ren'Py handle the rest...
+
+                if ev.key == pygame.K_1: self.player.current_weapon_name = "fist"
+                if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
+
+                # WASD controls
+                if ev.key == pygame.K_w: self.player.speed = 1
+                if ev.key == pygame.K_s: self.player.speed = -1
+                if ev.key == pygame.K_a: self.player.strafe_speed = -1 # Strafe left
+                if ev.key == pygame.K_d: self.player.strafe_speed = 1 # Strafe right
+                # Arrow key controls (legacy)
                 if ev.key == pygame.K_UP: self.player.speed = 1
                 if ev.key == pygame.K_DOWN: self.player.speed = -1
                 if ev.key == pygame.K_LEFT: self.player.dir = 1
                 if ev.key == pygame.K_RIGHT: self.player.dir = -1
-                if ev.key == pygame.K_a: self.player.strafe_speed = 1 # Strafe left
-                if ev.key == pygame.K_d: self.player.strafe_speed = -1 # Strafe right
+                # Actions
                 if ev.key == pygame.K_SPACE:
+                    self.shoot_weapon()
+
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                if ev.button == 1: # Left mouse button
                     self.shoot_weapon()
                         
             if ev.type == pygame.KEYUP: 
-                if ev.key in (pygame.K_UP, pygame.K_DOWN): self.player.speed = 0
-                if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): self.player.dir = 0
-                if ev.key in (pygame.K_a, pygame.K_d): self.player.strafe_speed = 0
+                if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): 
+                    self.player.speed = 0
+                if ev.key in (pygame.K_a, pygame.K_d): 
+                    self.player.strafe_speed = 0
+                if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): 
+                    self.player.dir = 0
         
         def sprite_sort_key(self, s):
             """ Used to sort sprites by distance from the player, for rendering. """
             return (s[0] - self.player.x) ** 2 + (s[1] - self.player.y) ** 2
         
         def shoot_weapon(self):
-            """ Handles the shooting logic. """
-            self.weapon.play()
-            self.enemies.sort(key=self.sprite_sort_key) # Sort enemies to hit the closest one
-            renpy.sound.play("sounds/pew.ogg", channel=1) 
-            for e in self.enemies:
-                # Simple distance check for a hit
-                if math.fabs(e[0] - self.player.x) < 1.2 and math.fabs(e[1] - self.player.y) < 1.2:
-                    renpy.sound.play("sounds/ow.ogg", channel=1)
-                    # When an enemy is hit, remove it from the active enemies list
-                    # and add a "destroyed" sprite in its place.
-                    self.enemies.remove(e)
-                    self.sprite_positions.append((e[0], e[1], e[3]))
-                    break
+            """ 
+            Handles the shooting logic based on the currently equipped weapon.
+            """
+            weapon = self.weapons[self.player.current_weapon_name]
+            
+            if weapon.playing:
+                return
+
+            weapon.play()
+
+            if weapon.projectile_type is None: # Melee attack (fist)
+                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Replace with a punch sound
+                # Sort enemies to hit the closest one first
+                self.enemies.sort(key=lambda e: (e.x - self.player.x)**2 + (e.y - self.player.y)**2)
+                for e in self.enemies:
+                    # Check if enemy is within a 2-unit range
+                    if math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2) < 2.0:
+                        e.health -= weapon.damage
+                        if e.health <= 0:
+                            renpy.sound.play("sounds/ow.ogg", channel=1)
+                            self.enemies.remove(e)
+                            self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                        break # Only hit one enemy
+
+            elif weapon.projectile_type == 'bullet': # Pistol (gun)
+                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Replace with real a gunshot sound XD
+                # Create a projectile that moves in the players direction
+                bullet = Projectile(
+                    wm=self,
+                    x=self.player.x,
+                    y=self.player.y,
+                    dir_x=self.player.dirx,
+                    dir_y=self.player.diry,
+                    texture_index=self.bullet_texture_index,
+                    damage=weapon.damage,
+                    fired_by_player=True
+                )
+                self.projectiles.append(bullet)

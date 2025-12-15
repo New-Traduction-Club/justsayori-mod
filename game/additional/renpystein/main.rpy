@@ -52,28 +52,26 @@ init python:
 
     def reset_stein_state():
         """
-        Initializes or resets the game state. This is called at the start of a new game
-        to ensure all variables are set to their default values.
+        Initializes or resets the game state by directly setting the renpy.store variables. 
+        This is called at the start of a new game or when re-entering the minigame.
         """
-        # Make the global variables available to modify
-        global player_x, player_y, player_dirx, player_diry, player_planex, player_planey
-        global stein_enemies, stein_sprites
-
         # Player's starting position and orientation
-        player_x = 22.0
-        player_y = 11.5
-        player_dirx = -1.0
-        player_diry = 0.0
-        player_planex = 0.0
-        player_planey = 0.66
+        renpy.store.player_x = 22.0
+        renpy.store.player_y = 11.5
+        renpy.store.player_dirx = -1.0
+        renpy.store.player_diry = 0.0
+        renpy.store.player_planex = 0.0
+        renpy.store.player_planey = 0.66
+        renpy.store.stein_player_health = 100
+        renpy.store.stein_current_weapon = "fist"
 
         # Enemy data format: (x, y, sprite_index, destroyed_sprite_index)
-        stein_enemies = [
-            (18.5, 10.5, 1, 3),
-            (5.5, 16.5, 1, 3)
+        renpy.store.stein_enemies = [
+            (18.5, 10.5, 4, 5),
+            (5.5, 16.5, 4, 5)
         ]
         # Sprite data format: (x, y, sprite_index)
-        stein_sprites = [
+        renpy.store.stein_sprites = [
             (20.5, 11.5, 2), #green light in front of playerstart
             (18.5,4.5, 2),
             (10.0,4.5, 2),
@@ -98,6 +96,11 @@ init python:
 
 # The screen that displays the main game engine.
 screen stein:
+    # Disable the default 's' key for screenshots while this screen is active
+    key "s" action None
+    # Disable right-click from opening the game menu
+    key "mouseup_3" action None
+    
     # This python block runs every time the screen is shown.
     python:
         # Check the persistent quality setting to determine the internal rendering resolution.
