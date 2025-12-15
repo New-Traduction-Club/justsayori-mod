@@ -127,8 +127,8 @@ init python:
             [7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8]
         ],
         "player_x": 1.5, "player_y": 1.5,
-        "player_dirx": 1.0, "player_diry": 0.0,
-        "player_planex": 0.0, "player_planey": 0.66,
+        "player_dirx": 0.0, "player_diry": 1.0,
+        "player_planex": 0.66, "player_planey": 0.0,
         "enemies": [
             (3.5, 4.5, 4, 5, 100), (6.5, 7.5, 4, 5, 100),
             (7.5, 12.5, 4, 5, 100), (7.5, 20.5, 4, 5, 100),
