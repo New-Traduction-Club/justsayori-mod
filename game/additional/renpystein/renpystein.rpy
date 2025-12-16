@@ -450,7 +450,8 @@ init python:
             
             self.weapons = {
                 "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None),
-                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet')
+                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet'),
+                "shotgun": Weapon("shotgun", 5, 1, damage=35, projectile_type='shotgun')
             }
             self.bullet_texture_index = 6 
 
@@ -1038,9 +1039,11 @@ init python:
                     continue
             
             if is_switch_held and not self.prev_btn_weapon_switch:
-                # Action: Switch Weapon
+                # Action: Cycle Weapon
                 if self.player.current_weapon_name == "fist":
                     self.player.current_weapon_name = "gun"
+                elif self.player.current_weapon_name == "gun":
+                    self.player.current_weapon_name = "shotgun"
                 else:
                     self.player.current_weapon_name = "fist"
             
@@ -1098,6 +1101,7 @@ init python:
 
                 if ev.key == pygame.K_1: self.player.current_weapon_name = "fist"
                 if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
+                if ev.key == pygame.K_3: self.player.current_weapon_name = "shotgun"
 
                 # WASD controls
                 if ev.key == pygame.K_w: self.kb_speed = 1
@@ -1133,7 +1137,9 @@ init python:
                 pygame.joystick.quit()
                 pygame.joystick.init()
                 self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
-                for joy in self.joysticks: joy.init()
+                for joy in self.joysticks: 
+                    try: joy.init()
+                    except: pass
 
         
         def sprite_sort_key(self, s):
@@ -1182,13 +1188,43 @@ init python:
                 )
                 self.projectiles.append(bullet)
 
+            elif weapon.projectile_type == 'shotgun':
+                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Shotgun sound
+                
+                # Shotgun Spread Settings
+                num_pellets = 5
+                spread_angle = 0.15 # Total spread in radians
+
+                base_angle = math.atan2(self.player.diry, self.player.dirx)
+                
+                for i in range(num_pellets):
+                    # Calculate offset angle (centered around base direction)
+                    offset = (i / float(num_pellets - 1) - 0.5) * spread_angle
+                    final_angle = base_angle + offset
+                    
+                    p_dirx = math.cos(final_angle)
+                    p_diry = math.sin(final_angle)
+                    
+                    pellet = Projectile(
+                        wm=self,
+                        x=self.player.x,
+                        y=self.player.y,
+                        dir_x=p_dirx,
+                        dir_y=p_diry,
+                        texture_index=8, # Use same bullet texture for now
+                        damage=weapon.damage,
+                        fired_by_player=True
+                    )
+                    self.projectiles.append(pellet)
+
         def start_next_round(self):
             """
             Sets up the next round in Arena mode.
             """
             self.current_round += 1
             
-            self.sprite_positions = [s for s in self.sprite_positions if s[2] not in [5, 7]]
+            # Filter out dead bodies (index 5) but keep medkits (index 7) and other props
+            self.sprite_positions = [s for s in self.sprite_positions if s[2] != 5]
 
             for _ in range(self.current_round):
                 if not self.spawn_points: continue
@@ -1198,4 +1234,11 @@ init python:
                 y += renpy.random.random() - 0.5
                 
                 new_enemy = Guard(self, x, y, 4, 5, health=100)
+                
+                # FIX: In Arena, enemies should actively hunt the player
+                # This prevents them from staying idle and "stacking" on top of each other if they spawn at the same spot
+                new_enemy.state = 'chasing'
+                # Add slight speed variation to prevent perfect overlapping during movement
+                new_enemy.moveSpeed += (renpy.random.random() - 0.5) * 0.2
+                
                 self.enemies.append(new_enemy)
