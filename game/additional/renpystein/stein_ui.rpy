@@ -13,10 +13,12 @@ screen stein_controls_overlay():
         spacing 10   # Space between buttons
 
         # Button to switch to Keyboard mode.
-        textbutton _("Keyboard") action SetVariable("simulate_touch", False)
+        if not renpy.android:
+            textbutton _("Keyboard & Gamepad") action SetVariable("simulate_touch", False)
         
         # Button to switch to Touch/Mouse mode.
-        textbutton _("Touch") action SetVariable("simulate_touch", True)
+        if renpy.android:
+            textbutton _("Touch & Gamepad") action SetVariable("simulate_touch", True)
         
         # This button toggles the performance mode and updates its own text.
         if persistent.performance_mode:

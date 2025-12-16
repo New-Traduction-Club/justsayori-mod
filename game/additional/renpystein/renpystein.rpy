@@ -17,6 +17,12 @@ init python:
         pygame.FINGERMOTION,
         pygame.FINGERDOWN,
         pygame.FINGERUP,
+        pygame.JOYAXISMOTION,
+        pygame.JOYBUTTONDOWN,
+        pygame.JOYBUTTONUP,
+        pygame.JOYHATMOTION,
+        pygame.JOYDEVICEADDED,
+        pygame.JOYDEVICEREMOVED
     ])
 
     # Global flag to switch between keyboard and touch/mouse controls.
@@ -453,6 +459,22 @@ init python:
             self.heal_flash_timer = 0.0
             self.mouse_initialized = False
 
+            # --- Input States ---
+            # We separate input sources to support simultaneous usage (e.g. Touch + Gamepad)
+            self.kb_speed = 0.0
+            self.kb_strafe = 0.0
+            self.kb_dir = 0.0
+            
+            self.gp_speed = 0.0
+            self.gp_strafe = 0.0
+            self.gp_dir = 0.0
+            
+            self.touch_speed = 0.0
+            self.touch_strafe = 0.0
+            self.touch_dir = 0.0
+            
+            self.prev_btn_weapon_switch = False
+
             # --- Arena Mode State ---
             self.is_arena_mode = renpy.store.is_arena_mode
             self.current_round = 0
@@ -462,6 +484,12 @@ init python:
             if self.is_arena_mode:
                 self.start_next_round()
                 self.exits = []
+
+            # --- Input: Joystick Initialization ---
+            pygame.joystick.init()
+            self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+            for joy in self.joysticks:
+                joy.init()
             
         def render(self, width, height, st, at):
             """ The main rendering loop, called by Ren'Py on every frame. """
@@ -515,9 +543,25 @@ init python:
                     self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
                     self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
 
-                    # Update player state from touch/mouse inputs
+                    # --- Input Aggregation ---
                     if simulate_touch:
                         self.update_player_from_touch_state()
+                    else:
+                        self.touch_speed = 0.0
+                        self.touch_strafe = 0.0
+                        self.touch_dir = 0.0
+
+                    self.poll_gamepad()
+
+                    # This allows the Gamepad (Auxiliary System) to work alongside Keyboard or Touch
+                    total_speed = self.kb_speed + self.gp_speed + self.touch_speed
+                    total_strafe = self.kb_strafe + self.gp_strafe + self.touch_strafe
+                    total_dir = self.kb_dir + self.gp_dir + self.touch_dir
+                    
+                    # Clamp values to avoid super-speed when using multiple inputs
+                    self.player.speed = max(-1.0, min(1.0, total_speed))
+                    self.player.strafe_speed = max(-1.0, min(1.0, total_strafe))
+                    self.player.dir = total_dir # Rotation usually doesn't need clamping, just accumulation
 
                     # Move the player
                     self.player.move(dtime)
@@ -785,6 +829,9 @@ init python:
             else:
                 # Handle standard PC (keyboard + mouse) input.
                 self.handle_pc_input(ev)
+            
+            if ev.type in (pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION, pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
+                self.handle_gamepad_input(ev)
 
             if self.won is None:
                 renpy.retain_after_load() # Prevents the game from advancing if an event is handled
@@ -923,14 +970,90 @@ init python:
                 if button_id in self.active_fingers:
                     del self.active_fingers[button_id]
 
+        def poll_gamepad(self):
+            """ 
+            Polls the state of all connected joysticks directly. 
+            """
+            self.gp_speed = 0.0
+            self.gp_strafe = 0.0
+            self.gp_dir = 0.0
+            DEADZONE = 0.25
+            TRIGGER_THRESHOLD = 0.5
+
+            is_switch_held = False
+
+            for joy in self.joysticks:
+                try:
+                    if not joy.get_init():
+                        continue
+                    
+                    # Accelerometers and Gyroscopes often appear as joysticks on Android
+                    # We ignore them to prevent tilting the phone from moving the camera
+                    joy_name = joy.get_name().lower()
+                    if "accelerometer" in joy_name or "gyro" in joy_name or "sensor" in joy_name:
+                        continue
+                        
+                    # --- Left Stick (Movement) ---
+                    if joy.get_numaxes() > 0:
+                        x = joy.get_axis(0)
+                        if abs(x) > DEADZONE:
+                            self.gp_strafe += x 
+
+                    if joy.get_numaxes() > 1:
+                        y = joy.get_axis(1)
+                        if abs(y) > DEADZONE:
+                            self.gp_speed -= y 
+
+                    # Mapping for Right Stick (Look)
+                    # Axis 2 seems to be Right Stick X for both PC and Android
+                    look_axes = [2] # Default to Axis 2 (Right Stick X)
+
+                    for ax_idx in look_axes:
+                        if joy.get_numaxes() > ax_idx:
+                            rx = joy.get_axis(ax_idx)
+                            if abs(rx) > DEADZONE:
+                                 self.gp_dir -= rx * 2.5
+                                 break
+                    
+                    # --- Buttons (Polling) ---
+                    # Shoot (Hold allowed): Button 0 (A/Cross) or 5 (RB/R1) or Right Trigger (Axis 5)
+                    shoot_pressed = False
+                    if joy.get_numbuttons() > 0:
+                        if joy.get_button(0) or (joy.get_numbuttons() > 5 and joy.get_button(5)):
+                            shoot_pressed = True
+                    
+                    if joy.get_numaxes() > 5: # Check for Axis 5 (Right Trigger)
+                        rt_value = joy.get_axis(5)
+                        if rt_value > TRIGGER_THRESHOLD:
+                            shoot_pressed = True
+                    
+                    if shoot_pressed:
+                        self.shoot_weapon()
+                        
+                    # Weapon Switch (Toggle): Button 3 (Y/Triangle)
+                    if joy.get_numbuttons() > 3 and joy.get_button(3):
+                        is_switch_held = True
+
+                except pygame.error:
+                    continue
+            
+            if is_switch_held and not self.prev_btn_weapon_switch:
+                # Action: Switch Weapon
+                if self.player.current_weapon_name == "fist":
+                    self.player.current_weapon_name = "gun"
+                else:
+                    self.player.current_weapon_name = "fist"
+            
+            self.prev_btn_weapon_switch = is_switch_held
+
         def update_player_from_touch_state(self):
             """
             Converts the abstract state of `active_fingers` into concrete player movement values
             (speed, direction) for the current frame.
             """
-            self.player.speed = 0
-            self.player.strafe_speed = 0
-            self.player.dir = 0
+            self.touch_speed = 0.0
+            self.touch_strafe = 0.0
+            self.touch_dir = 0.0
             
             for finger_id, info in list(self.active_fingers.items()):
                 if info['action'] == 'move':
@@ -950,12 +1073,12 @@ init python:
                             dy = (dy / distance) * max_dist
                         
                         # Map joystick vector to player speed and strafe
-                        self.player.speed += -dy / max_dist
-                        self.player.strafe_speed += dx / max_dist
+                        self.touch_speed += -dy / max_dist
+                        self.touch_strafe += dx / max_dist
 
                 elif info['action'] == 'look':
                     # Convert accumulated horizontal movement into rotation
-                    self.player.dir += (info['dx_accum'] / self.width) * 25.0
+                    self.touch_dir += (info['dx_accum'] / self.width) * 25.0
                     info['dx_accum'] = 0.0 # Reset accumulator for the next frame
 
         def handle_pc_input(self, ev):
@@ -977,15 +1100,15 @@ init python:
                 if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
 
                 # WASD controls
-                if ev.key == pygame.K_w: self.player.speed = 1
-                if ev.key == pygame.K_s: self.player.speed = -1
-                if ev.key == pygame.K_a: self.player.strafe_speed = -1 # Strafe left
-                if ev.key == pygame.K_d: self.player.strafe_speed = 1 # Strafe right
+                if ev.key == pygame.K_w: self.kb_speed = 1
+                if ev.key == pygame.K_s: self.kb_speed = -1
+                if ev.key == pygame.K_a: self.kb_strafe = -1 # Strafe left
+                if ev.key == pygame.K_d: self.kb_strafe = 1 # Strafe right
                 # Arrow key controls (legacy)
-                if ev.key == pygame.K_UP: self.player.speed = 1
-                if ev.key == pygame.K_DOWN: self.player.speed = -1
-                if ev.key == pygame.K_LEFT: self.player.dir = 1
-                if ev.key == pygame.K_RIGHT: self.player.dir = -1
+                if ev.key == pygame.K_UP: self.kb_speed = 1
+                if ev.key == pygame.K_DOWN: self.kb_speed = -1
+                if ev.key == pygame.K_LEFT: self.kb_dir = 1
+                if ev.key == pygame.K_RIGHT: self.kb_dir = -1
                 # Actions
                 if ev.key == pygame.K_SPACE:
                     self.shoot_weapon()
@@ -996,11 +1119,22 @@ init python:
                         
             if ev.type == pygame.KEYUP: 
                 if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): 
-                    self.player.speed = 0
+                    self.kb_speed = 0
                 if ev.key in (pygame.K_a, pygame.K_d): 
-                    self.player.strafe_speed = 0
+                    self.kb_strafe = 0
                 if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): 
-                    self.player.dir = 0
+                    self.kb_dir = 0
+
+        def handle_gamepad_input(self, ev):
+            """ Handles input from connected Gamepads/Controllers. """
+            
+            if ev.type == pygame.JOYDEVICEADDED or ev.type == pygame.JOYDEVICEREMOVED:
+                # Re-initialize joysticks if devices change
+                pygame.joystick.quit()
+                pygame.joystick.init()
+                self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+                for joy in self.joysticks: joy.init()
+
         
         def sprite_sort_key(self, s):
             """ Used to sort sprites by distance from the player, for rendering. """
