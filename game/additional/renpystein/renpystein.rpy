@@ -451,6 +451,16 @@ init python:
             self.damage_flash_timer = 0.0
             self.heal_flash_timer = 0.0
             self.mouse_initialized = False
+
+            # --- Arena Mode State ---
+            self.is_arena_mode = renpy.store.is_arena_mode
+            self.current_round = 0
+            self.inter_round_timer = 0.0
+            self.spawn_points = renpy.store.arena_spawn_points
+            
+            if self.is_arena_mode:
+                self.start_next_round()
+                self.exits = []
             
         def render(self, width, height, st, at):
             """ The main rendering loop, called by Ren'Py on every frame. """
@@ -495,29 +505,45 @@ init python:
             self.oldst = st
             
             if self.won is None:
-                # Update timers
-                self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
-                self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
+                if self.is_arena_mode and self.inter_round_timer > 0:
+                    self.inter_round_timer -= dtime
+                    if self.inter_round_timer <= 0:
+                        self.start_next_round()
+                else:
+                    # Update timers
+                    self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
+                    self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
 
-                # Update player state from touch/mouse inputs
-                if simulate_touch:
-                    self.update_player_from_touch_state()
+                    # Update player state from touch/mouse inputs
+                    if simulate_touch:
+                        self.update_player_from_touch_state()
 
-                # Move the player
-                self.player.move(dtime)
-                
-                # Check for item pickups
-                self.check_item_pickup()
-                
-                # Update enemies
-                self.update_enemies(dtime)
+                    # Move the player
+                    self.player.move(dtime)
+                    
+                    # Check for item pickups
+                    self.check_item_pickup()
+                    
+                    # Update enemies
+                    self.update_enemies(dtime)
 
-                # Update projectiles
-                self.update_projectiles(dtime)
+                    # Update projectiles
+                    self.update_projectiles(dtime)
+
+                if self.is_arena_mode and len(self.enemies) == 0 and self.inter_round_timer <= 0 and self.current_round > 0:
+                    self.inter_round_timer = 5.0
 
                 if self.player.health <= 0:
                     self.player.health = 0
-                    self.won = 'game_over'
+                    if self.is_arena_mode:
+                        renpy.store.last_arena_round = self.current_round
+                        renpy.store.new_highscore = False
+                        if self.current_round > persistent.sayoristein_arena_highscore:
+                            persistent.sayoristein_arena_highscore = self.current_round
+                            renpy.store.new_highscore = True
+                        self.won = 'game_over_arena'
+                    else:
+                        self.won = 'game_over'
 
             # --- 3. SAVE PERSISTENT STATE ---
             # After moving, save the current state to the persistent store
@@ -722,6 +748,17 @@ init python:
             for e in self.exits:
                 if math.fabs(e[0] - self.player.x) < 0.5 and math.fabs(e[1] - self.player.y) < 0.5:
                     self.won = e[2]
+
+            if self.is_arena_mode:
+                round_text = Text(__("Round: {}").format(self.current_round), style="sayoristein_menu_button_text", size=32)
+                round_render = renpy.render(round_text, self.width, self.height, st, at)
+                final_render.blit(round_render, (self.width - 250, self.height - 45))
+
+                if self.inter_round_timer > 0 and self.current_round > 0:
+                    countdown_text = Text(__("Next round in: {:.1f}").format(self.inter_round_timer), style="sayoristein_menu_button_text", size=48)
+                    countdown_render = renpy.render(countdown_text, self.width, self.height, st, at)
+                    text_width, text_height = countdown_render.get_size()
+                    final_render.blit(countdown_render, ( (self.width - text_width) / 2, 100))
             
             # Request a redraw for the next frame to create animation
             renpy.redraw(self, 0)
@@ -1009,3 +1046,21 @@ init python:
                     fired_by_player=True
                 )
                 self.projectiles.append(bullet)
+
+        def start_next_round(self):
+            """
+            Sets up the next round in Arena mode.
+            """
+            self.current_round += 1
+            
+            self.sprite_positions = [s for s in self.sprite_positions if s[2] not in [5, 7]]
+
+            for _ in range(self.current_round):
+                if not self.spawn_points: continue
+                x, y = renpy.random.choice(self.spawn_points)
+                # Add small random offset just for any case
+                x += renpy.random.random() - 0.5
+                y += renpy.random.random() - 0.5
+                
+                new_enemy = Guard(self, x, y, 4, 5, health=100)
+                self.enemies.append(new_enemy)

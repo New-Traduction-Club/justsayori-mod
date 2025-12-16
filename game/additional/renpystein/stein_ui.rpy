@@ -70,4 +70,5 @@ screen sayoristein_level_select():
         textbutton _("Level 1") action Jump("start_level_1") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         textbutton _("Level 2") action Jump("start_level_2") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         textbutton _("Level 3") action Jump("start_level_3") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Arena Mode") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"

@@ -2,6 +2,7 @@
 
 # --- Persistent Data ---
 default persistent.performance_mode = False
+default persistent.sayoristein_arena_highscore = 0
 
 # --- Save-Specific Data ---
 # These variables hold the LIVE game state. They are initialized by reset_stein_state.
@@ -151,8 +152,43 @@ init python:
         ]
     }
 
+    # --- Level 4 (Arena) Data ---
+    level4_data = {
+        "worldMap": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,3,3,0,0,3,3,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,3,3,0,0,3,3,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,3,3,0,0,3,3,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,3,3,0,0,3,3,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ],
+        "player_x": 10.0, "player_y": 10.0,
+        "player_dirx": -1.0, "player_diry": 0.0,
+        "player_planex": 0.0, "player_planey": 0.66,
+        "enemies": [],
+        "sprites": [],
+        "exits": [], # No exits in arena mode
+        "spawn_points": [
+            (2,2), (2,17), (17,2), (17,17), (10,2), (10,17), (2,10), (17,10),
+            (5,5), (5,14), (14,5), (14,14)
+        ]
+    }
 
-    def reset_stein_state(level=1):
+    def reset_stein_state(level=1, arena=False):
         """
         Initializes or resets the game state for a specific level.
         """
@@ -160,6 +196,8 @@ init python:
             level_data = level2_data
         elif level == 3:
             level_data = level3_data
+        elif level == 4:
+            level_data = level4_data
         else: # Default to level 1
             level_data = level1_data
 
@@ -180,6 +218,13 @@ init python:
         for exit_coord in level_data["exits"]:
             temp_sprites.append((exit_coord[0], exit_coord[1], 0)) # 0 is the barrel sprite index
         renpy.store.stein_sprites = temp_sprites
+
+        # Pass arena data to the store
+        renpy.store.is_arena_mode = arena
+        if arena:
+            renpy.store.arena_spawn_points = level_data.get("spawn_points", [])
+        else:
+            renpy.store.arena_spawn_points = []
 
 
 # The screen that displays the main game engine.
@@ -206,7 +251,18 @@ screen stein:
 label renpystein_game:
     show screen stein_controls_overlay
     call screen stein
-    s "You found exit [_return]!"
+    
+    if _return == 'game_over_arena':
+        s "You survived [renpy.store.last_arena_round] rounds."
+        if renpy.store.new_highscore:
+            s "A new high score!"
+        else:
+            s "You have a high score of [persistent.sayoristein_arena_highscore]."
+            s "Try next time!"
+    elif _return == 'game_over':
+        s "You died."
+    else:
+        s "You found exit [_return]!"
     hide screen stein_controls_overlay
     return
 
@@ -220,6 +276,10 @@ label start_level_2:
 
 label start_level_3:
     $ reset_stein_state(level=3)
+    jump renpystein_game
+
+label start_level_4_arena:
+    $ reset_stein_state(level=4, arena=True)
     jump renpystein_game
 
 # This is for backwards compatibility / direct calls
