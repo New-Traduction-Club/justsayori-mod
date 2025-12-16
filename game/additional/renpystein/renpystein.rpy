@@ -202,7 +202,7 @@ init python:
             self.attack_cooldown = 1.5
             self.damage = 10
             
-            self.attack_timer = 0.0
+            self.attack_timer = 1.0
             self.mapWidth = len(wm.worldMap[0])
             self.mapHeight = len(wm.worldMap)
 
@@ -692,7 +692,7 @@ init python:
             current_weapon_obj.render_to(final_render, self.width, self.height, st, at)
 
             # --- 6. RENDER HUD AND EFFECTS ---
-            hp_text = Text("HP: {}".format(self.player.health), style="default", size=32)
+            hp_text = Text(__("HP: {}").format(self.player.health), style="sayoristein_menu_button_text", size=32)
             hp_render = renpy.render(hp_text, self.width, self.height, st, at)
             final_render.blit(hp_render, (15, self.height - 45))
 

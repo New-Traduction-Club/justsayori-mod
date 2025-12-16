@@ -13,18 +13,18 @@ screen stein_controls_overlay():
         spacing 10   # Space between buttons
 
         # Button to switch to Keyboard mode.
-        textbutton "Keyboard" action SetVariable("simulate_touch", False)
+        textbutton _("Keyboard") action SetVariable("simulate_touch", False)
         
         # Button to switch to Touch/Mouse mode.
-        textbutton "Touch" action SetVariable("simulate_touch", True)
+        textbutton _("Touch") action SetVariable("simulate_touch", True)
         
         # This button toggles the performance mode and updates its own text.
         if persistent.performance_mode:
             # If in low quality mode, show a button to switch to High.
-            textbutton "Quality: Low" action SetVariable("persistent.performance_mode", False)
+            textbutton _("Quality: Low") action SetVariable("persistent.performance_mode", False)
         else:
             # If in high quality mode, show a button to switch to Low.
-            textbutton "Quality: High" action SetVariable("persistent.performance_mode", True)
+            textbutton _("Quality: High") action SetVariable("persistent.performance_mode", True)
 
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
@@ -35,6 +35,7 @@ style stein_controls_overlay_textbutton_text:
 style sayoristein_menu_button_text is button_text:
     xalign 0.5
     yalign 0.5
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
 
 style sayoristein_menu_button is default:
     background Frame("pics/gui/button_bg.png")
