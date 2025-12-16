@@ -176,6 +176,9 @@ init python:
                             renpy.sound.play("sounds/ow.ogg", channel=1)
                             self.wm.enemies.remove(enemy)
                             self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
+                            # 40% chance to drop a medkit
+                            if renpy.random.random() < 0.40:
+                                self.wm.sprite_positions.append((enemy.x, enemy.y, 7))
                         return False
 
             return True # Projectile is still active
@@ -406,6 +409,7 @@ init python:
                 "pics/enemies/guard.png",
                 "pics/enemies/guard_d.png",
                 "pics/items/bullet.png",
+                "pics/items/medkit.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -445,6 +449,7 @@ init python:
 
             self.won = None
             self.damage_flash_timer = 0.0
+            self.heal_flash_timer = 0.0
             self.mouse_initialized = False
             
         def render(self, width, height, st, at):
@@ -492,6 +497,7 @@ init python:
             if self.won is None:
                 # Update timers
                 self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
+                self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
 
                 # Update player state from touch/mouse inputs
                 if simulate_touch:
@@ -499,6 +505,9 @@ init python:
 
                 # Move the player
                 self.player.move(dtime)
+                
+                # Check for item pickups
+                self.check_item_pickup()
                 
                 # Update enemies
                 self.update_enemies(dtime)
@@ -703,6 +712,12 @@ init python:
                 flash_surf.fill((255, 0, 0, alpha))
                 final_render.blit(flash_surf, (0, 0))
 
+            if self.heal_flash_timer > 0:
+                heal_flash_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+                alpha = 128 * (self.heal_flash_timer / 0.2)
+                heal_flash_surf.fill((0, 255, 0, alpha))
+                final_render.blit(heal_flash_surf, (0, 0))
+
             # Check for win condition (player is near an exit)
             for e in self.exits:
                 if math.fabs(e[0] - self.player.x) < 0.5 and math.fabs(e[1] - self.player.y) < 0.5:
@@ -740,6 +755,26 @@ init python:
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
                 return self.won # If an exit is reached, return the exit name to Ren'Py
+
+        def check_item_pickup(self):
+            """
+            Checks for player collision with item sprites and applies their effects.
+            """
+            for sprite in list(self.sprite_positions):
+                sprite_x, sprite_y, texture_index = sprite
+                
+                if texture_index == 7:
+                    dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
+                    
+                    if dist_to_sprite < 0.8:
+                        if self.player.health < 100:
+                            self.player.health = min(100, self.player.health + 25)
+                            self.heal_flash_timer = 0.2
+                            
+                            # TODO: Play a pickup sound
+                            # renpy.sound.play("sounds/item_pickup.ogg", channel=1)
+                            
+                            self.sprite_positions.remove(sprite)
         
         def update_enemies(self, dt):
             """
@@ -956,6 +991,8 @@ init python:
                             renpy.sound.play("sounds/ow.ogg", channel=1)
                             self.enemies.remove(e)
                             self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                            if renpy.random.random() < 0.40:
+                                self.sprite_positions.append((e.x, e.y, 7))
                         break # Only hit one enemy
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)
