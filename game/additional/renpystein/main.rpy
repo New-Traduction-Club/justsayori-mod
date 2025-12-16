@@ -226,6 +226,6 @@ label start_level_3:
 label renpystein_demo:
     jump start_level_1
 
-label sayoristein_main_menu:
+label sayoristein_main_menu(mg_obj=None):
     call screen sayoristein_menu
     return
