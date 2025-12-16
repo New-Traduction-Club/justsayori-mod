@@ -3,6 +3,9 @@
 # --- Persistent Data ---
 default persistent.performance_mode = False
 default persistent.sayoristein_arena_highscore = 0
+default persistent.stein_level1_cleared = False
+default persistent.stein_level2_cleared = False
+default persistent.stein_level3_cleared = False
 
 # --- Save-Specific Data ---
 # These variables hold the LIVE game state. They are initialized by reset_stein_state.
@@ -249,6 +252,7 @@ screen stein:
     )
 
 label renpystein_game:
+    hide black
     show screen stein_controls_overlay
     call screen stein
     
@@ -262,6 +266,13 @@ label renpystein_game:
     elif _return == 'game_over':
         s "You died."
     else:
+        if _return == "Exit 1" or _return == "Exit 2" or _return == "Exit 3" or _return == "Exit 4":
+            $ persistent.stein_level1_cleared = True
+        elif _return == "Exit":
+            $ persistent.stein_level2_cleared = True
+        elif _return == "Level 3 Complete":
+            $ persistent.stein_level3_cleared = True
+             
         s "You found exit [_return]!"
     hide screen stein_controls_overlay
     return
@@ -287,5 +298,16 @@ label renpystein_demo:
     jump start_level_1
 
 label sayoristein_main_menu(mg_obj=None):
-    call screen sayoristein_menu
+    show black zorder 99 with dissolve
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 1.5
+    hide chibi_dvd with dissolve
+    call screen sayoristein_menu with dissolve
+    show black zorder 99 with dissolve
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 1.0
+    hide chibi_dvd with dissolve
+    hide black with dissolve
     return

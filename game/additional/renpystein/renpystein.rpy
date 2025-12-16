@@ -33,6 +33,11 @@ init python:
     else:
         simulate_touch = False
 
+    # --- Audio Channel Registration ---
+    renpy.music.register_channel("gun_sfx", mixer="sfx", loop=False)
+    renpy.music.register_channel("shotgun_sfx", mixer="sfx", loop=False)
+    renpy.music.register_channel("enemy_sfx", mixer="sfx", loop=False)
+
     # --- Constants ---
     texWidth = 64   # Texture width in pixels
     texHeight = 64  # Texture height in pixels
@@ -384,7 +389,7 @@ init python:
             self.wm.projectiles.append(bullet)
             
             # pew
-            renpy.sound.play("sounds/pew.ogg", channel=3)
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
 
     class Renpystein(renpy.Displayable):
         """
@@ -449,10 +454,13 @@ init python:
             self.projectiles = []
             
             self.weapons = {
-                "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None),
-                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet'),
-                "shotgun": Weapon("shotgun", 5, 1, damage=35, projectile_type='shotgun')
+                "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
+                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet', cooldown=0.6),
+                "shotgun": Weapon("shotgun", 5, 1, damage=35, projectile_type='shotgun', cooldown=1.0)
             }
+            for w_name in self.weapons:
+                self.weapons[w_name].last_fired = -100.0
+
             self.bullet_texture_index = 6 
 
             self.won = None
@@ -1151,14 +1159,19 @@ init python:
             Handles the shooting logic based on the currently equipped weapon.
             """
             weapon = self.weapons[self.player.current_weapon_name]
+            current_time = self.oldst if self.oldst else 0.0
             
+            if current_time - weapon.last_fired < weapon.cooldown:
+                return
+
             if weapon.playing:
                 return
 
             weapon.play()
+            weapon.last_fired = current_time
 
             if weapon.projectile_type is None: # Melee attack (fist)
-                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Replace with a punch sound
+                renpy.sound.play("sounds/pew.ogg", channel="gun_sfx") # Using gun channel for punch for now
                 # Sort enemies to hit the closest one first
                 self.enemies.sort(key=lambda e: (e.x - self.player.x)**2 + (e.y - self.player.y)**2)
                 for e in self.enemies:
@@ -1166,7 +1179,7 @@ init python:
                     if math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2) < 2.0:
                         e.health -= weapon.damage
                         if e.health <= 0:
-                            renpy.sound.play("sounds/ow.ogg", channel=1)
+                            renpy.sound.play("sounds/ow.ogg", channel="enemy_sfx")
                             self.enemies.remove(e)
                             self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
                             if renpy.random.random() < 0.40:
@@ -1174,7 +1187,7 @@ init python:
                         break # Only hit one enemy
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)
-                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Replace with real a gunshot sound XD
+                renpy.sound.play("sounds/gunshot.ogg", channel="gun_sfx")
                 # Create a projectile that moves in the players direction
                 bullet = Projectile(
                     wm=self,
@@ -1189,7 +1202,7 @@ init python:
                 self.projectiles.append(bullet)
 
             elif weapon.projectile_type == 'shotgun':
-                renpy.sound.play("sounds/pew.ogg", channel=1) # TODO: Shotgun sound
+                renpy.sound.play("sounds/shotgun.ogg", channel="shotgun_sfx")
                 
                 # Shotgun Spread Settings
                 num_pellets = 5
@@ -1228,10 +1241,12 @@ init python:
 
             for _ in range(self.current_round):
                 if not self.spawn_points: continue
-                x, y = renpy.random.choice(self.spawn_points)
-                # Add small random offset just for any case
-                x += renpy.random.random() - 0.5
-                y += renpy.random.random() - 0.5
+                sx, sy = renpy.random.choice(self.spawn_points)
+                
+                x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.5
+                
+                x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
                 
                 new_enemy = Guard(self, x, y, 4, 5, health=100)
                 

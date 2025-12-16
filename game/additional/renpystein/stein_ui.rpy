@@ -66,11 +66,41 @@ screen sayoristein_level_select():
 
     vbox:
         xalign 0.5
-        yalign 0.5
+        yalign 0.75
         spacing 15
 
         textbutton _("Level 1") action Jump("start_level_1") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-        textbutton _("Level 2") action Jump("start_level_2") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-        textbutton _("Level 3") action Jump("start_level_3") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-        textbutton _("Arena Mode") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level1_cleared:
+            textbutton _("Level 2") action Jump("start_level_2") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Level 2 (Locked)") action Show("stein_locked_message", msg=__("Complete Level 1 first!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level2_cleared:
+            textbutton _("Level 3") action Jump("start_level_3") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Level 3 (Locked)") action Show("stein_locked_message", msg=__("Complete Level 2 first!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level3_cleared:
+            textbutton _("Arena Mode") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Arena Mode (Locked)") action Show("stein_locked_message", msg=__("Complete Level 3 to unlock Arena!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
         textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+screen stein_locked_message(msg):
+    modal True
+    
+    frame:
+        xalign 0.5
+        yalign 0.5
+        padding (40, 40)
+        background Frame("pics/gui/button_bg.png")
+        
+        vbox:
+            spacing 20
+            xalign 0.5
+            
+            text "[msg]" xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+            
+            textbutton _("OK") action Hide("stein_locked_message") xalign 0.5 style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
