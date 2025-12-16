@@ -410,6 +410,7 @@ init python:
                 "pics/enemies/guard_d.png",
                 "pics/items/bullet.png",
                 "pics/items/medkit.png",
+                "pics/items/cookie.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -1041,7 +1042,7 @@ init python:
                     y=self.player.y,
                     dir_x=self.player.dirx,
                     dir_y=self.player.diry,
-                    texture_index=self.bullet_texture_index,
+                    texture_index=8,
                     damage=weapon.damage,
                     fired_by_player=True
                 )
