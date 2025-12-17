@@ -211,12 +211,12 @@ init python:
 
     ###### START | Check this for android builds ######
 
-    build.classify("game/bgm/**", None)
+    # build.classify("game/bgm/**", None)
 
-    # original stuff
-    build.classify("game/sfx/**", None)
-    build.classify("game/images/**", None)
-    build.classify("game/gui/**", None)
+    # # original stuff
+    # build.classify("game/sfx/**", None)
+    # build.classify("game/images/**", None)
+    # build.classify("game/gui/**", None)
 
     ###### END | Check this for android builds ######
 

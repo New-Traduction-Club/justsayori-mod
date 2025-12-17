@@ -150,7 +150,7 @@ init python:
             self.texture_index = texture_index
             self.damage = damage
             self.fired_by_player = fired_by_player
-            self.speed = 8.0 # Projectile speed in units per second
+            self.speed = 80.0
 
         def update(self, dt):
             """
@@ -160,6 +160,13 @@ init python:
             """
             new_x = self.x + self.dir_x * self.speed * dt
             new_y = self.y + self.dir_y * self.speed * dt
+
+            # Check boundary limits first to avoid IndexError
+            map_w = len(self.wm.worldMap)
+            map_h = len(self.wm.worldMap[0])
+            
+            if not (0 <= int(new_x) < map_w and 0 <= int(new_y) < map_h):
+                return False # Out of map bounds, destroy
 
             # Check for collision with walls
             if self.wm.worldMap[int(new_x)][int(new_y)] > 0:
@@ -773,6 +780,7 @@ init python:
             self.current_round = renpy.store.stein_current_round
             self.inter_round_timer = renpy.store.stein_inter_round_timer
             self.sniper_count = renpy.store.stein_sniper_count
+            self.yuritler_count = renpy.store.stein_yuritler_count
             self.spawn_points = renpy.store.arena_spawn_points
             
             self.enemies = []
@@ -815,7 +823,7 @@ init python:
 
             self.weapons = {
                 "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
-                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6),
+                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6, ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png"),
                 "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0)
             }
             for w_name in self.weapons:
@@ -827,6 +835,7 @@ init python:
             self.damage_flash_timer = 0.0
             self.heal_flash_timer = 0.0
             self.mouse_initialized = False
+            self.is_aiming = False
 
             # --- Input States ---
             # We separate input sources to support simultaneous usage (e.g. Touch + Gamepad)
@@ -842,6 +851,7 @@ init python:
             self.touch_strafe = 0.0
             self.touch_dir = 0.0
             
+            self.gp_aiming = False
             self.prev_btn_weapon_switch = False
 
             # --- Input: Joystick Initialization ---
@@ -977,6 +987,7 @@ init python:
             renpy.store.stein_current_round = self.current_round
             renpy.store.stein_inter_round_timer = self.inter_round_timer
             renpy.store.stein_sniper_count = self.sniper_count
+            renpy.store.stein_yuritler_count = self.yuritler_count
 
             # --- 4. RENDER 3D SCENE ---
             # Create the canvas at the internal (potentially smaller) resolution for performance.
@@ -985,13 +996,22 @@ init python:
             
             zBuffer = [] # Holds the distance of the wall at each screen column, for sprite occlusion
             
+            # --- ADS / Zoom Logic ---
+            effective_aiming = self.is_aiming or self.gp_aiming
+            zoom_factor = 0.6 if effective_aiming else 1.0
+            vertical_scale = 1.0 / zoom_factor
+            
+            # We use local plane variables for rendering to apply zoom without affecting physics
+            render_planex = self.player.planex * zoom_factor
+            render_planey = self.player.planey * zoom_factor
+
             # --- 4a. WALL CASTING ---
             # Loop through every vertical column of the internal screen resolution.
             for x in range(self.internal_width):
                 # Calculate ray position and direction for this column
                 cameraX = float(2 * x / float(self.internal_width) - 1)
-                rayDirX = self.player.dirx + self.player.planex * cameraX
-                rayDirY = self.player.diry + self.player.planey * cameraX
+                rayDirX = self.player.dirx + render_planex * cameraX
+                rayDirY = self.player.diry + render_planey * cameraX
 
                 mapX = int(self.player.x)
                 mapY = int(self.player.y)  
@@ -1039,7 +1059,8 @@ init python:
                 if perpWallDist == 0: perpWallDist = 0.000001
                 
                 # Calculate height of line to draw on screen
-                lineHeight = int(self.internal_height / perpWallDist)
+                # Scale height to match horizontal zoom (Maintain Aspect Ratio)
+                lineHeight = int((self.internal_height / perpWallDist) * vertical_scale)
                 
                 # FIX: Clamp lineHeight to a large but safe value.
                 # When perpWallDist is near zero, lineHeight can become astronomically large,
@@ -1085,17 +1106,19 @@ init python:
                 spriteX = sprite[0] - self.player.x
                 spriteY = sprite[1] - self.player.y
               
-                # Transform sprite with the inverse camera matrix
-                invDet = 1.0 / (self.player.planex * self.player.diry - self.player.dirx * self.player.planey)
+                # Transform sprite with the inverse camera matrix (Using Zoomed Plane)
+                invDet = 1.0 / (render_planex * self.player.diry - self.player.dirx * render_planey)
                 transformX = invDet * (self.player.diry * spriteX - self.player.dirx * spriteY)
-                transformY = invDet * (-self.player.planey * spriteX + self.player.planex * spriteY) # this is the depth inside the screen
+                transformY = invDet * (-render_planey * spriteX + render_planex * spriteY) # this is the depth inside the screen
                 
                 # Don't render sprites that are behind the camera plane
                 if transformY <= 0.1: continue
                     
                 # Calculate sprite's position and size on screen
                 spritesurfaceX = (self.internal_width / 2.0) * (1.0 + transformX / transformY)
-                f_spriteHeight = self.internal_height / transformY
+                
+                # Scale sprite height to match wall scaling
+                f_spriteHeight = (self.internal_height / transformY) * vertical_scale
                 f_spriteWidth = f_spriteHeight * (texWidth / texHeight)
                 
                 i_spriteHeight = int(f_spriteHeight)
@@ -1136,7 +1159,7 @@ init python:
             
             # Render the currently equipped weapon model over the 3D scene
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
-            current_weapon_obj.render_to(final_render, self.width, self.height, st, at)
+            current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming)
 
             # --- 6. RENDER HUD AND EFFECTS ---
             hp_text = Text(__("HP: {}").format(self.player.health), style="sayoristein_menu_button_text", size=32)
@@ -1252,6 +1275,9 @@ init python:
                     dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
                     
                     if dist_to_sprite < 0.8:
+                        base_amount = renpy.random.randint(100, 500)
+                        coin_amount = int(base_amount * 3.0) 
+                        
                         renpy.store.stein_session_coins += coin_amount
                         # renpy.sound.play("", channel="audio") # TODO: Add a pickup sound
                         self.sprite_positions.remove(sprite)
@@ -1382,8 +1408,9 @@ init python:
             self.gp_speed = 0.0
             self.gp_strafe = 0.0
             self.gp_dir = 0.0
+            self.gp_aiming = False # Reset aiming state every frame
             DEADZONE = 0.25
-            TRIGGER_THRESHOLD = 0.5
+            TRIGGER_THRESHOLD = 0.6 # Increased threshold
 
             is_switch_held = False
 
@@ -1398,6 +1425,12 @@ init python:
                     if "accelerometer" in joy_name or "gyro" in joy_name or "sensor" in joy_name:
                         continue
                         
+                    # Aiming Check (L2 / Left Trigger)
+                    # We check ALL connected controllers. If ANY has L2 pressed, we aim.
+                    if joy.get_numaxes() > 4:
+                        if joy.get_axis(4) > TRIGGER_THRESHOLD:
+                            self.gp_aiming = True
+
                     # --- Left Stick (Movement) ---
                     if joy.get_numaxes() > 0:
                         x = joy.get_axis(0)
@@ -1417,7 +1450,10 @@ init python:
                         if joy.get_numaxes() > ax_idx:
                             rx = joy.get_axis(ax_idx)
                             if abs(rx) > DEADZONE:
-                                 self.gp_dir -= rx * 2.5
+                                 look_sens = 2.5
+                                 if self.is_aiming or self.gp_aiming:
+                                     look_sens *= 0.25
+                                 self.gp_dir -= rx * look_sens
                                  break
                     
                     # --- Buttons (Polling) ---
@@ -1434,7 +1470,7 @@ init python:
                     
                     if shoot_pressed:
                         self.shoot_weapon()
-                        
+                            
                     # Weapon Switch (Toggle): Button 3 (Y/Triangle)
                     if joy.get_numbuttons() > 3 and joy.get_button(3):
                         is_switch_held = True
@@ -1496,6 +1532,8 @@ init python:
             # Handle mouse look
             if ev.type == pygame.MOUSEMOTION:
                 sensitivity = 0.003
+                if self.is_aiming:
+                    sensitivity *= 0.25 # Reduce sensitivity when aiming
                 self.player.rot -= ev.rel[0] * sensitivity
                 self.player.planerot -= ev.rel[0] * sensitivity
 
@@ -1529,6 +1567,12 @@ init python:
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 if ev.button == 1: # Left mouse button
                     self.shoot_weapon()
+                elif ev.button == 3: # Right mouse button (Aim)
+                    self.is_aiming = True
+            
+            if ev.type == pygame.MOUSEBUTTONUP:
+                if ev.button == 3:
+                    self.is_aiming = False
                         
             if ev.type == pygame.KEYUP: 
                 if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): 
@@ -1629,6 +1673,9 @@ init python:
                 # Shotgun Spread Settings
                 num_pellets = 5
                 spread_angle = 0.15 # Total spread in radians
+                
+                if self.is_aiming or self.gp_aiming:
+                    spread_angle *= 0.25
 
                 base_angle = math.atan2(self.player.diry, self.player.dirx)
                 
@@ -1676,18 +1723,29 @@ init python:
                 
                 self.enemies.append(new_enemy)
 
-            # --- Spawn Yuritler (Every 10 Rounds) ---
+            # --- Spawn Yuritler ---
+            spawn_yuritler = False
+            
+            # Guaranteed every 10 rounds
             if self.current_round % 10 == 0:
+                spawn_yuritler = True
+            # 15% Chance on even rounds (that aren't multiples of 10, to avoid double trigger logic though boolean handles it)
+            elif self.current_round % 2 == 0:
+                if renpy.random.random() < 0.15:
+                    spawn_yuritler = True
+            
+            if spawn_yuritler:
                 if self.spawn_points:
+                    self.yuritler_count += 1
+                    
                     sx, sy = renpy.random.choice(self.spawn_points)
                     x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
                     y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
                     
-                    # Scaling Health: 150 base + 50 per additional 10 levels
-                    # Round 10: 150 + (1-1)*50 = 150
-                    # Round 20: 150 + (2-1)*50 = 200
-                    # Round 30: 150 + (3-1)*50 = 250
-                    boss_hp = 150 + (self.current_round // 10 - 1) * 50
+                    # Scaling Health: 150 base + 50 per appearance
+                    # 1st time: 150 + 0 = 150
+                    # 2nd time: 150 + 50 = 200
+                    boss_hp = 150 + ( (self.yuritler_count - 1) * 50 )
                     
                     boss = Yuritler(self, x, y, health=boss_hp)
                     boss.state = 'chasing'
