@@ -1,4 +1,5 @@
 ##### MiniGame Registry Core (and a Hub)
+default persistent.mg_registry = []
 
 init -2 python:
     if not hasattr(store, "_MG_OBJECTS"):
@@ -48,6 +49,9 @@ init -2 python:
 
     def _sync_persistent_entry(mg):
         """Ensure a dict form of the MiniGame exists in persistent for simple state"""
+        if persistent.mg_registry is None:
+            persistent.mg_registry = []
+
         for entry in persistent.mg_registry:
             if entry.get("pid") == mg.pid:
                 return

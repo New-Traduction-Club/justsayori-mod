@@ -16,16 +16,16 @@ init -2 python:
     gui.init(1280, 720)
 
     if not persistent.language == "chinese":
-        if persistent.use_alt_font == False:
-            gui.default_font = "gui/font/s1.ttf"
-            gui.name_font = "gui/font/RifficFree-Bold.ttf"
-            gui.interface_font = "gui/font/Aller_Rg.ttf"
-            gui.text_size = 38
-        elif persistent.use_alt_font == True:
+        if persistent.use_alt_font:
             gui.default_font = "gui/font/Aller_Rg.ttf"
             gui.name_font = "gui/font/RifficFree-Bold.ttf"
             gui.interface_font = "gui/font/Aller_Rg.ttf"
             gui.text_size = 22
+        else:
+            gui.default_font = "gui/font/s1.ttf"
+            gui.name_font = "gui/font/RifficFree-Bold.ttf"
+            gui.interface_font = "gui/font/Aller_Rg.ttf"
+            gui.text_size = 38
     elif persistent.language == "chinese":
         gui.default_font = "mod_assets/fonts/NotoSansSC-Regular.ttf"
         gui.name_font = "mod_assets/fonts/NotoSansSC-Bold.ttf"
