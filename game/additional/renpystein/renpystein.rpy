@@ -198,6 +198,13 @@ init python:
                                 drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
                                 if renpy.random.random() < drop_prob:
                                     self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index))
+                                
+                                # Arena Mode: Drop Shotgun (10% normal, 25% boss) if not owned
+                                if not renpy.store.stein_has_shotgun:
+                                    shotgun_prob = 0.25 if enemy.coin_index == 12 else 0.10
+                                    if renpy.random.random() < shotgun_prob:
+                                        self.wm.sprite_positions.append((enemy.x, enemy.y, 13))
+
                         return False
 
             return True # Projectile is still active
@@ -647,6 +654,7 @@ init python:
                 "pics/enemies/yuritler_d.png",
                 "pics/items/coins.png",
                 "pics/items/coins.png", # Boss Coin
+                "pics/items/random_gun_i.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -668,7 +676,19 @@ init python:
             self.sprite_positions = renpy.store.stein_sprites
             self.exits = exits
             
+            # --- Arena Mode State ---
+            self.is_arena_mode = renpy.store.is_arena_mode
+            self.current_round = renpy.store.stein_current_round
+            self.inter_round_timer = renpy.store.stein_inter_round_timer
+            self.spawn_points = renpy.store.arena_spawn_points
+            
             self.enemies = []
+            
+            if self.is_arena_mode:
+                if self.current_round == 0:
+                    self.start_next_round()
+                self.exits = []
+
             for e_data in renpy.store.stein_enemies:
                 # e_data can be a 4-element tuple (legacy) or 5-element (with health)
                 if len(e_data) == 5:
@@ -678,16 +698,6 @@ init python:
 
             self.projectiles = []
             
-            # --- Arena Mode State ---
-            self.is_arena_mode = renpy.store.is_arena_mode
-            self.current_round = 0
-            self.inter_round_timer = 0.0
-            self.spawn_points = renpy.store.arena_spawn_points
-            
-            if self.is_arena_mode:
-                self.start_next_round()
-                self.exits = []
-
             # Weapon Logic & Upgrades
             gun_dmg = 50
             shotgun_dmg = 35
@@ -853,6 +863,8 @@ init python:
             renpy.store.stein_enemies = current_enemies_data
             
             renpy.store.stein_sprites = self.sprite_positions
+            renpy.store.stein_current_round = self.current_round
+            renpy.store.stein_inter_round_timer = self.inter_round_timer
 
             # --- 4. RENDER 3D SCENE ---
             # Create the canvas at the internal (potentially smaller) resolution for performance.
@@ -1128,12 +1140,19 @@ init python:
                     dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
                     
                     if dist_to_sprite < 0.8:
-                        base_amount = renpy.random.randint(100, 500)
-                        coin_amount = int(base_amount * 3.0) 
-                        
                         renpy.store.stein_session_coins += coin_amount
                         # renpy.sound.play("", channel="audio") # TODO: Add a pickup sound
                         self.sprite_positions.remove(sprite)
+
+                elif texture_index == 13: # Shotgun Pickup
+                    dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
+                    
+                    if dist_to_sprite < 0.8:
+                        if not renpy.store.stein_has_shotgun:
+                            renpy.store.stein_has_shotgun = True
+                            renpy.notify(_("You pick up the shotgun"))
+                            # renpy.sound.play("", channel="audio") # TODO: Add a sound
+                            self.sprite_positions.remove(sprite)
         
         def update_enemies(self, dt):
             """
@@ -1316,7 +1335,10 @@ init python:
                 if self.player.current_weapon_name == "fist":
                     self.player.current_weapon_name = "gun"
                 elif self.player.current_weapon_name == "gun":
-                    self.player.current_weapon_name = "shotgun"
+                    if renpy.store.stein_has_shotgun:
+                        self.player.current_weapon_name = "shotgun"
+                    else:
+                        self.player.current_weapon_name = "fist"
                 else:
                     self.player.current_weapon_name = "fist"
             
@@ -1374,7 +1396,9 @@ init python:
 
                 if ev.key == pygame.K_1: self.player.current_weapon_name = "fist"
                 if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
-                if ev.key == pygame.K_3: self.player.current_weapon_name = "shotgun"
+                if ev.key == pygame.K_3: 
+                    if renpy.store.stein_has_shotgun:
+                        self.player.current_weapon_name = "shotgun"
 
                 # WASD controls
                 if ev.key == pygame.K_w: self.kb_speed = 1
@@ -1457,6 +1481,12 @@ init python:
                                 drop_prob = 1.0 if e.coin_index == 12 else 0.35
                                 if renpy.random.random() < drop_prob:
                                     self.sprite_positions.append((e.x, e.y, e.coin_index))
+                                
+                                if not renpy.store.stein_has_shotgun:
+                                    shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
+                                    if renpy.random.random() < shotgun_prob:
+                                        self.sprite_positions.append((e.x, e.y, 13))
+
                         break # Only hit one enemy
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)

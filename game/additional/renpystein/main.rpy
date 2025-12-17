@@ -7,6 +7,7 @@ default persistent.stein_kills = 0
 default persistent.tradu_coins = 0
 default persistent.stein_pistol_level = 0
 default persistent.stein_shotgun_level = 0
+default persistent.stein_shotgun_unlocked = False
 default persistent.stein_level1_cleared = False
 default persistent.stein_level2_cleared = False
 default persistent.stein_level3_cleared = False
@@ -22,6 +23,9 @@ default player_planey = 0.66
 default stein_enemies = []
 default stein_sprites = []
 default stein_session_coins = 0
+default stein_has_shotgun = False
+default stein_current_round = 0
+default stein_inter_round_timer = 0.0
 default worldMap = []
 default exits = []
 
@@ -233,6 +237,8 @@ init python:
         renpy.store.stein_current_weapon = "fist"
         renpy.store.stein_enemies = list(level_data["enemies"])
         renpy.store.stein_session_coins = 0
+        renpy.store.stein_current_round = 0
+        renpy.store.stein_inter_round_timer = 0.0
         
         # Initialize sprites list with defined sprites and add barrel for each exit
         temp_sprites = list(level_data["sprites"])
@@ -245,8 +251,10 @@ init python:
         if arena:
             renpy.store.persistent.stein_kills = 0
             renpy.store.arena_spawn_points = level_data.get("spawn_points", [])
+            renpy.store.stein_has_shotgun = persistent.stein_shotgun_unlocked
         else:
             renpy.store.arena_spawn_points = []
+            renpy.store.stein_has_shotgun = True # Always have weapons in story mode (for now)
 
 
 # The screen that displays the main game engine.

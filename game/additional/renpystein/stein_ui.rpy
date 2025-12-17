@@ -154,6 +154,15 @@ init python:
                 renpy.restart_interaction()
             else:
                 renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+        
+        elif upgrade_type == "unlock_shotgun":
+            cost = 25000
+            if persistent.tradu_coins >= cost:
+                persistent.tradu_coins -= cost
+                persistent.stein_shotgun_unlocked = True
+                renpy.restart_interaction()
+            else:
+                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
 
 screen sayoristein_upgrades():
     tag menu
@@ -216,6 +225,10 @@ screen sayoristein_upgrades():
                 
                 $ s_cost = 1000 + (persistent.stein_shotgun_level * 100)
                 textbutton _("Upgrade ([s_cost])") action Function(buy_stein_upgrade, "shotgun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+                if not persistent.stein_shotgun_unlocked:
+                    text _("NOT OWNED") xalign 0.5 size 20 color "#ff0000" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                    textbutton _("Unlock (25000)") action Function(buy_stein_upgrade, "unlock_shotgun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
             vbox:
                 spacing 10
