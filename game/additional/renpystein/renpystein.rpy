@@ -192,6 +192,12 @@ init python:
                             # 40% chance to drop a medkit
                             if renpy.random.random() < 0.40:
                                 self.wm.sprite_positions.append((enemy.x, enemy.y, 7))
+                            
+                            # Arena Mode: Drop coins
+                            if self.wm.is_arena_mode:
+                                drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
+                                if renpy.random.random() < drop_prob:
+                                    self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index))
                         return False
 
             return True # Projectile is still active
@@ -225,6 +231,7 @@ init python:
                 self.sight_range = 30.0
             self.attack_cooldown = 1.5
             self.damage = 10
+            self.coin_index = 11
             
             self.attack_timer = 1.0
             self.mapWidth = len(wm.worldMap[0])
@@ -504,6 +511,7 @@ init python:
             self.damage = 5
             self.moveSpeed = 1.8 
             self.attack_cooldown = 1.0
+            self.coin_index = 12
 
         def attack(self, player):
             """
@@ -637,6 +645,8 @@ init python:
                 "pics/items/cookie.png",
                 "pics/enemies/yuritler.png",
                 "pics/enemies/yuritler_d.png",
+                "pics/items/coins.png",
+                "pics/items/coins.png", # Boss Coin
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -668,10 +678,29 @@ init python:
 
             self.projectiles = []
             
+            # --- Arena Mode State ---
+            self.is_arena_mode = renpy.store.is_arena_mode
+            self.current_round = 0
+            self.inter_round_timer = 0.0
+            self.spawn_points = renpy.store.arena_spawn_points
+            
+            if self.is_arena_mode:
+                self.start_next_round()
+                self.exits = []
+
+            # Weapon Logic & Upgrades
+            gun_dmg = 50
+            shotgun_dmg = 35
+            
+            # Apply Upgrades only in Arena Mode
+            if self.is_arena_mode:
+                gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
+                shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
+
             self.weapons = {
                 "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
-                "gun": Weapon("gun", 5, 1, damage=50, projectile_type='bullet', cooldown=0.6),
-                "shotgun": Weapon("shotgun", 5, 1, damage=35, projectile_type='shotgun', cooldown=1.0)
+                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6),
+                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0)
             }
             for w_name in self.weapons:
                 self.weapons[w_name].last_fired = -100.0
@@ -698,16 +727,6 @@ init python:
             self.touch_dir = 0.0
             
             self.prev_btn_weapon_switch = False
-
-            # --- Arena Mode State ---
-            self.is_arena_mode = renpy.store.is_arena_mode
-            self.current_round = 0
-            self.inter_round_timer = 0.0
-            self.spawn_points = renpy.store.arena_spawn_points
-            
-            if self.is_arena_mode:
-                self.start_next_round()
-                self.exits = []
 
             # --- Input: Joystick Initialization ---
             pygame.joystick.init()
@@ -1024,6 +1043,11 @@ init python:
                 kills_render = renpy.render(kills_text, self.width, self.height, st, at)
                 final_render.blit(kills_render, (self.width - 450, self.height - 45))
 
+                # Coins Counter
+                coins_text = Text(__("Coins: {}").format(renpy.store.stein_session_coins), style="sayoristein_menu_button_text", size=32)
+                coins_render = renpy.render(coins_text, self.width, self.height, st, at)
+                final_render.blit(coins_render, (self.width - 650, self.height - 45))
+
                 # Round Counter
                 round_text = Text(__("Round: {}").format(self.current_round), style="sayoristein_menu_button_text", size=32)
                 round_render = renpy.render(round_text, self.width, self.height, st, at)
@@ -1090,6 +1114,26 @@ init python:
                             # renpy.sound.play("sounds/item_pickup.ogg", channel=1)
                             
                             self.sprite_positions.remove(sprite)
+
+                elif texture_index == 11:
+                    dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
+                    
+                    if dist_to_sprite < 0.8:
+                        coin_amount = renpy.random.randint(100, 500)
+                        renpy.store.stein_session_coins += coin_amount
+                        # renpy.sound.play("", channel="audio") # TODO: Add a pickup sound
+                        self.sprite_positions.remove(sprite)
+
+                elif texture_index == 12:
+                    dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
+                    
+                    if dist_to_sprite < 0.8:
+                        base_amount = renpy.random.randint(100, 500)
+                        coin_amount = int(base_amount * 3.0) 
+                        
+                        renpy.store.stein_session_coins += coin_amount
+                        # renpy.sound.play("", channel="audio") # TODO: Add a pickup sound
+                        self.sprite_positions.remove(sprite)
         
         def update_enemies(self, dt):
             """
@@ -1407,6 +1451,12 @@ init python:
                             self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
                             if renpy.random.random() < 0.40:
                                 self.sprite_positions.append((e.x, e.y, 7))
+                            
+                            # Arena Mode: Drop coins
+                            if self.is_arena_mode:
+                                drop_prob = 1.0 if e.coin_index == 12 else 0.35
+                                if renpy.random.random() < drop_prob:
+                                    self.sprite_positions.append((e.x, e.y, e.coin_index))
                         break # Only hit one enemy
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)

@@ -113,11 +113,120 @@ screen sayoristein_level_select():
             textbutton _("Level 3 (Locked)") action Show("stein_locked_message", msg=__("Complete Level 2 first!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         
         if persistent.stein_level3_cleared:
-            textbutton _("Arena Mode") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            textbutton _("Arena Mode") action ShowMenu("sayoristein_arena_hub") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         else:
             textbutton _("Arena Mode (Locked)") action Show("stein_locked_message", msg=__("Complete Level 3 to unlock Arena!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
         textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+screen sayoristein_arena_hub():
+    tag menu
+    add "pics/gui/main_menu_bg.png"
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 15
+
+        label _("ARENA MODE") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
+            xalign 0.5
+
+        textbutton _("Start Arena") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Upgrades") action ShowMenu("sayoristein_upgrades") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Back") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+init python:
+    def buy_stein_upgrade(upgrade_type):
+        if upgrade_type == "pistol":
+            cost = 1000 + (persistent.stein_pistol_level * 100)
+            if persistent.tradu_coins >= cost:
+                persistent.tradu_coins -= cost
+                persistent.stein_pistol_level += 1
+                renpy.restart_interaction()
+            else:
+                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+
+        elif upgrade_type == "shotgun":
+            cost = 1000 + (persistent.stein_shotgun_level * 100)
+            if persistent.tradu_coins >= cost:
+                persistent.tradu_coins -= cost
+                persistent.stein_shotgun_level += 1
+                renpy.restart_interaction()
+            else:
+                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+
+screen sayoristein_upgrades():
+    tag menu
+    add "pics/gui/main_menu_bg.png"
+
+    # Header
+    hbox:
+        xalign 0.5
+        yalign 0.05
+        spacing 50
+        text _("Sayo-Forge") size 60 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+        text _("Coins: [persistent.tradu_coins]") size 40 color "#ffff00" font "mod_assets/fonts/BebasNeue-Regular.ttf" yalign 0.5
+
+    viewport id "stein_upgrades_vp":
+        xalign 0.5
+        yalign 0.5
+        xsize 1200
+        ysize 500
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+        pagekeys True
+
+        hbox:
+            xalign 0.5
+            spacing 50
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 300
+                
+                add "pics/items/bullet.png":
+                    xalign 0.5
+                    zoom 2.0
+                
+                text _("Pistol") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ p_dmg_bonus = persistent.stein_pistol_level * 1
+                text _("Level: [persistent.stein_pistol_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[p_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ p_cost = 1000 + (persistent.stein_pistol_level * 100)
+                textbutton _("Upgrade ([p_cost])") action Function(buy_stein_upgrade, "pistol") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 300
+                
+                add "pics/items/bullet.png":
+                    xalign 0.5
+                    zoom 2.0
+                
+                text _("Shotgun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ s_dmg_bonus = persistent.stein_shotgun_level * 1
+                text _("Level: [persistent.stein_shotgun_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[s_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ s_cost = 1000 + (persistent.stein_shotgun_level * 100)
+                textbutton _("Upgrade ([s_cost])") action Function(buy_stein_upgrade, "shotgun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 300
+                
+                text _("Coming Soon") xalign 0.5 size 30 color "#555555" font "mod_assets/fonts/BebasNeue-Regular.ttf" yalign 0.5
+
+    textbutton _("Back") action ShowMenu("sayoristein_arena_hub") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
+        xalign 0.5
+        yalign 0.95
 
 screen stein_locked_message(msg):
     modal True

@@ -4,6 +4,9 @@
 default persistent.stein_quality_mode = 1  # 0=High, 1=Low, 2=Ultra Low, 3=MS Paint is Better
 default persistent.sayoristein_arena_highscore = 0
 default persistent.stein_kills = 0
+default persistent.tradu_coins = 0
+default persistent.stein_pistol_level = 0
+default persistent.stein_shotgun_level = 0
 default persistent.stein_level1_cleared = False
 default persistent.stein_level2_cleared = False
 default persistent.stein_level3_cleared = False
@@ -18,6 +21,7 @@ default player_planex = 0.0
 default player_planey = 0.66
 default stein_enemies = []
 default stein_sprites = []
+default stein_session_coins = 0
 default worldMap = []
 default exits = []
 
@@ -228,6 +232,7 @@ init python:
         renpy.store.stein_player_health = 100
         renpy.store.stein_current_weapon = "fist"
         renpy.store.stein_enemies = list(level_data["enemies"])
+        renpy.store.stein_session_coins = 0
         
         # Initialize sprites list with defined sprites and add barrel for each exit
         temp_sprites = list(level_data["sprites"])
@@ -281,7 +286,13 @@ label renpystein_game:
     call screen stein
     
     if _return == 'game_over_arena':
-        s "You survived [renpy.store.last_arena_round] rounds."
+        $ persistent.tradu_coins += stein_session_coins
+        s "You survived [renpy.store.last_arena_round] rounds and collected [stein_session_coins] Coins."
+        if persistent.stein_session_coins != 0:
+            s "Now you have a total of [persistent.tradu_coins] Tradu-Coins."
+        else:
+            s "You have [persistent.tradu_coins] Tradu-Coins."
+
         if renpy.store.new_highscore:
             s "A new high score!"
         else:
