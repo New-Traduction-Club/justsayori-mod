@@ -55,34 +55,49 @@ screen sayoristein_menu():
 screen sayoristein_settings_menu():
     tag menu
 
-    add "pics/gui/main_menu.png"
+    add "pics/gui/main_menu_bg.png"
 
-    vbox:
+    viewport id "stein_settings_vp":
         xalign 0.5
-        yalign 0.68
-        spacing 25
+        yalign 0.5
+        xsize 1200
+        ysize 600
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+        pagekeys True
 
+        hbox:
+            xalign 0.5
+            spacing 50
 
-        label _("Render Quality") style "sayoristein_menu_button_text"
-        
-        vbox:
-            textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-            textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-            textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-            textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-            textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            vbox:
+                spacing 15
+                xalign 0.5
 
-        textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+                label _("Graphics Quality") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
+                    xalign 0.5
+                    yalign 0.5
+
+                textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+                textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+                textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+                textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+                textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+    textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
+        xalign 0.5
+        yalign 0.95
 
 
 screen sayoristein_level_select():
     tag menu
 
-    add "pics/gui/main_menu.png"
+    add "pics/gui/main_menu_bg.png"
 
     vbox:
         xalign 0.5
-        yalign 0.75
+        yalign 0.5
         spacing 15
 
         textbutton _("Level 1") action Jump("start_level_1") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
