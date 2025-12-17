@@ -26,6 +26,7 @@ default stein_session_coins = 0
 default stein_has_shotgun = False
 default stein_current_round = 0
 default stein_inter_round_timer = 0.0
+default stein_sniper_count = 0
 default worldMap = []
 default exits = []
 
@@ -239,6 +240,7 @@ init python:
         renpy.store.stein_session_coins = 0
         renpy.store.stein_current_round = 0
         renpy.store.stein_inter_round_timer = 0.0
+        renpy.store.stein_sniper_count = 0
         
         # Initialize sprites list with defined sprites and add barrel for each exit
         temp_sprites = list(level_data["sprites"])

@@ -182,29 +182,36 @@ init python:
                 for enemy in self.wm.enemies:
                     dist_to_enemy = math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2)
                     if dist_to_enemy < 0.5: # Enemy hitbox
-                        enemy.health -= self.damage
-                        if enemy.health <= 0:
-                            renpy.sound.play("sounds/ow.ogg", channel="audio")
-                            if self.wm.is_arena_mode:
-                                persistent.stein_kills += 1
-                            self.wm.enemies.remove(enemy)
-                            self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
-                            # 40% chance to drop a medkit
-                            if renpy.random.random() < 0.40:
-                                self.wm.sprite_positions.append((enemy.x, enemy.y, 7))
-                            
-                            # Arena Mode: Drop coins
-                            if self.wm.is_arena_mode:
-                                drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
-                                if renpy.random.random() < drop_prob:
-                                    self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index))
+                        
+                        # Handle Damage (Check for dodge)
+                        taken = True
+                        if hasattr(enemy, 'take_damage'):
+                            taken = enemy.take_damage(self.damage)
+                        else:
+                            enemy.health -= self.damage
+                        
+                        if taken:
+                            if enemy.health <= 0:
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                                if self.wm.is_arena_mode:
+                                    persistent.stein_kills += 1
+                                self.wm.enemies.remove(enemy)
+                                self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
+                                # 40% chance to drop a medkit
+                                if renpy.random.random() < 0.40:
+                                    self.wm.sprite_positions.append((enemy.x, enemy.y, 7))
                                 
-                                # Arena Mode: Drop Shotgun (10% normal, 25% boss) if not owned
-                                if not renpy.store.stein_has_shotgun:
-                                    shotgun_prob = 0.25 if enemy.coin_index == 12 else 0.10
-                                    if renpy.random.random() < shotgun_prob:
-                                        self.wm.sprite_positions.append((enemy.x, enemy.y, 13))
-
+                                # Arena Mode: Drop coins
+                                if self.wm.is_arena_mode:
+                                    drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
+                                    if renpy.random.random() < drop_prob:
+                                        self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index))
+                                    
+                                    # Arena Mode: Drop Shotgun (10% normal, 25% boss) if not owned
+                                    if not renpy.store.stein_has_shotgun:
+                                        shotgun_prob = 0.25 if enemy.coin_index == 12 else 0.10
+                                        if renpy.random.random() < shotgun_prob:
+                                            self.wm.sprite_positions.append((enemy.x, enemy.y, 13))
                         return False
 
             return True # Projectile is still active
@@ -619,6 +626,90 @@ init python:
                 self.is_reloading = True
                 self.reload_timer = self.reload_time
 
+    class Sniper(Guard):
+        """
+        Fast, high damage enemy that can dodge bullets XD.
+        """
+        def __init__(self, wm, x, y, health=100):
+            super(Sniper, self).__init__(wm, x, y, 4, 5, health)
+            self.damage = 20
+            self.attack_cooldown = 1.5
+            self.moveSpeed = 3.0
+            self.bullet_texture_index = 14
+            
+            self.dodge_cooldown = 4.0
+            self.dodge_timer = 0.0
+            self.is_dodging = False
+
+        def update(self, dt, player):
+            self.dodge_timer = max(0, self.dodge_timer - dt)
+            super(Sniper, self).update(dt, player)
+
+        def take_damage(self, amount):
+            """
+            Custom damage handler to implement 100% dodge chance.
+            Returns True if damage was taken, False if dodged.
+            """
+            if self.dodge_timer <= 0:
+                self.dodge_timer = self.dodge_cooldown
+                
+                player = self.wm.player
+                dx = player.x - self.x
+                dy = player.y - self.y
+                dist = math.sqrt(dx*dx + dy*dy)
+                
+                if dist > 0:
+                    ndx = dx / dist
+                    ndy = dy / dist
+                    
+                    strafe_x = -ndy
+                    strafe_y = ndx
+                    
+                    dodge_distance = 1.5
+                    
+                    target_x = self.x + strafe_x * dodge_distance
+                    target_y = self.y + strafe_y * dodge_distance
+                    
+                    if not self.check_wall_collision(target_x, target_y, 0.35):
+                        self.x = target_x
+                        self.y = target_y
+                    else:
+                        target_x = self.x - strafe_x * dodge_distance
+                        target_y = self.y - strafe_y * dodge_distance
+                        if not self.check_wall_collision(target_x, target_y, 0.35):
+                            self.x = target_x
+                            self.y = target_y
+                
+                # renpy.sound.play("", channel="audio") # TODO: add a sound
+                return False
+            
+            self.health -= amount
+            return True
+
+        def attack(self, player):
+            self.attack_timer = self.attack_cooldown
+            
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
+            dist = math.sqrt(dir_x**2 + dir_y**2)
+            if dist > 0:
+                dir_x /= dist
+                dir_y /= dist
+
+            bullet = Projectile(
+                wm=self.wm, 
+                x=self.x, 
+                y=self.y, 
+                dir_x=dir_x, 
+                dir_y=dir_y, 
+                texture_index=self.bullet_texture_index, 
+                damage=self.damage,
+                fired_by_player=False
+            )
+            self.wm.projectiles.append(bullet)
+            
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
+
     class Renpystein(renpy.Displayable):
         """
         The main class for the raycasting engine. It's a Ren'Py Displayable,
@@ -655,6 +746,7 @@ init python:
                 "pics/items/coins.png",
                 "pics/items/coins.png", # Boss Coin
                 "pics/items/random_gun_i.png",
+                "pics/items/bullet_red.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -680,6 +772,7 @@ init python:
             self.is_arena_mode = renpy.store.is_arena_mode
             self.current_round = renpy.store.stein_current_round
             self.inter_round_timer = renpy.store.stein_inter_round_timer
+            self.sniper_count = renpy.store.stein_sniper_count
             self.spawn_points = renpy.store.arena_spawn_points
             
             self.enemies = []
@@ -690,11 +783,24 @@ init python:
                 self.exits = []
 
             for e_data in renpy.store.stein_enemies:
-                # e_data can be a 4-element tuple (legacy) or 5-element (with health)
-                if len(e_data) == 5:
-                    self.enemies.append(Guard(self, e_data[0], e_data[1], e_data[2], e_data[3], health=e_data[4]))
+                # e_data format: (x, y, tex, dead_tex, health, type_id)
+                # Legacy support: (x, y, tex, dead_tex, health) -> Guard
+                # Legacy support: (x, y, tex, dead_tex) -> Guard
+                
+                x, y, tex, dead_tex = e_data[0], e_data[1], e_data[2], e_data[3]
+                health = e_data[4] if len(e_data) > 4 else 100
+                type_id = e_data[5] if len(e_data) > 5 else 0
+                
+                if type_id == 1:
+                    new_e = Yuritler(self, x, y, health=health)
+                elif type_id == 2:
+                    new_e = EliteGuard(self, x, y, health=health)
+                elif type_id == 3:
+                    new_e = Sniper(self, x, y, health=health)
                 else:
-                    self.enemies.append(Guard(self, e_data[0], e_data[1], e_data[2], e_data[3]))
+                    new_e = Guard(self, x, y, tex, dead_tex, health=health)
+                
+                self.enemies.append(new_e)
 
             self.projectiles = []
             
@@ -858,13 +964,19 @@ init python:
             # Serialize and save the state of all living enemies
             current_enemies_data = []
             for enemy in self.enemies:
-                enemy_tuple = (enemy.x, enemy.y, enemy.texture_index, enemy.destroyed_texture_index, enemy.health)
+                if isinstance(enemy, Yuritler): type_id = 1
+                elif isinstance(enemy, EliteGuard): type_id = 2
+                elif isinstance(enemy, Sniper): type_id = 3
+                else: type_id = 0
+                
+                enemy_tuple = (enemy.x, enemy.y, enemy.texture_index, enemy.destroyed_texture_index, enemy.health, type_id)
                 current_enemies_data.append(enemy_tuple)
             renpy.store.stein_enemies = current_enemies_data
             
             renpy.store.stein_sprites = self.sprite_positions
             renpy.store.stein_current_round = self.current_round
             renpy.store.stein_inter_round_timer = self.inter_round_timer
+            renpy.store.stein_sniper_count = self.sniper_count
 
             # --- 4. RENDER 3D SCENE ---
             # Create the canvas at the internal (potentially smaller) resolution for performance.
@@ -1466,26 +1578,33 @@ init python:
                 for e in self.enemies:
                     # Check if enemy is within a 2-unit range
                     if math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2) < 2.0:
-                        e.health -= weapon.damage
-                        if e.health <= 0:
-                            renpy.sound.play("sounds/ow.ogg", channel="audio")
-                            if self.is_arena_mode:
-                                persistent.stein_kills += 1
-                            self.enemies.remove(e)
-                            self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
-                            if renpy.random.random() < 0.40:
-                                self.sprite_positions.append((e.x, e.y, 7))
-                            
-                            # Arena Mode: Drop coins
-                            if self.is_arena_mode:
-                                drop_prob = 1.0 if e.coin_index == 12 else 0.35
-                                if renpy.random.random() < drop_prob:
-                                    self.sprite_positions.append((e.x, e.y, e.coin_index))
+                        
+                        taken = True
+                        if hasattr(e, 'take_damage'):
+                            taken = e.take_damage(weapon.damage)
+                        else:
+                            e.health -= weapon.damage
+
+                        if taken:
+                            if e.health <= 0:
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                                if self.is_arena_mode:
+                                    persistent.stein_kills += 1
+                                self.enemies.remove(e)
+                                self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                                if renpy.random.random() < 0.40:
+                                    self.sprite_positions.append((e.x, e.y, 7))
                                 
-                                if not renpy.store.stein_has_shotgun:
-                                    shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
-                                    if renpy.random.random() < shotgun_prob:
-                                        self.sprite_positions.append((e.x, e.y, 13))
+                                # Arena Mode: Drop coins
+                                if self.is_arena_mode:
+                                    drop_prob = 1.0 if e.coin_index == 12 else 0.35
+                                    if renpy.random.random() < drop_prob:
+                                        self.sprite_positions.append((e.x, e.y, e.coin_index))
+                                    
+                                    if not renpy.store.stein_has_shotgun:
+                                        shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
+                                        if renpy.random.random() < shotgun_prob:
+                                            self.sprite_positions.append((e.x, e.y, 13))
 
                         break # Only hit one enemy
 
@@ -1589,3 +1708,18 @@ init python:
                     elite.state = 'chasing'
                     elite.moveSpeed += (renpy.random.random() - 0.5) * 0.2
                     self.enemies.append(elite)
+
+            # --- Spawn Snipers (50% Chance) ---
+            if self.current_round % 2 != 0:
+                if renpy.random.random() < 0.50:
+                    self.sniper_count += 1
+                    
+                    for _ in range(self.sniper_count):
+                        if not self.spawn_points: break
+                        sx, sy = renpy.random.choice(self.spawn_points)
+                        x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                        y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                        
+                        sniper = Sniper(self, x, y, health=100)
+                        sniper.state = 'chasing'
+                        self.enemies.append(sniper)
