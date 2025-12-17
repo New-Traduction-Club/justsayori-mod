@@ -185,6 +185,8 @@ init python:
                         enemy.health -= self.damage
                         if enemy.health <= 0:
                             renpy.sound.play("sounds/ow.ogg", channel="audio")
+                            if self.wm.is_arena_mode:
+                                persistent.stein_kills += 1
                             self.wm.enemies.remove(enemy)
                             self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
                             # 40% chance to drop a medkit
@@ -1013,6 +1015,12 @@ init python:
                     self.won = e[2]
 
             if self.is_arena_mode:
+                # Kills Counter
+                kills_text = Text(__("Kills: {}").format(persistent.stein_kills), style="sayoristein_menu_button_text", size=32)
+                kills_render = renpy.render(kills_text, self.width, self.height, st, at)
+                final_render.blit(kills_render, (self.width - 450, self.height - 45))
+
+                # Round Counter
                 round_text = Text(__("Round: {}").format(self.current_round), style="sayoristein_menu_button_text", size=32)
                 round_render = renpy.render(round_text, self.width, self.height, st, at)
                 final_render.blit(round_render, (self.width - 250, self.height - 45))
@@ -1389,6 +1397,8 @@ init python:
                         e.health -= weapon.damage
                         if e.health <= 0:
                             renpy.sound.play("sounds/ow.ogg", channel="audio")
+                            if self.is_arena_mode:
+                                persistent.stein_kills += 1
                             self.enemies.remove(e)
                             self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
                             if renpy.random.random() < 0.40:

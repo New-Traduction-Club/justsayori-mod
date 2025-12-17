@@ -1,8 +1,9 @@
 # RenPyStein - Main Script and Data File
 
 # --- Persistent Data ---
-default persistent.performance_mode = True
+default persistent.stein_quality_mode = 1  # 0=High, 1=Low, 2=Ultra Low, 3=MS Paint is Better
 default persistent.sayoristein_arena_highscore = 0
+default persistent.stein_kills = 0
 default persistent.stein_level1_cleared = False
 default persistent.stein_level2_cleared = False
 default persistent.stein_level3_cleared = False
@@ -237,6 +238,7 @@ init python:
         # Pass arena data to the store
         renpy.store.is_arena_mode = arena
         if arena:
+            renpy.store.persistent.stein_kills = 0
             renpy.store.arena_spawn_points = level_data.get("spawn_points", [])
         else:
             renpy.store.arena_spawn_points = []
@@ -248,12 +250,22 @@ screen stein:
     key "mouseup_3" action None
 
     python:
-        if persistent.performance_mode:
-            internal_width = 640
-            internal_height = 360
-        else:
+        # Quality settings: 0=High, 1=Low, 2=Ultra Low
+        if persistent.stein_quality_mode == 0: # High
             internal_width = 1280
             internal_height = 720
+        elif persistent.stein_quality_mode == 1: # Low
+            internal_width = 640
+            internal_height = 360
+        elif persistent.stein_quality_mode == 2: # Ultra Low
+            internal_width = 426
+            internal_height = 240
+        elif persistent.stein_quality_mode == 3: # MS Paint is Better
+            internal_width = 213
+            internal_height = 120
+        else: # Bro, can you see?
+            internal_width = 142
+            internal_height = 80
 
     add Renpystein(
         1280, 720,

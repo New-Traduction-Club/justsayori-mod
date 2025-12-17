@@ -19,14 +19,6 @@ screen stein_controls_overlay():
         # Button to switch to Touch/Mouse mode.
         if renpy.android:
             textbutton _("Touch & Gamepad") action SetVariable("simulate_touch", True)
-        
-        # This button toggles the performance mode and updates its own text.
-        if persistent.performance_mode:
-            # If in low quality mode, show a button to switch to High.
-            textbutton _("Quality: Low") action SetVariable("persistent.performance_mode", False)
-        else:
-            # If in high quality mode, show a button to switch to Low.
-            textbutton _("Quality: High") action SetVariable("persistent.performance_mode", True)
 
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
@@ -57,7 +49,31 @@ screen sayoristein_menu():
         spacing 15
 
         textbutton _("Play") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Settings") action ShowMenu("sayoristein_settings_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         textbutton _("Exit") action Return() style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+screen sayoristein_settings_menu():
+    tag menu
+
+    add "pics/gui/main_menu.png"
+
+    vbox:
+        xalign 0.5
+        yalign 0.68
+        spacing 25
+
+
+        label _("Render Quality") style "sayoristein_menu_button_text"
+        
+        vbox:
+            textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+            textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+        textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
 
 screen sayoristein_level_select():
     tag menu
