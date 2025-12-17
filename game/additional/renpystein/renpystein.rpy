@@ -219,6 +219,10 @@ init python:
             self.rotSpeed = 75 * math.pi / 180
             self.attack_range = 8.0
             self.sight_range = 15.0
+            
+            if self.wm.is_arena_mode:
+                self.attack_range = 24.0
+                self.sight_range = 30.0
             self.attack_cooldown = 1.5
             self.damage = 10
             
