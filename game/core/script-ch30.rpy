@@ -183,7 +183,7 @@ label ch30_autoload:
 label ch30_setup:
 
 
-
+    stop music
     show black zorder 99
     show chibi_dvd zorder 100 at t_chibi_dvd
     with dissolve
