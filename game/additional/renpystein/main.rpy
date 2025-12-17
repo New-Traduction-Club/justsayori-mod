@@ -1,7 +1,7 @@
 # RenPyStein - Main Script and Data File
 
 # --- Persistent Data ---
-default persistent.performance_mode = False
+default persistent.performance_mode = True
 default persistent.sayoristein_arena_highscore = 0
 default persistent.stein_level1_cleared = False
 default persistent.stein_level2_cleared = False
