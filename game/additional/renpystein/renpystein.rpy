@@ -150,7 +150,7 @@ init python:
             self.texture_index = texture_index
             self.damage = damage
             self.fired_by_player = fired_by_player
-            self.speed = 80.0
+            self.speed = 20.0
 
         def update(self, dt):
             """
@@ -738,6 +738,7 @@ init python:
             # Unified dictionary to track each finger or mouse button.
             # This is the single source of truth for touch/mouse controls.
             self.active_fingers = {} 
+            self.sight_d = Image("pics/items/sight.png")
 
             # Asset paths
             self.sprite_paths = [  
@@ -1156,6 +1157,11 @@ init python:
             final_render = renpy.Render(self.width, self.height)
             canvas_tex = renpy.display.draw.load_texture(final_canvas)
             final_render.blit(canvas_tex, (0, 0))
+            
+            # Render Sight/Crosshair
+            sight_r = renpy.render(self.sight_d, width, height, st, at)
+            sw, sh = sight_r.get_size()
+            final_render.blit(sight_r, (width/2 - sw/2, height/2 - sh/2))
             
             # Render the currently equipped weapon model over the 3D scene
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
