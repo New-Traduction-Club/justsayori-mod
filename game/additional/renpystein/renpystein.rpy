@@ -439,6 +439,68 @@ init python:
             
             renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
 
+    class EliteGuard(Guard):
+        """
+        An upgraded guard with a machine gun.
+        Fires a 10-round burst rapidly, then reloads for 5 seconds.
+        """
+        def __init__(self, wm, x, y, health=100):
+            super(EliteGuard, self).__init__(wm, x, y, 4, 5, health)
+            self.damage = 3
+            self.attack_cooldown = 0.1
+            
+            self.burst_limit = 10
+            self.shots_fired_in_burst = 0
+            self.is_reloading = False
+            self.reload_time = 5.0
+            self.reload_timer = 0.0
+
+        def update(self, dt, player):
+            if self.is_reloading:
+                self.reload_timer -= dt
+                if self.reload_timer <= 0:
+                    self.is_reloading = False
+                    self.shots_fired_in_burst = 0
+                    self.attack_timer = 0.5 # Reload time
+                
+                # While reloading, behave like a normal enemy (move/chase) but don't attack
+                # We call BaseEnemy.update but intercept the attack call logic effectively
+                # by ensuring attack() checks is_reloading
+            
+            super(EliteGuard, self).update(dt, player)
+
+        def attack(self, player):
+            if self.is_reloading:
+                return
+
+            self.attack_timer = self.attack_cooldown
+            
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
+            dist = math.sqrt(dir_x**2 + dir_y**2)
+            if dist > 0:
+                dir_x /= dist
+                dir_y /= dist
+
+            bullet = Projectile(
+                wm=self.wm, 
+                x=self.x, 
+                y=self.y, 
+                dir_x=dir_x, 
+                dir_y=dir_y, 
+                texture_index=self.bullet_texture_index, 
+                damage=self.damage,
+                fired_by_player=False
+            )
+            self.wm.projectiles.append(bullet)
+            
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
+
+            self.shots_fired_in_burst += 1
+            if self.shots_fired_in_burst >= self.burst_limit:
+                self.is_reloading = True
+                self.reload_timer = self.reload_time
+
     class Renpystein(renpy.Displayable):
         """
         The main class for the raycasting engine. It's a Ren'Py Displayable,
@@ -1320,3 +1382,19 @@ init python:
                     boss = Yuritler(self, x, y, health=boss_hp)
                     boss.state = 'chasing'
                     self.enemies.append(boss)
+
+            # --- Spawn Elite Guards (Every 5 Rounds) ---
+            if self.current_round % 5 == 0:
+                # Count increases by 1 every 5 rounds (Round 5: 1, Round 10: 2, etc.)
+                num_elites = self.current_round // 5
+                
+                for _ in range(num_elites):
+                    if not self.spawn_points: break
+                    sx, sy = renpy.random.choice(self.spawn_points)
+                    x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    
+                    elite = EliteGuard(self, x, y, health=100)
+                    elite.state = 'chasing'
+                    elite.moveSpeed += (renpy.random.random() - 0.5) * 0.2
+                    self.enemies.append(elite)
