@@ -175,7 +175,7 @@ init python:
                 if dist_to_player < 0.5: # Player hitbox
                     player.health -= self.damage
                     self.wm.damage_flash_timer = 0.2
-                    renpy.sound.play("sounds/ow.ogg", channel=2)
+                    renpy.sound.play("sounds/ow.ogg", channel="audio")
                     return False # Hit the player, destroy projectile
             else:
                 # Projectile from player, check against enemies
@@ -184,7 +184,7 @@ init python:
                     if dist_to_enemy < 0.5: # Enemy hitbox
                         enemy.health -= self.damage
                         if enemy.health <= 0:
-                            renpy.sound.play("sounds/ow.ogg", channel=1)
+                            renpy.sound.play("sounds/ow.ogg", channel="audio")
                             self.wm.enemies.remove(enemy)
                             self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
                             # 40% chance to drop a medkit
@@ -389,7 +389,7 @@ init python:
             self.wm.projectiles.append(bullet)
             
             # pew
-            renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
 
     class Yuritler(Guard):
         """
@@ -437,7 +437,7 @@ init python:
                     )
                     self.wm.projectiles.append(bullet)
             
-            renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
 
     class EliteGuard(Guard):
         """
@@ -1283,7 +1283,7 @@ init python:
             weapon.last_fired = current_time
 
             if weapon.projectile_type is None: # Melee attack (fist)
-                renpy.sound.play("sounds/pew.ogg", channel="gun_sfx") # Using gun channel for punch for now
+                renpy.sound.play("sounds/pew.ogg", channel="audio") # Using gun channel for punch for now
                 # Sort enemies to hit the closest one first
                 self.enemies.sort(key=lambda e: (e.x - self.player.x)**2 + (e.y - self.player.y)**2)
                 for e in self.enemies:
@@ -1291,7 +1291,7 @@ init python:
                     if math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2) < 2.0:
                         e.health -= weapon.damage
                         if e.health <= 0:
-                            renpy.sound.play("sounds/ow.ogg", channel="enemy_sfx")
+                            renpy.sound.play("sounds/ow.ogg", channel="audio")
                             self.enemies.remove(e)
                             self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
                             if renpy.random.random() < 0.40:
@@ -1299,7 +1299,7 @@ init python:
                         break # Only hit one enemy
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)
-                renpy.sound.play("sounds/gunshot.ogg", channel="gun_sfx")
+                renpy.sound.play("sounds/gunshot.ogg", channel="audio")
                 # Create a projectile that moves in the players direction
                 bullet = Projectile(
                     wm=self,
@@ -1314,7 +1314,7 @@ init python:
                 self.projectiles.append(bullet)
 
             elif weapon.projectile_type == 'shotgun':
-                renpy.sound.play("sounds/shotgun.ogg", channel="shotgun_sfx")
+                renpy.sound.play("sounds/shotgun.ogg", channel="audio")
                 
                 # Shotgun Spread Settings
                 num_pellets = 5
