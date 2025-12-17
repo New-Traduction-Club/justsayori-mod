@@ -206,6 +206,10 @@ init python:
             self.health = health
             self.state = 'idle' # 'idle', 'chasing', 'attacking'
             
+            # Memory of player position
+            self.last_known_x = None
+            self.last_known_y = None
+            
             # These will be overridden by subclasses
             self.texture_index = 0
             self.destroyed_texture_index = 0
@@ -229,25 +233,64 @@ init python:
 
             player_x, player_y = player.x, player.y
             dist_to_player = math.sqrt((player_x - self.x)**2 + (player_y - self.y)**2)
+            has_los = self.has_line_of_sight(player_x, player_y)
+
+            if has_los:
+                self.last_known_x = player_x
+                self.last_known_y = player_y
 
             # State transitions
             if self.state == 'idle':
-                if dist_to_player < self.sight_range and self.has_line_of_sight(player_x, player_y):
+                if dist_to_player < self.sight_range and has_los:
                     self.state = 'chasing'
             
             elif self.state == 'chasing':
-                # Check if we should go back to idle
-                if dist_to_player > self.sight_range or not self.has_line_of_sight(player_x, player_y):
-                    self.state = 'idle'
-                    return
-
-                # Move if not in the ideal attack sweet spot
-                if dist_to_player > self.attack_range or dist_to_player < self.attack_range * 0.8:
-                    self.move(dt, player_x, player_y)
+                target_x = player_x
+                target_y = player_y
                 
-                # Attack if in range and cooldown is ready
-                if dist_to_player < self.attack_range and self.attack_timer == 0:
-                    self.attack(player)
+                # If we lost LOS, pursue last known position
+                if not has_los:
+                    if self.last_known_x is not None:
+                        target_x = self.last_known_x
+                        target_y = self.last_known_y
+                        
+                        # Check if we reached the last known pos
+                        dist_to_last = math.sqrt((target_x - self.x)**2 + (target_y - self.y)**2)
+                        if dist_to_last < 1.0:
+                            # Reached last known spot and player not seen -> Give up
+                            self.state = 'idle'
+                            self.last_known_x = None
+                            return
+                    else:
+                        # No memory and no sight -> Idle
+                        self.state = 'idle'
+                        return
+
+                # Move logic
+                # If we have LOS, we maintain distance for attacking
+                # If we don't have LOS (hunting), we move directly to the target
+                
+                should_move = True
+                
+                if has_los:
+                    # In attack range?
+                    if dist_to_player < self.attack_range:
+                        # Too close? Backup slightly? Or just stop.
+                        if dist_to_player < self.attack_range * 0.5:
+                            # Maybe back away? For now just stop.
+                            should_move = False
+                        
+                        # Attack if cooldown ready
+                        if self.attack_timer == 0:
+                            self.attack(player)
+                    else:
+                        should_move = True
+                else:
+                    # Hunting mode: always move towards last known pos
+                    should_move = True
+
+                if should_move:
+                    self.move(dt, target_x, target_y)
 
         def attack(self, player):
             """
@@ -257,19 +300,73 @@ init python:
             # Base enemy does nothing XD
             pass
 
+        def check_wall_collision(self, x, y, radius=0.3):
+            """
+            Checks if a circle at (x,y) with given radius intersects any wall.
+            """
+            # Check center
+            if self.isBlocking(x, y): return True
+            
+            # Check cardinal points on rim
+            if self.isBlocking(x + radius, y): return True
+            if self.isBlocking(x - radius, y): return True
+            if self.isBlocking(x, y + radius): return True
+            if self.isBlocking(x, y - radius): return True
+            
+            return False
+
         def move(self, dt, target_x, target_y):
             """
-            Moves the enemy towards a target position.
+            Moves the enemy towards a target position with advanced obstacle avoidance.
             """
-            angle_to_target = math.atan2(target_y - self.y, target_x - self.x)
+            # 1. Calculate ideal direction
+            dx = target_x - self.x
+            dy = target_y - self.y
+            angle = math.atan2(dy, dx)
+            
+            # 2. Obstacle Avoidance ("Whiskers")
+            # Look ahead further to react sooner
+            look_dist = 1.2
+            radius = 0.35
+            
+            # Check front
+            ahead_x = self.x + math.cos(angle) * look_dist
+            ahead_y = self.y + math.sin(angle) * look_dist
+            
+            if self.check_wall_collision(ahead_x, ahead_y, radius):
+                # Front blocked. Scan for openings.
+                # Check diagonals (+/- 45) and sides (+/- 90)
+                offsets = [-0.785, 0.785, -1.57, 1.57] # -45, +45, -90, +90
+                best_angle = angle
+                found_path = False
+                
+                for off in offsets:
+                    test_angle = angle + off
+                    tx = self.x + math.cos(test_angle) * look_dist
+                    ty = self.y + math.sin(test_angle) * look_dist
+                    
+                    if not self.check_wall_collision(tx, ty, radius):
+                        angle = test_angle
+                        found_path = True
+                        break # Take first open path
+                
+                # If still blocked, maybe turn around? or just wiggle
+                if not found_path:
+                    angle += 2.0 # Turn significantly
+
+            # 3. Movement with Sliding (Radius Aware)
             moveStep = self.moveSpeed * dt
+            vx = math.cos(angle) * moveStep
+            vy = math.sin(angle) * moveStep
             
-            newX = self.x + math.cos(angle_to_target) * moveStep
-            newY = self.y + math.sin(angle_to_target) * moveStep
+            # Try moving X
+            # We add a small buffer to the check to prevent getting EXACTLY on the wall
+            if not self.check_wall_collision(self.x + vx, self.y, radius):
+                self.x += vx
             
-            position = self.checkCollision(self.x, self.y, newX, newY, 0.45)
-            self.x = position[0]
-            self.y = position[1]
+            # Try moving Y
+            if not self.check_wall_collision(self.x, self.y + vy, radius):
+                self.y += vy
 
         def has_line_of_sight(self, target_x, target_y):
             """
