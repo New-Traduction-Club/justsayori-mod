@@ -391,6 +391,54 @@ init python:
             # pew
             renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
 
+    class Yuritler(Guard):
+        """
+        The Boss Enemy: Yuritler.
+        Spawns every 10 rounds in Arena Mode with scaling HP.
+        """
+        def __init__(self, wm, x, y, health=150):
+            super(Yuritler, self).__init__(wm, x, y, 9, 10, health)
+            self.damage = 5
+            self.moveSpeed = 1.8 
+            self.attack_cooldown = 1.0
+
+        def attack(self, player):
+            """
+            Yuritler's attack: fires 4 spread projectiles at the player.
+            """
+            self.attack_timer = self.attack_cooldown
+            
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
+            dist = math.sqrt(dir_x**2 + dir_y**2)
+            
+            if dist > 0:
+                base_angle = math.atan2(dir_y, dir_x)
+                
+                num_pellets = 4
+                spread_angle = 0.2
+                
+                for i in range(num_pellets):
+                    offset = (i / float(num_pellets - 1) - 0.5) * spread_angle
+                    final_angle = base_angle + offset
+                    
+                    p_dirx = math.cos(final_angle)
+                    p_diry = math.sin(final_angle)
+                    
+                    bullet = Projectile(
+                        wm=self.wm, 
+                        x=self.x, 
+                        y=self.y, 
+                        dir_x=p_dirx, 
+                        dir_y=p_diry, 
+                        texture_index=self.bullet_texture_index, 
+                        damage=self.damage,
+                        fired_by_player=False
+                    )
+                    self.wm.projectiles.append(bullet)
+            
+            renpy.sound.play("sounds/e-gunshot.ogg", channel="enemy_sfx")
+
     class Renpystein(renpy.Displayable):
         """
         The main class for the raycasting engine. It's a Ren'Py Displayable,
@@ -422,6 +470,8 @@ init python:
                 "pics/items/bullet.png",
                 "pics/items/medkit.png",
                 "pics/items/cookie.png",
+                "pics/enemies/yuritler.png",
+                "pics/enemies/yuritler_d.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -1243,17 +1293,30 @@ init python:
                 if not self.spawn_points: continue
                 sx, sy = renpy.random.choice(self.spawn_points)
                 
-                x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.5
-                
                 x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
                 y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
                 
                 new_enemy = Guard(self, x, y, 4, 5, health=100)
                 
-                # FIX: In Arena, enemies should actively hunt the player
-                # This prevents them from staying idle and "stacking" on top of each other if they spawn at the same spot
                 new_enemy.state = 'chasing'
                 # Add slight speed variation to prevent perfect overlapping during movement
                 new_enemy.moveSpeed += (renpy.random.random() - 0.5) * 0.2
                 
                 self.enemies.append(new_enemy)
+
+            # --- Spawn Yuritler (Every 10 Rounds) ---
+            if self.current_round % 10 == 0:
+                if self.spawn_points:
+                    sx, sy = renpy.random.choice(self.spawn_points)
+                    x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    
+                    # Scaling Health: 150 base + 50 per additional 10 levels
+                    # Round 10: 150 + (1-1)*50 = 150
+                    # Round 20: 150 + (2-1)*50 = 200
+                    # Round 30: 150 + (3-1)*50 = 250
+                    boss_hp = 150 + (self.current_round // 10 - 1) * 50
+                    
+                    boss = Yuritler(self, x, y, health=boss_hp)
+                    boss.state = 'chasing'
+                    self.enemies.append(boss)
