@@ -7,7 +7,9 @@ default persistent.stein_kills = 0
 default persistent.tradu_coins = 0
 default persistent.stein_pistol_level = 0
 default persistent.stein_shotgun_level = 0
+default persistent.stein_minigun_level = 0
 default persistent.stein_shotgun_unlocked = False
+default persistent.stein_minigun_unlocked = False
 default persistent.stein_level1_cleared = False
 default persistent.stein_level2_cleared = False
 default persistent.stein_level3_cleared = False
@@ -24,6 +26,7 @@ default stein_enemies = []
 default stein_sprites = []
 default stein_session_coins = 0
 default stein_has_shotgun = False
+default stein_has_minigun = False
 default stein_current_round = 0
 default stein_inter_round_timer = 0.0
 default stein_sniper_count = 0
@@ -256,9 +259,11 @@ init python:
             renpy.store.persistent.stein_kills = 0
             renpy.store.arena_spawn_points = level_data.get("spawn_points", [])
             renpy.store.stein_has_shotgun = persistent.stein_shotgun_unlocked
+            renpy.store.stein_has_minigun = persistent.stein_minigun_unlocked
         else:
             renpy.store.arena_spawn_points = []
             renpy.store.stein_has_shotgun = True # Always have weapons in story mode (for now)
+            renpy.store.stein_has_minigun = True
 
 
 # The screen that displays the main game engine.

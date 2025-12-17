@@ -164,6 +164,24 @@ init python:
             else:
                 renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
 
+        elif upgrade_type == "minigun":
+            cost = 50 + (persistent.stein_minigun_level * 15)
+            if persistent.tradu_coins >= cost:
+                persistent.tradu_coins -= cost
+                persistent.stein_minigun_level += 1
+                renpy.restart_interaction()
+            else:
+                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+
+        elif upgrade_type == "unlock_minigun":
+            cost = 50000
+            if persistent.tradu_coins >= cost:
+                persistent.tradu_coins -= cost
+                persistent.stein_minigun_unlocked = True
+                renpy.restart_interaction()
+            else:
+                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+
 screen sayoristein_upgrades():
     tag menu
     add "pics/gui/main_menu_bg.png"
@@ -193,7 +211,7 @@ screen sayoristein_upgrades():
             vbox:
                 spacing 10
                 xalign 0.5
-                xsize 300
+                xsize 365
                 
                 add "pics/items/bullet.png":
                     xalign 0.5
@@ -211,7 +229,7 @@ screen sayoristein_upgrades():
             vbox:
                 spacing 10
                 xalign 0.5
-                xsize 300
+                xsize 365
                 
                 add "pics/items/bullet.png":
                     xalign 0.5
@@ -233,9 +251,24 @@ screen sayoristein_upgrades():
             vbox:
                 spacing 10
                 xalign 0.5
-                xsize 300
+                xsize 365
                 
-                text _("Coming Soon") xalign 0.5 size 30 color "#555555" font "mod_assets/fonts/BebasNeue-Regular.ttf" yalign 0.5
+                add "pics/items/bullet.png":
+                    xalign 0.5
+                    zoom 2.0
+                
+                text _("Minigun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ m_dmg_bonus = persistent.stein_minigun_level * 10
+                text _("Level: [persistent.stein_minigun_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[m_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ m_cost = 50 + (persistent.stein_minigun_level * 15)
+                textbutton _("Upgrade ([m_cost])") action Function(buy_stein_upgrade, "minigun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+                if not persistent.stein_minigun_unlocked:
+                    text _("NOT OWNED") xalign 0.5 size 20 color "#ff0000" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                    textbutton _("Unlock (50000)") action Function(buy_stein_upgrade, "unlock_minigun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
     textbutton _("Back") action ShowMenu("sayoristein_arena_hub") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
         xalign 0.5

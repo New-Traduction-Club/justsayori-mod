@@ -219,6 +219,12 @@ init python:
                                         shotgun_prob = 0.25 if enemy.coin_index == 12 else 0.10
                                         if renpy.random.random() < shotgun_prob:
                                             self.wm.sprite_positions.append((enemy.x, enemy.y, 13))
+                                            
+                                    # Arena Mode: Drop Minigun (10% Chance) if not owned
+                                    if not renpy.store.stein_has_minigun:
+                                        if renpy.random.random() < 0.10:
+                                            self.wm.sprite_positions.append((enemy.x, enemy.y, 15))
+
                         return False
 
             return True # Projectile is still active
@@ -755,6 +761,7 @@ init python:
                 "pics/items/coins.png", # Boss Coin
                 "pics/items/random_gun_i.png",
                 "pics/items/bullet_red.png",
+                "pics/items/minigun.png",
             ]
             self.image_paths = [  
                 "pics/walls/eagle.png", "pics/walls/redbrick.png",
@@ -816,16 +823,19 @@ init python:
             # Weapon Logic & Upgrades
             gun_dmg = 50
             shotgun_dmg = 35
+            minigun_dmg = 40
             
             # Apply Upgrades only in Arena Mode
             if self.is_arena_mode:
                 gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
                 shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
+                minigun_dmg += 3 * (persistent.stein_minigun_level * 0.10)
 
             self.weapons = {
                 "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
                 "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6, ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png"),
-                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0)
+                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0),
+                "minigun": Weapon("minigun", 5, 1, damage=minigun_dmg, projectile_type='bullet', cooldown=0.05, loop_frames=[2, 3])
             }
             for w_name in self.weapons:
                 self.weapons[w_name].last_fired = -100.0
@@ -853,6 +863,8 @@ init python:
             self.touch_dir = 0.0
             
             self.gp_aiming = False
+            self.mouse_firing = False
+            self.gp_firing = False
             self.prev_btn_weapon_switch = False
 
             # --- Input: Joystick Initialization ---
@@ -1163,9 +1175,13 @@ init python:
             sw, sh = sight_r.get_size()
             final_render.blit(sight_r, (width/2 - sw/2, height/2 - sh/2))
             
+            is_firing = self.mouse_firing or self.gp_firing
+            if is_firing:
+                self.shoot_weapon()
+
             # Render the currently equipped weapon model over the 3D scene
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
-            current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming)
+            current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming, is_firing=is_firing)
 
             # --- 6. RENDER HUD AND EFFECTS ---
             hp_text = Text(__("HP: {}").format(self.player.health), style="sayoristein_menu_button_text", size=32)
@@ -1297,6 +1313,16 @@ init python:
                             renpy.notify(_("You pick up the shotgun"))
                             # renpy.sound.play("", channel="audio") # TODO: Add a sound
                             self.sprite_positions.remove(sprite)
+
+                elif texture_index == 15:
+                    dist_to_sprite = math.sqrt((self.player.x - sprite_x)**2 + (self.player.y - sprite_y)**2)
+                    
+                    if dist_to_sprite < 0.8:
+                        if not renpy.store.stein_has_minigun:
+                            renpy.store.stein_has_minigun = True
+                            renpy.notify(_("You pick up the minigun"))
+                            # renpy.sound.play("", channel="audio") # TODO: Add a sound
+                            self.sprite_positions.remove(sprite)
         
         def update_enemies(self, dt):
             """
@@ -1414,9 +1440,10 @@ init python:
             self.gp_speed = 0.0
             self.gp_strafe = 0.0
             self.gp_dir = 0.0
-            self.gp_aiming = False # Reset aiming state every frame
+            self.gp_aiming = False 
+            self.gp_firing = False
             DEADZONE = 0.25
-            TRIGGER_THRESHOLD = 0.6 # Increased threshold
+            TRIGGER_THRESHOLD = 0.6 
 
             is_switch_held = False
 
@@ -1432,7 +1459,6 @@ init python:
                         continue
                         
                     # Aiming Check (L2 / Left Trigger)
-                    # We check ALL connected controllers. If ANY has L2 pressed, we aim.
                     if joy.get_numaxes() > 4:
                         if joy.get_axis(4) > TRIGGER_THRESHOLD:
                             self.gp_aiming = True
@@ -1475,7 +1501,7 @@ init python:
                             shoot_pressed = True
                     
                     if shoot_pressed:
-                        self.shoot_weapon()
+                        self.gp_firing = True
                             
                     # Weapon Switch (Toggle): Button 3 (Y/Triangle)
                     if joy.get_numbuttons() > 3 and joy.get_button(3):
@@ -1491,6 +1517,13 @@ init python:
                 elif self.player.current_weapon_name == "gun":
                     if renpy.store.stein_has_shotgun:
                         self.player.current_weapon_name = "shotgun"
+                    elif renpy.store.stein_has_minigun:
+                        self.player.current_weapon_name = "minigun"
+                    else:
+                        self.player.current_weapon_name = "fist"
+                elif self.player.current_weapon_name == "shotgun":
+                    if renpy.store.stein_has_minigun:
+                        self.player.current_weapon_name = "minigun"
                     else:
                         self.player.current_weapon_name = "fist"
                 else:
@@ -1555,6 +1588,9 @@ init python:
                 if ev.key == pygame.K_3: 
                     if renpy.store.stein_has_shotgun:
                         self.player.current_weapon_name = "shotgun"
+                if ev.key == pygame.K_4: 
+                    if renpy.store.stein_has_minigun:
+                        self.player.current_weapon_name = "minigun"
 
                 # WASD controls
                 if ev.key == pygame.K_w: self.kb_speed = 1
@@ -1572,12 +1608,14 @@ init python:
 
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 if ev.button == 1: # Left mouse button
-                    self.shoot_weapon()
+                    self.mouse_firing = True
                 elif ev.button == 3: # Right mouse button (Aim)
                     self.is_aiming = True
             
             if ev.type == pygame.MOUSEBUTTONUP:
-                if ev.button == 3:
+                if ev.button == 1:
+                    self.mouse_firing = False
+                elif ev.button == 3:
                     self.is_aiming = False
                         
             if ev.type == pygame.KEYUP: 
@@ -1613,9 +1651,6 @@ init python:
             current_time = self.oldst if self.oldst else 0.0
             
             if current_time - weapon.last_fired < weapon.cooldown:
-                return
-
-            if weapon.playing:
                 return
 
             weapon.play()
@@ -1655,6 +1690,10 @@ init python:
                                         shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
                                         if renpy.random.random() < shotgun_prob:
                                             self.sprite_positions.append((e.x, e.y, 13))
+                                            
+                                    if not renpy.store.stein_has_minigun:
+                                        if renpy.random.random() < 0.10:
+                                            self.sprite_positions.append((e.x, e.y, 15))
 
                         break # Only hit one enemy
 
