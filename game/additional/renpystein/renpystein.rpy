@@ -543,47 +543,47 @@ init python:
             self.oldst = st
             
             if self.won is None:
+                # Update timers (damage_flash_timer, heal_flash_timer)
+                self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
+                self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
+
+                # --- Input Aggregation ---
+                if simulate_touch:
+                    self.update_player_from_touch_state()
+                else:
+                    self.touch_speed = 0.0
+                    self.touch_strafe = 0.0
+                    self.touch_dir = 0.0
+
+                self.poll_gamepad()
+
+                # This allows the Gamepad (Auxiliary System) to work alongside Keyboard or Touch
+                total_speed = self.kb_speed + self.gp_speed + self.touch_speed
+                total_strafe = self.kb_strafe + self.gp_strafe + self.touch_strafe
+                total_dir = self.kb_dir + self.gp_dir + self.touch_dir
+                
+                # Clamp values to avoid super-speed when using multiple inputs
+                self.player.speed = max(-1.0, min(1.0, total_speed))
+                self.player.strafe_speed = max(-1.0, min(1.0, total_strafe))
+                self.player.dir = total_dir # Rotation usually doesn't need clamping, just accumulation
+
+                # Move the player
+                self.player.move(dtime)
+                
+                # Check for item pickups
+                self.check_item_pickup()
+                
+                # Update enemies
+                self.update_enemies(dtime)
+
+                # Update projectiles
+                self.update_projectiles(dtime)
+
                 if self.is_arena_mode and self.inter_round_timer > 0:
                     self.inter_round_timer -= dtime
                     if self.inter_round_timer <= 0:
                         self.start_next_round()
-                else:
-                    # Update timers
-                    self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
-                    self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
-
-                    # --- Input Aggregation ---
-                    if simulate_touch:
-                        self.update_player_from_touch_state()
-                    else:
-                        self.touch_speed = 0.0
-                        self.touch_strafe = 0.0
-                        self.touch_dir = 0.0
-
-                    self.poll_gamepad()
-
-                    # This allows the Gamepad (Auxiliary System) to work alongside Keyboard or Touch
-                    total_speed = self.kb_speed + self.gp_speed + self.touch_speed
-                    total_strafe = self.kb_strafe + self.gp_strafe + self.touch_strafe
-                    total_dir = self.kb_dir + self.gp_dir + self.touch_dir
-                    
-                    # Clamp values to avoid super-speed when using multiple inputs
-                    self.player.speed = max(-1.0, min(1.0, total_speed))
-                    self.player.strafe_speed = max(-1.0, min(1.0, total_strafe))
-                    self.player.dir = total_dir # Rotation usually doesn't need clamping, just accumulation
-
-                    # Move the player
-                    self.player.move(dtime)
-                    
-                    # Check for item pickups
-                    self.check_item_pickup()
-                    
-                    # Update enemies
-                    self.update_enemies(dtime)
-
-                    # Update projectiles
-                    self.update_projectiles(dtime)
-
+                
                 if self.is_arena_mode and len(self.enemies) == 0 and self.inter_round_timer <= 0 and self.current_round > 0:
                     self.inter_round_timer = 5.0
 
