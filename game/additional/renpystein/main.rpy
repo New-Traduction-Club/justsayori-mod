@@ -274,8 +274,8 @@ screen stein:
     python:
         # Quality settings: 0=High, 1=Low, 2=Ultra Low
         if persistent.stein_quality_mode == 0: # High
-            internal_width = 1280
-            internal_height = 720
+            internal_width = 960
+            internal_height = 540 
         elif persistent.stein_quality_mode == 1: # Low
             internal_width = 640
             internal_height = 360
