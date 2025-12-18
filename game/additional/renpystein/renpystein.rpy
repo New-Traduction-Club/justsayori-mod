@@ -1042,16 +1042,25 @@ init python:
             render_planex = self.player.planex * zoom_factor
             render_planey = self.player.planey * zoom_factor
 
-            # --- 4a. WALL CASTING ---
-            # Loop through every vertical column of the internal screen resolution.
-            for x in range(self.internal_width):
-                # Calculate ray position and direction for this column
-                cameraX = float(2 * x / float(self.internal_width) - 1)
-                rayDirX = self.player.dirx + render_planex * cameraX
-                rayDirY = self.player.diry + render_planey * cameraX
+            p_dirx = self.player.dirx
+            p_diry = self.player.diry
+            p_x = self.player.x
+            p_y = self.player.y
+            world_map = self.worldMap
+            i_width = self.internal_width
 
-                mapX = int(self.player.x)
-                mapY = int(self.player.y)  
+            # --- 4a. WALL CASTING ---
+            zBuffer = [0.0] * i_width
+
+            # Loop through every vertical column of the internal screen resolution.
+            for x in range(i_width):
+                # Calculate ray position and direction for this column
+                cameraX = float(2 * x / float(i_width) - 1)
+                rayDirX = p_dirx + render_planex * cameraX
+                rayDirY = p_diry + render_planey * cameraX
+
+                mapX = int(p_x)
+                mapY = int(p_y)  
                 
                 # Length of ray from one x or y-side to next x or y-side
                 if rayDirX == 0: rayDirX = 0.00001
@@ -1062,16 +1071,16 @@ init python:
                 # Calculate step and initial sideDist using a DDA (Digital Differential Analysis) algorithm
                 if rayDirX < 0:
                     stepX = -1
-                    sideDistX = (self.player.x - mapX) * deltaDistX
+                    sideDistX = (p_x - mapX) * deltaDistX
                 else:
                     stepX = 1
-                    sideDistX = (mapX + 1.0 - self.player.x) * deltaDistX
+                    sideDistX = (mapX + 1.0 - p_x) * deltaDistX
                 if rayDirY < 0:
                     stepY = -1
-                    sideDistY = (self.player.y - mapY) * deltaDistY
+                    sideDistY = (p_y - mapY) * deltaDistY
                 else:
                     stepY = 1
-                    sideDistY = (mapY + 1.0 - self.player.y) * deltaDistY
+                    sideDistY = (mapY + 1.0 - p_y) * deltaDistY
        
                 # Perform DDA: step through the grid until a wall is hit
                 hit = 0
@@ -1084,14 +1093,14 @@ init python:
                         sideDistY += deltaDistY
                         mapY += stepY
                         side = 1 # Wall was hit on a Y-side (horizontal)
-                    if self.worldMap[mapX][mapY] > 0: 
+                    if world_map[mapX][mapY] > 0: 
                         hit = 1
 
                 # Calculate distance to the wall (fisheye correction)
                 if side == 0:
-                    perpWallDist = abs((mapX - self.player.x + (1 - stepX) / 2) / rayDirX)
+                    perpWallDist = abs((mapX - p_x + (1 - stepX) / 2) / rayDirX)
                 else:
-                    perpWallDist = abs((mapY - self.player.y + (1 - stepY) / 2) / rayDirY)
+                    perpWallDist = abs((mapY - p_y + (1 - stepY) / 2) / rayDirY)
           
                 if perpWallDist == 0: perpWallDist = 0.000001
                 
@@ -1106,13 +1115,13 @@ init python:
                 
                 if lineHeight > 0:
                     drawStart = -lineHeight / 2 + self.internal_height / 2
-                    texNum = self.worldMap[mapX][mapY] - 1
+                    texNum = world_map[mapX][mapY] - 1
                    
                     # Calculate value of wallX (where exactly the wall was hit)
                     if side == 1:
-                        wallX = self.player.x + ((mapY - self.player.y + (1 - stepY) / 2) / rayDirY) * rayDirX
+                        wallX = p_x + ((mapY - p_y + (1 - stepY) / 2) / rayDirY) * rayDirX
                     else:
-                        wallX = self.player.y + ((mapX - self.player.x + (1 - stepX) / 2) / rayDirX) * rayDirY
+                        wallX = p_y + ((mapX - p_x + (1 - stepX) / 2) / rayDirX) * rayDirY
                     wallX -= math.floor(wallX)
                    
                     # Get the corresponding column from the texture
@@ -1129,7 +1138,7 @@ init python:
                     scaled_surf = pygame.transform.scale(source_surf.subsurface(slice_area), (1, lineHeight))
                     canvas.blit(scaled_surf, (x, int(drawStart)))
 
-                zBuffer.append(perpWallDist)       
+                zBuffer[x] = perpWallDist       
 
             # --- 4b. SPRITE CASTING ---
             renderable_enemies = [(e.x, e.y, e.texture_index) for e in self.enemies]
@@ -1140,19 +1149,19 @@ init python:
             mergedlist.sort(key=self.sprite_sort_key, reverse=True)
             for sprite in mergedlist:
                 # Translate sprite position to be relative to camera
-                spriteX = sprite[0] - self.player.x
-                spriteY = sprite[1] - self.player.y
+                spriteX = sprite[0] - p_x
+                spriteY = sprite[1] - p_y
               
                 # Transform sprite with the inverse camera matrix (Using Zoomed Plane)
-                invDet = 1.0 / (render_planex * self.player.diry - self.player.dirx * render_planey)
-                transformX = invDet * (self.player.diry * spriteX - self.player.dirx * spriteY)
+                invDet = 1.0 / (render_planex * p_diry - p_dirx * render_planey)
+                transformX = invDet * (p_diry * spriteX - p_dirx * spriteY)
                 transformY = invDet * (-render_planey * spriteX + render_planex * spriteY) # this is the depth inside the screen
                 
                 # Don't render sprites that are behind the camera plane
                 if transformY <= 0.1: continue
                     
                 # Calculate sprite's position and size on screen
-                spritesurfaceX = (self.internal_width / 2.0) * (1.0 + transformX / transformY)
+                spritesurfaceX = (i_width / 2.0) * (1.0 + transformX / transformY)
                 
                 # Scale sprite height to match wall scaling
                 f_spriteHeight = (self.internal_height / transformY) * vertical_scale
@@ -1169,7 +1178,7 @@ init python:
                 i_drawStartX = int(f_drawStartX)
                 i_drawEndX = int(f_drawStartX + f_spriteWidth)
                 
-                if i_drawEndX < 0 or i_drawStartX > self.internal_width: continue
+                if i_drawEndX < 0 or i_drawStartX > i_width: continue
 
                 # Scale the full sprite texture to its on-screen size
                 source_sprite_surf = self.sprite_renders[sprite[2]]
@@ -1178,7 +1187,7 @@ init python:
                 # Loop through the vertical stripes of the sprite on screen
                 for stripe in range(i_drawStartX, i_drawEndX):
                     # Check if stripe is on screen and in front of a wall
-                    if 0 <= stripe < self.internal_width and transformY < zBuffer[stripe]:
+                    if 0 <= stripe < i_width and transformY < zBuffer[stripe]:
                         source_x = stripe - i_drawStartX
                         if source_x < i_spriteWidth:
                             # Draw a 1-pixel wide slice of the scaled sprite
