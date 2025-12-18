@@ -69,6 +69,7 @@ init python:
             self.planey = float(planey)
             
             self.health = 100
+            self.pitch = 0.0 # Vertical look offset (Y-Shearing)
             self.current_weapon_name = "fist"
             
             # --- Movement state variables ---
@@ -150,7 +151,7 @@ init python:
         """
         Represents a moving projectile (a bullet).
         """
-        def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False):
+        def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False, pitch=0.0):
             self.wm = wm
             self.x = x
             self.y = y
@@ -160,6 +161,7 @@ init python:
             self.damage = damage
             self.fired_by_player = fired_by_player
             self.is_invisible = is_invisible
+            self.pitch = pitch
             self.speed = 20.0
 
         def update(self, dt):
@@ -202,6 +204,22 @@ init python:
                 for enemy in self.wm.enemies:
                     dist_to_enemy = math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2)
                     if dist_to_enemy < 0.5: # Enemy hitbox
+                        
+                        # --- 3D vertical hitbox logic (Y-Shearing) ---
+                        # Check if the shot height aligns with the enemy
+                        if hasattr(self, 'pitch'):
+                            safe_dist = max(0.1, dist_to_enemy)
+                            # Calculate projected visual height of enemy at this distance
+                            # Height = ScreenHeight / Distance
+                            enemy_vis_height = self.wm.internal_height / safe_dist
+                            
+                            calc_height = min(enemy_vis_height, self.wm.internal_height * 1.2)
+                            
+                            # This fits the visible sprite better, ignoring potential transparent space at the top, but not perfect
+                            hit_threshold = (calc_height / 2.0) * 0.2
+                            
+                            if abs(self.pitch) > hit_threshold:
+                                continue 
                         
                         # Handle Damage (Check for dodge)
                         taken = True
@@ -1044,11 +1062,6 @@ init python:
             renpy.store.stein_yuritler_count = self.yuritler_count
 
             # --- 4. RENDER 3D SCENE ---
-            # Create the canvas at the internal (potentially smaller) resolution for performance.
-            canvas = pygame.Surface((self.internal_width, self.internal_height), pygame.SRCALPHA)
-            canvas.blit(self.bg_surf_cached, (0, 0))
-            
-            zBuffer = [] # Holds the distance of the wall at each screen column, for sprite occlusion
             
             # --- ADS / Zoom Logic ---
             effective_aiming = self.is_aiming or self.gp_aiming
@@ -1080,6 +1093,28 @@ init python:
                 # Calculate vertical offset using sine wave based on time
                 bob_offset = math.sin(st * bob_speed) * bob_amp
 
+            horizon_offset = self.player.pitch + bob_offset
+            i_horizon_offset = int(horizon_offset)
+
+            # Create the canvas at the internal (maybe smaller) resolution for performance
+            canvas = pygame.Surface((self.internal_width, self.internal_height), pygame.SRCALPHA)
+            
+            # Draw background shifted by horizon offset
+            canvas.blit(self.bg_surf_cached, (0, i_horizon_offset))
+            
+            # Fill gaps caused by shifting to prevent artifacts
+            if i_horizon_offset > 0:
+                # Horizon moved down (looking up) -> gap at top
+                # Fill with sky solor (top-left pixel of bg)
+                sky_color = self.bg_surf_cached.get_at((0,0))
+                canvas.fill(sky_color, (0, 0, i_width, i_horizon_offset))
+            elif i_horizon_offset < 0:
+                # Horizon moved up (looking down) -> gap at bottom
+                # Fill with floor color (bottom-left pixel of bg)
+                floor_color = self.bg_surf_cached.get_at((0, self.internal_height - 1))
+                # Fill rect: x=0, y=height+offset (offset is negative), w=width, h=-offset
+                canvas.fill(floor_color, (0, self.internal_height + i_horizon_offset, i_width, -i_horizon_offset))
+            
             # --- 4a. WALL CASTING ---
             zBuffer = [0.0] * i_width
 
@@ -1145,7 +1180,8 @@ init python:
                 if lineHeight > 30000: lineHeight = 30000
                 
                 if lineHeight > 0:
-                    drawStart = -lineHeight / 2 + self.internal_height / 2 + bob_offset
+                    # Apply horizon offset
+                    drawStart = -lineHeight / 2 + self.internal_height / 2 + horizon_offset
                     texNum = world_map[mapX][mapY] - 1
                    
                     # Calculate value of wallX (where exactly the wall was hit)
@@ -1173,7 +1209,7 @@ init python:
 
             # --- 4b. SPRITE CASTING ---
             renderable_enemies = [(e.x, e.y, e.texture_index) for e in self.enemies]
-            renderable_projectiles = [(p.x, p.y, p.texture_index) for p in self.projectiles if not getattr(p, 'is_invisible', False)]
+            renderable_projectiles = [(p.x, p.y, p.texture_index, p.pitch) for p in self.projectiles if not getattr(p, 'is_invisible', False)]
             mergedlist = self.sprite_positions + renderable_enemies + renderable_projectiles
             
             # Sort sprites from far to near to handle transparency correctly
@@ -1204,7 +1240,9 @@ init python:
                 if i_spriteHeight <= 0 or i_spriteWidth <= 0: continue
                 
                 # Calculate drawing boundaries on the screen
-                f_drawStartY = self.internal_height / 2.0 - f_spriteHeight / 2.0 + bob_offset
+                # Apply horizon fffset here as well
+                pitch_shift = sprite[3] if len(sprite) > 3 else 0
+                f_drawStartY = self.internal_height / 2.0 - f_spriteHeight / 2.0 + horizon_offset - pitch_shift
                 f_drawStartX = spritesurfaceX - f_spriteWidth / 2.0
                 i_drawStartX = int(f_drawStartX)
                 i_drawEndX = int(f_drawStartX + f_spriteWidth)
@@ -1609,6 +1647,16 @@ init python:
                                  self.gp_dir -= rx * look_sens
                                  break
                     
+                    # Right Stick Y (look up/down) - normally axis 3
+                    if joy.get_numaxes() > 3:
+                        ry = joy.get_axis(3)
+                        if abs(ry) > DEADZONE:
+                            pitch_speed = 6.0
+                            if self.is_aiming or self.gp_aiming:
+                                pitch_speed *= 0.5
+                            self.player.pitch -= ry * pitch_speed
+                            self.player.pitch = max(-200.0, min(200.0, self.player.pitch))
+
                     # --- Buttons (Polling) ---
                     # Shoot (Hold allowed): Button 0 (A/Cross) or 5 (RB/R1) or Right Trigger (Axis 5)
                     shoot_pressed = False
@@ -1692,6 +1740,7 @@ init python:
                 elif info['action'] == 'look':
                     # Convert accumulated horizontal movement into rotation
                     self.touch_dir += (info['dx_accum'] / self.width) * 25.0
+                    # TODO: Implement vertical look for touch
                     info['dx_accum'] = 0.0 # Reset accumulator for the next frame
 
         def handle_pc_input(self, ev):
@@ -1699,10 +1748,17 @@ init python:
             # Handle mouse look
             if ev.type == pygame.MOUSEMOTION:
                 sensitivity = 0.003
+                pitch_sensitivity = 0.8 
                 if self.is_aiming:
                     sensitivity *= 0.25 # Reduce sensitivity when aiming
+                    pitch_sensitivity *= 0.5
+
                 self.player.rot -= ev.rel[0] * sensitivity
                 self.player.planerot -= ev.rel[0] * sensitivity
+                
+                # Pitch (vertical look)
+                self.player.pitch -= ev.rel[1] * pitch_sensitivity
+                self.player.pitch = max(-200.0, min(200.0, self.player.pitch))
 
             if ev.type == pygame.KEYDOWN:
                 if ev.key == pygame.K_ESCAPE:
@@ -1848,7 +1904,8 @@ init python:
                     texture_index=8,
                     damage=weapon.damage,
                     fired_by_player=True,
-                    is_invisible=invisible
+                    is_invisible=invisible,
+                    pitch=self.player.pitch
                 )
                 self.projectiles.append(bullet)
 
@@ -1883,7 +1940,8 @@ init python:
                         texture_index=8, # Use same bullet texture for now
                         damage=weapon.damage,
                         fired_by_player=True,
-                        is_invisible=invisible
+                        is_invisible=invisible,
+                        pitch=self.player.pitch
                     )
                     self.projectiles.append(pellet)
 
