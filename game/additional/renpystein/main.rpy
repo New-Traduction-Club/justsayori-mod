@@ -372,3 +372,8 @@ label sayoristein_main_menu(mg_obj=None):
     hide chibi_dvd with dissolve
     hide black with dissolve
     return
+
+label test_gpu:
+    $ reset_stein_state(level=1)
+    call screen gpu_stein_test
+    return
