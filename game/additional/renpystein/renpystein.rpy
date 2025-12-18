@@ -150,7 +150,7 @@ init python:
         """
         Represents a moving projectile (a bullet).
         """
-        def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False):
+        def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False):
             self.wm = wm
             self.x = x
             self.y = y
@@ -159,6 +159,7 @@ init python:
             self.texture_index = texture_index
             self.damage = damage
             self.fired_by_player = fired_by_player
+            self.is_invisible = is_invisible
             self.speed = 20.0
 
         def update(self, dt):
@@ -1172,7 +1173,7 @@ init python:
 
             # --- 4b. SPRITE CASTING ---
             renderable_enemies = [(e.x, e.y, e.texture_index) for e in self.enemies]
-            renderable_projectiles = [(p.x, p.y, p.texture_index) for p in self.projectiles]
+            renderable_projectiles = [(p.x, p.y, p.texture_index) for p in self.projectiles if not getattr(p, 'is_invisible', False)]
             mergedlist = self.sprite_positions + renderable_enemies + renderable_projectiles
             
             # Sort sprites from far to near to handle transparency correctly
@@ -1826,6 +1827,9 @@ init python:
 
             elif weapon.projectile_type == 'bullet': # Pistol (gun)
                 renpy.sound.play("sounds/gunshot.ogg", channel="audio")
+                
+                invisible = self.is_aiming or self.gp_aiming
+
                 # Create a projectile that moves in the players direction
                 bullet = Projectile(
                     wm=self,
@@ -1835,7 +1839,8 @@ init python:
                     dir_y=self.player.diry,
                     texture_index=8,
                     damage=weapon.damage,
-                    fired_by_player=True
+                    fired_by_player=True,
+                    is_invisible=invisible
                 )
                 self.projectiles.append(bullet)
 
@@ -1845,6 +1850,8 @@ init python:
                 # Shotgun Spread Settings
                 num_pellets = 5
                 spread_angle = 0.15 # Total spread in radians
+                
+                invisible = self.is_aiming or self.gp_aiming
                 
                 if self.is_aiming or self.gp_aiming:
                     spread_angle *= 0.25
@@ -1867,7 +1874,8 @@ init python:
                         dir_y=p_diry,
                         texture_index=8, # Use same bullet texture for now
                         damage=weapon.damage,
-                        fired_by_player=True
+                        fired_by_player=True,
+                        is_invisible=invisible
                     )
                     self.projectiles.append(pellet)
 
