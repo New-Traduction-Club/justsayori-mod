@@ -270,6 +270,8 @@ init python:
 screen stein:
     key "s" action None
     key "mouseup_3" action None
+    key "K_LSHIFT" action None
+    key "K_RSHIFT" action None
 
     python:
         # Quality settings: 0=High, 1=Low, 2=Ultra Low

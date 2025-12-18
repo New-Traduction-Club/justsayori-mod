@@ -889,6 +889,9 @@ init python:
             self.mouse_firing = False
             self.gp_firing = False
             self.prev_btn_weapon_switch = False
+            
+            self.kb_running = False
+            self.gp_running = False
 
             # --- Input: Joystick Initialization ---
             pygame.joystick.init()
@@ -959,6 +962,19 @@ init python:
                 total_strafe = self.kb_strafe + self.gp_strafe + self.touch_strafe
                 total_dir = self.kb_dir + self.gp_dir + self.touch_dir
                 
+                effective_aiming = self.is_aiming or self.gp_aiming
+                is_running = self.kb_running or self.gp_running
+                
+                if effective_aiming:
+                    is_running = False
+                
+                if is_running:
+                    self.player.moveSpeed = 4.0 # Sprint speed
+                elif effective_aiming:
+                    self.player.moveSpeed = 1.5 # Aiming walk speed
+                else:
+                    self.player.moveSpeed = 2.5 # Normal walk speed
+
                 # Clamp values to avoid super-speed when using multiple inputs
                 self.player.speed = max(-1.0, min(1.0, total_speed))
                 self.player.strafe_speed = max(-1.0, min(1.0, total_strafe))
@@ -1049,6 +1065,20 @@ init python:
             world_map = self.worldMap
             i_width = self.internal_width
 
+            is_moving = abs(self.player.speed) > 0.1 or abs(self.player.strafe_speed) > 0.1
+            is_running_state = (self.kb_running or self.gp_running) and is_moving
+            
+            bob_offset = 0.0
+            if is_moving and not effective_aiming:
+                bob_speed = 10.0
+                bob_amp = 1.0
+                if is_running_state:
+                    bob_speed = 15.0
+                    bob_amp = 2.5
+                
+                # Calculate vertical offset using sine wave based on time
+                bob_offset = math.sin(st * bob_speed) * bob_amp
+
             # --- 4a. WALL CASTING ---
             zBuffer = [0.0] * i_width
 
@@ -1114,7 +1144,7 @@ init python:
                 if lineHeight > 30000: lineHeight = 30000
                 
                 if lineHeight > 0:
-                    drawStart = -lineHeight / 2 + self.internal_height / 2
+                    drawStart = -lineHeight / 2 + self.internal_height / 2 + bob_offset
                     texNum = world_map[mapX][mapY] - 1
                    
                     # Calculate value of wallX (where exactly the wall was hit)
@@ -1173,7 +1203,7 @@ init python:
                 if i_spriteHeight <= 0 or i_spriteWidth <= 0: continue
                 
                 # Calculate drawing boundaries on the screen
-                f_drawStartY = self.internal_height / 2.0 - f_spriteHeight / 2.0
+                f_drawStartY = self.internal_height / 2.0 - f_spriteHeight / 2.0 + bob_offset
                 f_drawStartX = spritesurfaceX - f_spriteWidth / 2.0
                 i_drawStartX = int(f_drawStartX)
                 i_drawEndX = int(f_drawStartX + f_spriteWidth)
@@ -1212,9 +1242,15 @@ init python:
             if is_firing:
                 self.shoot_weapon()
 
+            # Pass the pre-calculated movement state to the weapon for sway
+            movement_state = {
+                'is_moving': is_moving,
+                'is_running': is_running_state
+            }
+
             # Render the currently equipped weapon model over the 3D scene
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
-            current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming, is_firing=is_firing)
+            current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming, is_firing=is_firing, movement_state=movement_state)
 
             # --- 6. RENDER HUD AND EFFECTS ---
             hp_text = Text(__("HP: {}").format(self.player.health), style="sayoristein_menu_button_text", size=32)
@@ -1512,6 +1548,7 @@ init python:
             self.gp_dir = 0.0
             self.gp_aiming = False 
             self.gp_firing = False
+            self.gp_running = False
             DEADZONE = 0.25
             TRIGGER_THRESHOLD = 0.6 
 
@@ -1532,6 +1569,11 @@ init python:
                     if joy.get_numaxes() > 4:
                         if joy.get_axis(4) > TRIGGER_THRESHOLD:
                             self.gp_aiming = True
+                    
+                    # Sprint Check (L1 / Button 4)
+                    if joy.get_numbuttons() > 4:
+                        if joy.get_button(4):
+                            self.gp_running = True
 
                     # --- Left Stick (Movement) ---
                     if joy.get_numaxes() > 0:
@@ -1682,6 +1724,10 @@ init python:
                 # Actions
                 if ev.key == pygame.K_SPACE:
                     self.shoot_weapon()
+                
+                # Sprint
+                if ev.key == pygame.K_LSHIFT or ev.key == pygame.K_RSHIFT:
+                    self.kb_running = True
 
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 if ev.button == 1: # Left mouse button
@@ -1702,6 +1748,8 @@ init python:
                     self.kb_strafe = 0
                 if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): 
                     self.kb_dir = 0
+                if ev.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
+                    self.kb_running = False
 
         def handle_gamepad_input(self, ev):
             """ Handles input from connected Gamepads/Controllers. """

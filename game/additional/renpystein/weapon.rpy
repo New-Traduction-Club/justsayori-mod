@@ -1,4 +1,5 @@
 init python:
+    import math
 
     class Weapon(object):
         def __init__(self, weaponName="fist", frameCount = 5, zoom_factor = 11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None):
@@ -33,7 +34,7 @@ init python:
         def stop(self):
             self.playing = False
             
-        def render_to(self, r, width, height, st, at, is_ads=False, is_firing=False):
+        def render_to(self, r, width, height, st, at, is_ads=False, is_firing=False, movement_state=None):
             # Figure out the time elapsed since the previous frame.
             if self.oldst is None:
                 self.oldst = st
@@ -70,6 +71,27 @@ init python:
                 eileen = renpy.render(self.images[self.frame], width, height, st, at)
             
             ew, eh = eileen.get_size()
-            r.blit(eileen, (width/2-ew/2, height-eh))
+
+            # Weapon sway logic
+            offset_x = 0
+            offset_y = 0
+
+            if movement_state and movement_state.get('is_moving', False) and not is_ads:
+                bob_speed = 10.0
+                bob_amp_x = 20.0
+                bob_amp_y = 10.0
+
+                if movement_state.get('is_running', False):
+                    bob_speed = 15.0
+                    bob_amp_x = 50.0
+                    bob_amp_y = 25.0
+                
+                # Sin wave for left-right movement
+                offset_x = math.sin(st * bob_speed) * bob_amp_x
+                
+                # Abs(Cos) for up-down dipping motion
+                offset_y = abs(math.cos(st * bob_speed)) * bob_amp_y
+
+            r.blit(eileen, (width/2 - ew/2 + offset_x, height - eh + offset_y))
             
             
