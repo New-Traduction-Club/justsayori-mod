@@ -1254,15 +1254,23 @@ init python:
             current_weapon_obj.render_to(final_render, self.width, self.height, st, at, is_ads=effective_aiming, is_firing=is_firing, movement_state=movement_state)
 
             # --- 6. RENDER HUD AND EFFECTS ---
-            hp_text = Text(__("HP: {}").format(self.player.health), style="sayoristein_menu_button_text", size=32)
-            hp_render = renpy.render(hp_text, self.width, self.height, st, at)
-            final_render.blit(hp_render, (15, self.height - 45))
-
-            # Render damage flash
+            # Logic for red overlay (damage flash + low health tint)
+            flash_alpha = 0
             if self.damage_flash_timer > 0:
+                flash_alpha = int(140 * (self.damage_flash_timer / 0.2))
+
+            health_alpha = 0
+            # Start showing red tint below 70 HP
+            if self.player.health < 70:
+                severity = (70.0 - self.player.health) / 70.0
+                health_alpha = int(severity * 160)
+
+            final_red_alpha = max(flash_alpha, health_alpha)
+            final_red_alpha = min(255, final_red_alpha)
+
+            if final_red_alpha > 0:
                 flash_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-                alpha = 128 * (self.damage_flash_timer / 0.2)
-                flash_surf.fill((255, 0, 0, alpha))
+                flash_surf.fill((255, 0, 0, final_red_alpha))
                 final_render.blit(flash_surf, (0, 0))
 
             # --- RENDER DAMAGE INDICATORS ---
