@@ -85,6 +85,22 @@ screen sayoristein_settings_menu():
                 textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
                 textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
+            vbox:
+                    spacing 5
+                    xalign 0.5
+                    text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "sayoristein_menu_button_text":
+                        xalign 0.5
+                        size 30
+                    
+                    bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
+                        xalign 0.5
+                        xsize 400
+                        ysize 40
+                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        thumb Frame("pics/gui/button_bg.png", 10, 10) 
+                        thumb_offset 5
+
     textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
         xalign 0.5
         yalign 0.95

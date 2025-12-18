@@ -330,18 +330,22 @@ label renpystein_game:
     return
 
 label start_level_1:
+    $ js_stein_audio.play("level_1")
     $ reset_stein_state(level=1)
     jump renpystein_game
 
 label start_level_2:
+    $ js_stein_audio.play("level_2")
     $ reset_stein_state(level=2)
     jump renpystein_game
 
 label start_level_3:
+    $ js_stein_audio.play("level_3")
     $ reset_stein_state(level=3)
     jump renpystein_game
 
 label start_level_4_arena:
+    $ js_stein_audio.play("arena")
     $ reset_stein_state(level=4, arena=True)
     jump renpystein_game
 
@@ -350,6 +354,8 @@ label renpystein_demo:
     jump start_level_1
 
 label sayoristein_main_menu(mg_obj=None):
+    $ js_stein_audio.enter_minigame()
+    $ js_stein_audio.play("menu")
     show black zorder 99 with dissolve
     show chibi_dvd zorder 100 at t_chibi_dvd
     with dissolve
@@ -360,6 +366,7 @@ label sayoristein_main_menu(mg_obj=None):
     show chibi_dvd zorder 100 at t_chibi_dvd
     with dissolve
     pause 1.0
+    $ js_stein_audio.exit_minigame()
     hide chibi_dvd with dissolve
     hide black with dissolve
     return
