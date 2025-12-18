@@ -43,6 +43,15 @@ init python:
     texHeight = 64  # Texture height in pixels
     twoPI = math.pi * 2
 
+    class DamageIndicator(object):
+        """
+        Visual indicator for where damage came from.
+        """
+        def __init__(self, angle, duration=2.0):
+            self.angle = angle
+            self.duration = duration
+            self.max_duration = duration
+
     class Player(object):
         """
         Handles the player's state, movement, and collision detection.
@@ -181,6 +190,9 @@ init python:
                 dist_to_player = math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2)
                 if dist_to_player < 0.5: # Player hitbox
                     player.health -= self.damage
+                    
+                    self.wm.add_damage_indicator(-self.dir_x, -self.dir_y)
+
                     self.wm.damage_flash_timer = 0.2
                     renpy.sound.play("sounds/ow.ogg", channel="audio")
                     return False # Hit the player, destroy projectile
@@ -224,6 +236,8 @@ init python:
                                     if not renpy.store.stein_has_minigun:
                                         if renpy.random.random() < 0.10:
                                             self.wm.sprite_positions.append((enemy.x, enemy.y, 15))
+
+                            self.wm.hit_marker_timer = 0.15
 
                         return False
 
@@ -746,6 +760,15 @@ init python:
             self.active_fingers = {} 
             self.sight_d = Image("pics/items/sight.png")
 
+            with renpy.open_file("pics/gui/arrow_d.png") as f:
+                arrow_surf = pygame.image.load(f).convert_alpha()
+            self.arrow_img = pygame.transform.scale(arrow_surf, (30, 30))
+            self.damage_indicators = []
+
+            with renpy.open_file("pics/gui/damage_x.png") as f:
+                self.hit_marker_img = pygame.image.load(f).convert_alpha()
+            self.hit_marker_timer = 0.0
+
             # Asset paths
             self.sprite_paths = [  
                 "pics/items/barrel.png", "pics/items/pillar.png",
@@ -916,9 +939,10 @@ init python:
             self.oldst = st
             
             if self.won is None:
-                # Update timers (damage_flash_timer, heal_flash_timer)
+                # Update timers (damage_flash_timer, heal_flash_timer, hit_marker_timer)
                 self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
                 self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
+                self.hit_marker_timer = max(0, self.hit_marker_timer - dtime)
 
                 # --- Input Aggregation ---
                 if simulate_touch:
@@ -1195,11 +1219,48 @@ init python:
                 flash_surf.fill((255, 0, 0, alpha))
                 final_render.blit(flash_surf, (0, 0))
 
+            # --- RENDER DAMAGE INDICATORS ---
+            center_x = self.width / 2
+            center_y = self.height / 2
+            indicator_radius = 200
+
+            for ind in list(self.damage_indicators):
+                ind.duration -= dtime
+                if ind.duration <= 0:
+                    self.damage_indicators.remove(ind)
+                    continue
+                
+                diff = self.player.rot - ind.angle
+                
+                # Note: Coordinate systems math (Pygame +Y is down)
+                # +Sin(diff) puts it to the Right when diff is +90deg (which is correct if Player rot=0, Enemy=90deg/South)
+                ix = center_x + indicator_radius * math.sin(diff)
+                iy = center_y - indicator_radius * math.cos(diff)
+                
+                rot_degrees = -math.degrees(diff)
+                
+                alpha = int(255 * (ind.duration / ind.max_duration))
+                
+                rot_img = pygame.transform.rotate(self.arrow_img, rot_degrees)
+                
+                rot_img.set_alpha(alpha)
+                
+                ind_tex = renpy.display.draw.load_texture(rot_img)
+                
+                iw, ih = ind_tex.get_size()
+                final_render.blit(ind_tex, (ix - iw/2, iy - ih/2))
+
             if self.heal_flash_timer > 0:
                 heal_flash_surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
                 alpha = 128 * (self.heal_flash_timer / 0.2)
                 heal_flash_surf.fill((0, 255, 0, alpha))
                 final_render.blit(heal_flash_surf, (0, 0))
+
+            # --- RENDER HIT MARKER ---
+            if self.hit_marker_timer > 0:
+                hm_w, hm_h = self.hit_marker_img.get_size()
+                hm_tex = renpy.display.draw.load_texture(self.hit_marker_img)
+                final_render.blit(hm_tex, (self.width/2 - hm_w/2, self.height/2 - hm_h/2))
 
             # Check for win condition (player is near an exit)
             for e in self.exits:
@@ -1531,6 +1592,13 @@ init python:
             
             self.prev_btn_weapon_switch = is_switch_held
 
+        def add_damage_indicator(self, source_dir_x, source_dir_y):
+            """
+            Registers a damage indicator pointing to the source.
+            """
+            angle = math.atan2(source_dir_y, source_dir_x)
+            self.damage_indicators.append(DamageIndicator(angle))
+
         def update_player_from_touch_state(self):
             """
             Converts the abstract state of `active_fingers` into concrete player movement values
@@ -1694,6 +1762,8 @@ init python:
                                     if not renpy.store.stein_has_minigun:
                                         if renpy.random.random() < 0.10:
                                             self.sprite_positions.append((e.x, e.y, 15))
+
+                            self.hit_marker_timer = 0.15
 
                         break # Only hit one enemy
 
