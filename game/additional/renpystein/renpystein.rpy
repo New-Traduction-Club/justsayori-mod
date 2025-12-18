@@ -958,7 +958,7 @@ init python:
                         self.start_next_round()
                 
                 if self.is_arena_mode and len(self.enemies) == 0 and self.inter_round_timer <= 0 and self.current_round > 0:
-                    self.inter_round_timer = 5.0
+                    self.inter_round_timer = 10.0
 
                 if self.player.health <= 0:
                     self.player.health = 0
