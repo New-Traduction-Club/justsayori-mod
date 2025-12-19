@@ -13,6 +13,7 @@ init 10 python:
         uniform vec2 u_map_size;
         uniform vec2 u_map_uv_scale; 
         uniform sampler2D u_wall_atlas; 
+        uniform sampler2D u_floor_texture;
         uniform float u_num_textures;
         uniform sampler2D u_sprite_atlas; 
         uniform float u_num_sprite_textures;
@@ -111,7 +112,11 @@ init 10 python:
                     break;
                 }
             } else if (mapPos.z < 0) {
-                
+                if (mapPos.z == -1) {
+                    wallID = 9;
+                    hit = 1;
+                    break;
+                }
             }
         }
 
@@ -119,44 +124,46 @@ init 10 python:
         
         if (hit == 1) {
             vec3 hitPos = rayPos + rayDir * rayDist;
-            vec2 texUV;
             
-            if (side == 0) { // X-Side
-                float wallX = hitPos.y; 
-                if (rayDir.x > 0.0) wallX = 1.0 - wallX;
-                wallX -= floor(wallX);
-                float wallY = 1.0 - hitPos.z; 
-                texUV = vec2(wallX, wallY);
-            } 
-            else if (side == 1) { // Y-Side
-                float wallX = hitPos.x;
-                if (rayDir.y < 0.0) wallX = 1.0 - wallX;
-                wallX -= floor(wallX);
-                float wallY = 1.0 - hitPos.z;
-                texUV = vec2(wallX, wallY);
+            if (side == 2 && mapPos.z == -1) {
+                vec2 floorUV = vec2(fract(hitPos.x), fract(hitPos.y));
+                color = texture2D(u_floor_texture, floorUV, -1.0).rgb;
+                color *= 0.6;
+            } else {
+                vec2 texUV;
+                if (side == 0) { // X-Side
+                    float wallX = hitPos.y; 
+                    if (rayDir.x > 0.0) wallX = 1.0 - wallX;
+                    texUV = vec2(fract(wallX), fract(1.0 - hitPos.z));
+                } 
+                else if (side == 1) { // Y-Side
+                    float wallX = hitPos.x;
+                    if (rayDir.y < 0.0) wallX = 1.0 - wallX;
+                    texUV = vec2(fract(wallX), fract(1.0 - hitPos.z));
+                }
+                else { // Side 2 (Wall Top/Bottom)
+                    texUV = vec2(fract(hitPos.x), fract(hitPos.y));
+                }
+                
+                float texRes = 64.0;
+                texUV = (floor(texUV * texRes) + 0.5) / texRes;
+                
+                float singleTexWidth = 1.0 / u_num_textures;
+                float texOffset = float(wallID - 1) * singleTexWidth;
+                
+                float clampedU = texUV.x * (1.0 - 0.002) + 0.001;
+                float finalU = texOffset + (clampedU * singleTexWidth);
+                float finalV = texUV.y;
+                
+                if (finalV < 0.0 || finalV > 1.0) {
+                    color = vec3(0.0);
+                } else {
+                    color = texture2D(u_wall_atlas, vec2(finalU, finalV), -4.0).rgb;
+                }
+                
+                if (side == 1) color *= 0.8;
+                if (side == 2) color *= 0.6;
             }
-            else { // Z-Side (Top/Bottom)
-                float wallX = hitPos.x;
-                float wallY = hitPos.y;
-                // mapping
-                wallX -= floor(wallX);
-                wallY -= floor(wallY);
-                texUV = vec2(wallX, wallY);
-            }
-            
-            float singleTexWidth = 1.0 / u_num_textures;
-            float texOffset = float(wallID - 1) * singleTexWidth;
-            float finalU = texOffset + (texUV.x * singleTexWidth);
-            float finalV = texUV.y;
-            
-            if (finalV < 0.0 || finalV > 1.0) color = vec3(0.0);
-            else color = texture2D(u_wall_atlas, vec2(finalU, finalV)).rgb;
-            
-            if (side == 1) color *= 0.8;
-            if (side == 2) color *= 0.6; 
-            
-            // Fog disabled as requested
-            // color *= 1.0 / (1.0 + rayDist * rayDist * 0.05);
 
         } else {
             // Skybox
@@ -799,6 +806,7 @@ init 10 python:
             child_render.add_uniform('u_map_texture', c.map_texture)
             
             child_render.add_uniform('u_wall_atlas', c.wall_atlas)
+            child_render.add_uniform('u_floor_texture', c.floor_texture)
             child_render.add_uniform('u_num_textures', c.num_textures)
             
             child_render.add_uniform('u_sprite_atlas', c.sprite_atlas)
@@ -833,6 +841,7 @@ init 10 python:
             
             self.map_texture = self.create_map_texture()
             self.wall_atlas, self.num_textures = self.create_wall_atlas()
+            self.floor_texture = self.load_floor_texture()
             self.sprite_atlas, self.num_sprite_textures = self.create_sprite_atlas()
             self.solid_base = renpy.display.imagelike.Solid("#000", xsize=width, ysize=height)
             
@@ -1002,6 +1011,7 @@ init 10 python:
                 "pics/walls/purplestone.png", "pics/walls/greystone.png",
                 "pics/walls/bluestone.png", "pics/walls/mossy.png",
                 "pics/walls/wood.png", "pics/walls/colorstone.png",
+                "pics/walls/cement.png",
             ]
             
             surfaces = []
@@ -1032,6 +1042,17 @@ init 10 python:
             
             print(f"RenPyStein GPU: Wall Atlas Created. Size: {atlas_w}x{atlas_h}. Textures: {num_tex}")
             return renpy.display.draw.load_texture(atlas), float(num_tex)
+
+        def load_floor_texture(self):
+            try:
+                with renpy.open_file("pics/walls/cement.png") as f:
+                    surf = pygame.image.load(f).convert_alpha()
+                    surf = pygame.transform.scale(surf, (64, 64))
+                    return renpy.display.draw.load_texture(surf)
+            except:
+                fallback = pygame.Surface((64, 64))
+                fallback.fill((100, 100, 100))
+                return renpy.display.draw.load_texture(fallback)
 
         def create_sprite_atlas(self):
             sprite_paths = [  
@@ -1591,7 +1612,3 @@ init 10 python:
                 for joy in self.joysticks: 
                     try: joy.init()
                     except: pass
-
-# test screen
-screen gpu_stein_test():
-    add GPURenpystein(1280, 720, store.level1_data["worldMap"], store.exits)
