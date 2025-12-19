@@ -620,8 +620,9 @@ init 10 python:
             bob_offset = 0.0
             is_moving = abs(c.player.speed) > 0.1 or abs(c.player.strafe_speed) > 0.1
             is_running = c.kb_running or c.gp_running
+            effective_aiming = c.is_aiming or c.gp_aiming
             
-            if is_moving and c.player.is_grounded:
+            if is_moving and c.player.is_grounded and not effective_aiming:
                 bob_speed = 10.0
                 bob_amp = 0.01
                 if is_running:
@@ -800,6 +801,8 @@ init 10 python:
             
             self.inter_round_timer = getattr(renpy.store, 'stein_inter_round_timer', 0.0)
             self.current_round = getattr(renpy.store, 'stein_current_round', 0)
+            self.sniper_count = getattr(renpy.store, 'stein_sniper_count', 0)
+            self.yuritler_count = getattr(renpy.store, 'stein_yuritler_count', 0)
             self.spawn_points = getattr(renpy.store, 'arena_spawn_points', [])
             
             if hasattr(renpy.store, 'stein_enemies'):
@@ -823,35 +826,73 @@ init 10 python:
             # renpy.sound.play("sounds/music/round_start.ogg", channel="audio")
             
             # Clean up bodies
-            self.sprite_positions = [s for s in self.sprite_positions if s[2] not in (9, 4, 5, 10)]
-            
-            num_enemies = 2 + int(self.current_round * 1.5)
+            # Original uses: [s for s in self.sprite_positions if s[2] != 5] (Guard dead texture is 5)
+            # Guard/Elite/Sniper dead: 5. Yuritler dead: 10
+            self.sprite_positions = [s for s in self.sprite_positions if s[2] not in (5, 10)]
             
             if not self.spawn_points:
-                # Fallback
                 self.spawn_points = [(1.5, 1.5), (self.mapWidth-1.5, 1.5), (self.mapWidth/2.0, self.mapHeight/2.0)]
 
-            # Boss Spawn
-            if self.current_round % 10 == 0 or (self.current_round > 10 and renpy.random.random() < 0.15):
-                sp = renpy.random.choice(self.spawn_points)
-                boss_hp = 150 + (self.current_round * 10)
-                self.enemies.append(Yuritler(self, sp[0], sp[1], health=boss_hp))
+            # Spawn Standard Guards
+            for _ in range(self.current_round):
+                if not self.spawn_points: break
+                sx, sy = renpy.random.choice(self.spawn_points)
+                
+                x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                
+                new_enemy = Guard(self, x, y, 4, 5, health=100)
+                new_enemy.state = 'chasing'
+                new_enemy.moveSpeed += (renpy.random.random() - 0.5) * 0.2
+                self.enemies.append(new_enemy)
+
+            # Spawn Yuritler
+            spawn_yuritler = False
+            if self.current_round % 10 == 0:
+                spawn_yuritler = True
+            elif self.current_round % 2 == 0:
+                if renpy.random.random() < 0.15:
+                    spawn_yuritler = True
             
-            for i in range(num_enemies):
-                sp = renpy.random.choice(self.spawn_points)
-                sx = sp[0] + renpy.random.random() * 0.5
-                sy = sp[1] + renpy.random.random() * 0.5
-                
-                if self.current_round > 5 and renpy.random.random() < 0.3:
-                    e = Sniper(self, sx, sy)
-                elif self.current_round > 3 and renpy.random.random() < 0.4:
-                    e = EliteGuard(self, sx, sy)
-                else:
-                    e = Guard(self, sx, sy, 4, 5)
-                
-                # Speed variation
-                e.moveSpeed += (renpy.random.random() - 0.5) * 0.2
-                self.enemies.append(e)
+            if spawn_yuritler:
+                if self.spawn_points:
+                    self.yuritler_count += 1
+                    sx, sy = renpy.random.choice(self.spawn_points)
+                    x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    
+                    boss_hp = 150 + ((self.yuritler_count - 1) * 50)
+                    boss = Yuritler(self, x, y, health=boss_hp)
+                    boss.state = 'chasing'
+                    self.enemies.append(boss)
+
+            # pawn Elite Guards (Every 5 Rounds)
+            if self.current_round % 5 == 0:
+                num_elites = self.current_round // 5
+                for _ in range(num_elites):
+                    if not self.spawn_points: break
+                    sx, sy = renpy.random.choice(self.spawn_points)
+                    x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                    
+                    elite = EliteGuard(self, x, y, health=100)
+                    elite.state = 'chasing'
+                    elite.moveSpeed += (renpy.random.random() - 0.5) * 0.2
+                    self.enemies.append(elite)
+
+            # Spawn Snipers (Odd Rounds, 50% chance)
+            if self.current_round % 2 != 0:
+                if renpy.random.random() < 0.50:
+                    self.sniper_count += 1
+                    for _ in range(self.sniper_count):
+                        if not self.spawn_points: break
+                        sx, sy = renpy.random.choice(self.spawn_points)
+                        x = sx + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                        y = sy + 0.5 + (renpy.random.random() - 0.5) * 0.6
+                        
+                        sniper = Sniper(self, x, y, health=100)
+                        sniper.state = 'chasing'
+                        self.enemies.append(sniper)
             
             self.inter_round_timer = 0.0
 
@@ -1115,6 +1156,9 @@ init 10 python:
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
             current_weapon_obj.render_to(r, width, height, st, at, is_ads=self.is_aiming or self.gp_aiming, is_firing=is_firing, movement_state=movement_state)
             
+            if self.return_value:
+                renpy.timeout(0)
+
             renpy.redraw(self, 0.01) 
             return r
 
@@ -1136,6 +1180,8 @@ init 10 python:
 
             renpy.store.stein_current_round = self.current_round
             renpy.store.stein_inter_round_timer = self.inter_round_timer
+            renpy.store.stein_sniper_count = self.sniper_count
+            renpy.store.stein_yuritler_count = self.yuritler_count
 
         def check_item_pickup(self):
             for sprite in list(self.sprite_positions):
@@ -1177,10 +1223,55 @@ init 10 python:
                 renpy.sound.play("sounds/gunshot.ogg", channel="audio")
             else:
                 hit = False
-                for e in self.enemies:
+                # Sort enemies to hit the closest one first
+                self.enemies.sort(key=lambda e: (e.x - self.player.x)**2 + (e.y - self.player.y)**2)
+                
+                for e in list(self.enemies):
                     dist = math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2)
-                    if dist < 1.5: e.health -= weapon.damage; hit = True
-                if hit: renpy.sound.play("sounds/ow.ogg", channel="audio")
+                    if dist < 1.5: 
+                        taken = True
+                        if hasattr(e, 'take_damage'):
+                            taken = e.take_damage(weapon.damage)
+                        else:
+                            e.health -= weapon.damage
+
+                        if taken:
+                            hit = True
+                            self.hit_marker_timer = 0.15
+                            
+                            if e.health <= 0:
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                                if self.is_arena_mode:
+                                    persistent.stein_kills += 1
+                                
+                                if e in self.enemies:
+                                    self.enemies.remove(e)
+                                
+                                self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                                
+                                # Drop Medkit (40%)
+                                if renpy.random.random() < 0.40:
+                                    self.sprite_positions.append((e.x, e.y, 7))
+                                
+                                # Arena Mode Drops
+                                if self.is_arena_mode:
+                                    drop_prob = 1.0 if e.coin_index == 12 else 0.35
+                                    if renpy.random.random() < drop_prob:
+                                        self.sprite_positions.append((e.x, e.y, e.coin_index))
+                                    
+                                    if not renpy.store.stein_has_shotgun:
+                                        shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
+                                        if renpy.random.random() < shotgun_prob:
+                                            self.sprite_positions.append((e.x, e.y, 13))
+                                            
+                                    if not renpy.store.stein_has_minigun:
+                                        if renpy.random.random() < 0.10:
+                                            self.sprite_positions.append((e.x, e.y, 15))
+                            
+                            break
+
+                if hit and not any(e.health <= 0 for e in self.enemies): 
+                    pass
 
         def add_damage_indicator(self, source_dir_x, source_dir_y):
             angle = math.atan2(source_dir_y, source_dir_x)
@@ -1326,6 +1417,9 @@ init 10 python:
                     name = joy.get_name().lower()
                     if "accelerometer" in name or "gyro" in name: continue
                     
+                    if joy.get_numaxes() > 4 and joy.get_axis(4) > TRIGGER_THRESHOLD: self.gp_aiming = True
+                    if joy.get_numbuttons() > 4 and joy.get_button(4): self.gp_running = True
+
                     if joy.get_numaxes() > 0:
                         x = joy.get_axis(0)
                         if abs(x) > DEADZONE: self.gp_strafe += x 
@@ -1346,10 +1440,8 @@ init 10 python:
                             self.player.pitch -= ry * p_speed
                             self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
 
-                    if joy.get_numaxes() > 4 and joy.get_axis(4) > TRIGGER_THRESHOLD: self.gp_aiming = True
                     if joy.get_numaxes() > 5 and joy.get_axis(5) > TRIGGER_THRESHOLD: self.gp_firing = True
                     if joy.get_numbuttons() > 5 and joy.get_button(5): self.gp_firing = True
-                    if joy.get_numbuttons() > 4 and joy.get_button(4): self.gp_running = True
                     if joy.get_numbuttons() > 0 and joy.get_button(0): self.player.trigger_jump()
                     if joy.get_numbuttons() > 3 and joy.get_button(3): is_switch_held = True
 
@@ -1369,7 +1461,14 @@ init 10 python:
                 else: self.player.current_weapon_name = "fist"
             self.prev_btn_weapon_switch = is_switch_held
 
-        def handle_gamepad_input(self, ev): pass
+        def handle_gamepad_input(self, ev):
+            if ev.type == pygame.JOYDEVICEADDED or ev.type == pygame.JOYDEVICEREMOVED:
+                pygame.joystick.quit()
+                pygame.joystick.init()
+                self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+                for joy in self.joysticks: 
+                    try: joy.init()
+                    except: pass
 
 # test screen
 screen gpu_stein_test():
