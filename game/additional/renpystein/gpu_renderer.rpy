@@ -5,6 +5,10 @@ init 10 python:
         uniform vec2 u_player_pos;
         uniform vec2 u_player_dir;
         uniform vec2 u_player_plane;
+        uniform float u_pitch;
+        uniform float u_z_offset;
+        uniform float u_vertical_scale;
+        uniform sampler2D u_sky_texture;
         uniform sampler2D u_map_texture;
         uniform vec2 u_map_size;
         uniform vec2 u_map_uv_scale; 
@@ -12,14 +16,23 @@ init 10 python:
         uniform float u_num_textures;
         uniform sampler2D u_sprite_atlas; 
         uniform float u_num_sprite_textures;
-        uniform vec4 u_sprites[64]; // x, y, texture_id, scale/pitch
+        uniform vec4 u_sprites[64]; // x, y, texture_id, pitch_offset
         uniform int u_num_active_sprites;
+        varying vec2 v_tex_coord;
+        attribute vec2 a_tex_coord;
+    """, vertex_200="""
+        v_tex_coord = a_tex_coord;
     """, fragment_300="""
         const int MAX_STEPS = 64; 
         const float MAX_DIST = 20.0;
 
-        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-        uv.y = 1.0 - uv.y;
+        vec2 uv = v_tex_coord;
+        // Ren'Py texture coords might be inverted or not depending on backend, but usually standard 0-1
+        // gl_FragCoord calculation had "uv.y = 1.0 - uv.y", check if needed
+        // Usually v_tex_coord y=0 is top, y=1 is bottom in Ren'Py models? 
+        // Or texture logic? Let's assume standard UV first
+        // If the world is upside down, we uncomment the inversion
+        // uv.y = 1.0 - uv.y; 
 
         float cameraX = 2.0 * uv.x - 1.0; 
         vec2 rayDir = u_player_dir + u_player_plane * cameraX;
@@ -30,7 +43,7 @@ init 10 python:
         vec2 deltaDist = abs(1.0 / rayDir);
         ivec2 stepDir;
         int hit = 0;
-        int side = 0; // 0 = NS, 1 = EW
+        int side = 0; 
         int wallID = 0;
 
         if (rayDir.x < 0.0) {
@@ -63,33 +76,34 @@ init 10 python:
             }
 
             if (mapPos.x < 0 || mapPos.x >= int(u_map_size.x) || mapPos.y < 0 || mapPos.y >= int(u_map_size.y)) {
-                hit = 2; // Salió del mapa
+                hit = 2; 
                 break;
             }
 
             vec2 mapUV = (vec2(mapPos) + 0.5) / u_map_size;
-            
             mapUV = mapUV * u_map_uv_scale;
-            
             vec4 mapPixel = texture2D(u_map_texture, mapUV);
             
             if (mapPixel.r > 0.5) {
                 hit = 1;
-                wallID = int(mapPixel.g * 255.0 + 0.5);
             }
         }
 
         vec3 color;
-        float perpWallDist = MAX_DIST; // Inicializar
+        float perpWallDist = MAX_DIST; 
+        
+        float horizon = 0.5 + u_pitch;
         
         if (hit == 1) {
             if (side == 0) perpWallDist = (sideDist.x - deltaDist.x);
             else           perpWallDist = (sideDist.y - deltaDist.y);
             
-            float lineHeight = 1.0 / perpWallDist; 
+            float lineHeight = (1.0 / perpWallDist) * u_vertical_scale; 
             
-            float drawStart = 0.5 - lineHeight / 2.0;
-            float drawEnd = 0.5 + lineHeight / 2.0;
+            float z_perspective = (u_z_offset / perpWallDist) * u_vertical_scale;
+            
+            float drawStart = horizon - lineHeight / 2.0 + z_perspective;
+            float drawEnd = horizon + lineHeight / 2.0 + z_perspective;
 
             if (uv.y >= drawStart && uv.y <= drawEnd) {
                 float wallX; 
@@ -113,32 +127,50 @@ init 10 python:
                 vec4 texColor = texture2D(u_wall_atlas, vec2(texX, texY));
                 
                 if (texColor.a < 0.1) texColor = vec4(1.0, 0.0, 0.0, 1.0);
-                else if (length(texColor.rgb) < 0.01) texColor = vec4(0.0, 0.0, 1.0, 1.0);
                 
                 float lighting = (side == 1) ? 0.7 : 1.0; 
-                float fog = 1.0 / (1.0 + perpWallDist * perpWallDist * 0.05);
+                
+                // LIGHTING / FOG LOGIC
+                // Original "Flashlight" / Radial darkness effect:
+                // float fog = 1.0 / (1.0 + perpWallDist * perpWallDist * 0.05);
+                // Note: Currently this only affects walls. Sprites remain fully lit
+                // To implement full night mode, apply this fog factor to sprites in the sprite loop below
+                
+                float fog = 1.0; // Standard fully lit rendering
                 
                 color = texColor.rgb * lighting * fog; 
 
             } else if (uv.y < drawStart) {
-                color = vec3(0.1, 0.1, 0.1); 
+                // Skybox
+                vec2 skyUV = uv;
+                skyUV.y -= u_pitch;
+                skyUV.y = clamp(skyUV.y, 0.0, 1.0);
+                color = texture2D(u_sky_texture, skyUV).rgb;
             } else {
-                float floorDist = 0.5 / (uv.y - 0.5);
-                color = vec3(0.2, 0.2, 0.2) * (1.0 / floorDist);
+                // Floor
+                vec2 floorUV = uv;
+                floorUV.y -= u_pitch;
+                floorUV.y = clamp(floorUV.y, 0.0, 1.0);
+                color = texture2D(u_sky_texture, floorUV).rgb;
             }
         } else {
-            color = vec3(0.0, 0.0, 0.0); 
+            // No hit -> Skybox
+             vec2 skyUV = uv;
+             skyUV.y -= u_pitch;
+             skyUV.y = clamp(skyUV.y, 0.0, 1.0);
+             color = texture2D(u_sky_texture, skyUV).rgb;
         }
 
         float currentDepth = perpWallDist;
         float invDet = 1.0 / (u_player_plane.x * u_player_dir.y - u_player_dir.x * u_player_plane.y);
 
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < 64; i++) {
             if (i >= u_num_active_sprites) break;
             
             vec4 spriteData = u_sprites[i];
             vec2 spritePos = spriteData.xy;
             float texID = spriteData.z;
+            float pitchOffset = spriteData.w;
 
             float spX = spritePos.x - u_player_pos.x;
             float spY = spritePos.y - u_player_pos.y;
@@ -150,19 +182,27 @@ init 10 python:
             if (transformY >= currentDepth) continue;
 
             float spriteScreenX = (u_resolution.x / 2.0) * (1.0 + transformX / transformY);
-            float spriteHeight = abs(u_resolution.y / transformY); 
+            float spriteHeight = abs(u_resolution.y / transformY) * u_vertical_scale; 
             float spriteWidth = spriteHeight; 
 
+            float z_sprite_offset = (u_z_offset * u_resolution.y / transformY) * u_vertical_scale;
+            // Corrected vertical position logic for top-down Y coordinates (v_tex_coord style)
+            // + u_pitch moves it down (horizon drops when looking up)
+            // + z_sprite_offset moves it down (perspective)
+            float drawStartY = (u_resolution.y / 2.0) - (spriteHeight / 2.0) + (u_pitch * u_resolution.y) + z_sprite_offset + pitchOffset;
+            
             float drawStartX = spriteScreenX - spriteWidth / 2.0;
             float drawEndX = spriteScreenX + spriteWidth / 2.0;
 
-            if (gl_FragCoord.x >= drawStartX && gl_FragCoord.x <= drawEndX) {
-                float texX = (gl_FragCoord.x - drawStartX) / spriteWidth;
+            // Convert current pixel UV to local pixel coordinate
+            float currentPixelX = v_tex_coord.x * u_resolution.x;
+            float currentPixelY = v_tex_coord.y * u_resolution.y;
+
+            if (currentPixelX >= drawStartX && currentPixelX <= drawEndX) {
+                float texX = (currentPixelX - drawStartX) / spriteWidth;
                 
-                float drawStartY = (u_resolution.y - spriteHeight) / 2.0;
-                float texY = (gl_FragCoord.y - drawStartY) / spriteHeight;
-                
-                texY = 1.0 - texY;
+                float texY = (currentPixelY - drawStartY) / spriteHeight;
+                // texY = 1.0 - texY;
 
                 if (texY >= 0.0 && texY <= 1.0) {
                     float singleTexW = 1.0 / u_num_sprite_textures;
@@ -295,8 +335,8 @@ init 10 python:
                     if math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2) < 0.5:
                         if hasattr(self, 'pitch'):
                             safe_dist = max(0.1, math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2))
-                            enemy_vis_height = self.wm.internal_height / safe_dist
-                            calc_height = min(enemy_vis_height, self.wm.internal_height * 1.2)
+                            enemy_vis_height = self.wm.height / safe_dist
+                            calc_height = min(enemy_vis_height, self.wm.height * 1.2)
                             if abs(self.pitch) > (calc_height / 2.0) * 0.2: continue
                         
                         taken = True
@@ -485,8 +525,18 @@ init 10 python:
         def take_damage(self, amount):
             if self.dodge_timer <= 0:
                 self.dodge_timer = self.dodge_cooldown
-                # Logic to dodge...
-                # Im busy porting the core logic
+                player = self.wm.player
+                dx = player.x - self.x; dy = player.y - self.y
+                dist = math.sqrt(dx*dx + dy*dy)
+                if dist > 0:
+                    ndx = dx / dist; ndy = dy / dist
+                    strafe_x = -ndy; strafe_y = ndx
+                    dodge_distance = 1.5
+                    tx = self.x + strafe_x * dodge_distance; ty = self.y + strafe_y * dodge_distance
+                    if not self.check_wall_collision(tx, ty, 0.35): self.x = tx; self.y = ty
+                    else:
+                        tx = self.x - strafe_x * dodge_distance; ty = self.y - strafe_y * dodge_distance
+                        if not self.check_wall_collision(tx, ty, 0.35): self.x = tx; self.y = ty
                 return False
             self.health -= amount
             return True
@@ -527,8 +577,101 @@ init 10 python:
                 offset_y = abs(math.cos(st * bob_speed)) * (bob_amp_x / 2.0)
             r.blit(eileen, (width/2 - ew/2 + offset_x, height - eh + offset_y))
 
+    class RaycastLayer(renpy.Displayable):
+        def __init__(self, controller, **kwargs):
+            super(RaycastLayer, self).__init__(**kwargs)
+            self.c = controller
+            # We use an Image instead of Solid to ensure a_tex_coord attributes are generated for the shader
+            self.base_displayable = Transform(Image("pics/background.png"), size=(self.c.internal_width, self.c.internal_height))
+
+        def render(self, width, height, st, at):
+            c = self.c
+            
+            # Bobbing Logic
+            bob_offset = 0.0
+            is_moving = abs(c.player.speed) > 0.1 or abs(c.player.strafe_speed) > 0.1
+            is_running = c.kb_running or c.gp_running
+            
+            if is_moving and c.player.is_grounded:
+                bob_speed = 10.0
+                bob_amp = 0.05
+                if is_running:
+                    bob_speed = 15.0
+                    bob_amp = 0.08
+                bob_offset = math.sin(st * bob_speed) * bob_amp
+
+            sprite_data = []
+            if hasattr(c, 'sprite_positions') and c.sprite_positions:
+                for spr in c.sprite_positions:
+                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
+            elif hasattr(renpy.store, 'stein_sprites'):
+                for spr in renpy.store.stein_sprites:
+                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
+
+            if hasattr(c, 'enemies'):
+                for enemy in c.enemies:
+                    sprite_data.append((enemy.x, enemy.y, float(enemy.texture_index), 1.0))
+            
+            if hasattr(c, 'projectiles'):
+                for p in c.projectiles:
+                    if getattr(p, 'is_invisible', False): continue
+                    pitch = getattr(p, 'pitch', 0.0)
+                    sprite_data.append((p.x, p.y, float(p.texture_index), pitch))
+            
+            def get_dist_sq(s):
+                return (s[0] - c.player.x)**2 + (s[1] - c.player.y)**2
+            sprite_data.sort(key=get_dist_sq, reverse=True)
+
+            MAX_SPRITES = 64
+            num_active = len(sprite_data)
+            if num_active > MAX_SPRITES:
+                sprite_data = sprite_data[:MAX_SPRITES]
+                num_active = MAX_SPRITES
+            
+            while len(sprite_data) < MAX_SPRITES:
+                sprite_data.append((0.0, 0.0, 0.0, 0.0))
+
+            child_render = renpy.render(self.base_displayable, width, height, st, at)
+            child_render.add_shader("stein.raycaster")
+            
+            # ADS Zoom Logic
+            is_aiming = c.is_aiming or c.gp_aiming
+            zoom_factor = 0.6 if is_aiming else 1.0
+            vertical_scale = 1.0 / zoom_factor
+            
+            # Apply zoom to plane
+            plane_x = c.player.planex * zoom_factor
+            plane_y = c.player.planey * zoom_factor
+
+            child_render.add_uniform('u_resolution', (float(width), float(height)))
+            child_render.add_uniform('u_time', st)
+            child_render.add_uniform('u_player_pos', (c.player.x, c.player.y))
+            child_render.add_uniform('u_player_dir', (c.player.dirx, c.player.diry))
+            child_render.add_uniform('u_player_plane', (plane_x, plane_y))
+            
+            # Head Bobbing applied to pitch
+            child_render.add_uniform('u_pitch', (c.player.pitch / float(height)) + bob_offset)
+            child_render.add_uniform('u_z_offset', c.player.z)
+            child_render.add_uniform('u_vertical_scale', vertical_scale)
+            child_render.add_uniform('u_sky_texture', c.sky_texture)
+
+            child_render.add_uniform('u_map_size', (float(c.map_w), float(c.map_h)))
+            child_render.add_uniform('u_map_uv_scale', c.map_uv_scale)
+            child_render.add_uniform('u_map_texture', c.map_texture)
+            
+            child_render.add_uniform('u_wall_atlas', c.wall_atlas)
+            child_render.add_uniform('u_num_textures', c.num_textures)
+            
+            child_render.add_uniform('u_sprite_atlas', c.sprite_atlas)
+            child_render.add_uniform('u_num_sprite_textures', c.num_sprite_textures)
+            child_render.add_uniform('u_sprites', sprite_data)
+            child_render.add_uniform('u_num_active_sprites', num_active)
+
+            renpy.redraw(self, 0.01)
+            return child_render
+
     class GPURenpystein(renpy.Displayable):
-        def __init__(self, width, height, worldMap, exits=[], **kwargs):
+        def __init__(self, width, height, worldMap, exits=[], internal_width=None, internal_height=None, **kwargs):
             super(GPURenpystein, self).__init__(**kwargs)
             self.width = width
             self.height = height
@@ -541,9 +684,10 @@ init 10 python:
             self.exits = exits
             
             self.is_arena_mode = getattr(renpy.store, 'is_arena_mode', False)
-            self.internal_width = width
-            self.internal_height = height
+            self.internal_width = internal_width if internal_width is not None else width
+            self.internal_height = internal_height if internal_height is not None else height
             self.damage_flash_timer = 0.0
+            self.return_value = None
             self.heal_flash_timer = 0.0
             self.hit_marker_timer = 0.0
             self.damage_indicators = []
@@ -552,6 +696,11 @@ init 10 python:
             self.wall_atlas, self.num_textures = self.create_wall_atlas()
             self.sprite_atlas, self.num_sprite_textures = self.create_sprite_atlas()
             self.solid_base = renpy.display.imagelike.Solid("#000", xsize=width, ysize=height)
+            
+            with renpy.open_file("pics/background.png") as f:
+                bg_surf = pygame.image.load(f).convert_alpha()
+            bg_surf = pygame.transform.scale(bg_surf, (width, height))
+            self.sky_texture = renpy.display.draw.load_texture(bg_surf)
 
             self.player = Player(self, renpy.store.player_x, renpy.store.player_y, renpy.store.player_dirx, renpy.store.player_diry, renpy.store.player_planex, renpy.store.player_planey)
             
@@ -576,6 +725,8 @@ init 10 python:
             self.mouse_firing = False
             self.gp_running = False
             self.kb_running = False
+            
+            self.raycast_layer = RaycastLayer(self)
             
             pygame.joystick.init()
             self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -608,6 +759,10 @@ init 10 python:
             self.enemies = []
             self.sprite_positions = renpy.store.stein_sprites
             
+            self.inter_round_timer = getattr(renpy.store, 'stein_inter_round_timer', 0.0)
+            self.current_round = getattr(renpy.store, 'stein_current_round', 0)
+            self.spawn_points = getattr(renpy.store, 'arena_spawn_points', [])
+            
             if hasattr(renpy.store, 'stein_enemies'):
                 for e_data in renpy.store.stein_enemies:
                     x, y, tex, dead_tex = e_data[0], e_data[1], e_data[2], e_data[3]
@@ -620,6 +775,46 @@ init 10 python:
                     else: new_e = Guard(self, x, y, tex, dead_tex, health=health)
                     
                     self.enemies.append(new_e)
+
+            if self.is_arena_mode and self.current_round == 0:
+                self.start_next_round()
+
+        def start_next_round(self):
+            self.current_round += 1
+            renpy.sound.play("sounds/music/round_start.ogg", channel="audio")
+            
+            # Clean up bodies
+            self.sprite_positions = [s for s in self.sprite_positions if s[2] not in (9, 4, 5, 10)]
+            
+            num_enemies = 2 + int(self.current_round * 1.5)
+            
+            if not self.spawn_points:
+                # Fallback
+                self.spawn_points = [(1.5, 1.5), (self.mapWidth-1.5, 1.5), (self.mapWidth/2.0, self.mapHeight/2.0)]
+
+            # Boss Spawn
+            if self.current_round % 10 == 0 or (self.current_round > 10 and renpy.random.random() < 0.15):
+                sp = renpy.random.choice(self.spawn_points)
+                boss_hp = 150 + (self.current_round * 10)
+                self.enemies.append(Yuritler(self, sp[0], sp[1], health=boss_hp))
+            
+            for i in range(num_enemies):
+                sp = renpy.random.choice(self.spawn_points)
+                sx = sp[0] + renpy.random.random() * 0.5
+                sy = sp[1] + renpy.random.random() * 0.5
+                
+                if self.current_round > 5 and renpy.random.random() < 0.3:
+                    e = Sniper(self, sx, sy)
+                elif self.current_round > 3 and renpy.random.random() < 0.4:
+                    e = EliteGuard(self, sx, sy)
+                else:
+                    e = Guard(self, sx, sy, 4, 5)
+                
+                # Speed variation
+                e.moveSpeed += (renpy.random.random() - 0.5) * 0.2
+                self.enemies.append(e)
+            
+            self.inter_round_timer = 0.0
 
         def create_wall_atlas(self):
             image_paths = [  
@@ -760,77 +955,69 @@ init 10 python:
             renpy.store.player_planex = self.player.planex
             renpy.store.player_planey = self.player.planey
 
-            sprite_data = []
+            # RENDER
+            retro_w = self.internal_width
+            retro_h = self.internal_height
             
-            if hasattr(self, 'sprite_positions') and self.sprite_positions:
-                for spr in self.sprite_positions:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
-            elif hasattr(renpy.store, 'stein_sprites'):
-                for spr in renpy.store.stein_sprites:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
-
-            if hasattr(self, 'enemies'):
-                for enemy in self.enemies:
-                    sprite_data.append((enemy.x, enemy.y, float(enemy.texture_index), 1.0))
+            # We assume RaycastLayer uses the controller (self) to get data
+            # Since RaycastLayer is a displayable, we render it
+            # But wait, RaycastLayer was initialized with 'self'
             
-            if hasattr(self, 'projectiles'):
-                for p in self.projectiles:
-                    pitch = getattr(p, 'pitch', 0.0)
-                    sprite_data.append((p.x, p.y, float(p.texture_index), pitch))
-
-            MAX_SPRITES = 64
-            num_active = len(sprite_data)
-            if num_active > MAX_SPRITES:
-                sprite_data = sprite_data[:MAX_SPRITES]
-                num_active = MAX_SPRITES
+            # We wrap it in a Transform to scale it up nearest-neighbor
+            scale = float(width) / float(retro_w)
+            t = Transform(child=self.raycast_layer, zoom=scale, nearest=True)
             
-            while len(sprite_data) < MAX_SPRITES:
-                sprite_data.append((0.0, 0.0, 0.0, 0.0))
-
-            child_render = renpy.render(self.solid_base, width, height, st, at)
-            child_render.add_shader("stein.raycaster")
+            main_scene_render = renpy.render(t, width, height, st, at)
             
-            child_render.add_uniform('u_resolution', (float(width), float(height)))
-            child_render.add_uniform('u_time', st)
-            child_render.add_uniform('u_player_pos', (self.player.x, self.player.y))
-            child_render.add_uniform('u_player_dir', (self.player.dirx, self.player.diry))
-            child_render.add_uniform('u_player_plane', (self.player.planex, self.player.planey))
-            child_render.add_uniform('u_map_size', (float(self.map_w), float(self.map_h)))
-            child_render.add_uniform('u_map_uv_scale', self.map_uv_scale)
-            child_render.add_uniform('u_map_texture', self.map_texture)
-            
-            child_render.add_uniform('u_wall_atlas', self.wall_atlas)
-            child_render.add_uniform('u_num_textures', self.num_textures)
-            
-            child_render.add_uniform('u_sprite_atlas', self.sprite_atlas)
-            child_render.add_uniform('u_num_sprite_textures', self.num_sprite_textures)
-            child_render.add_uniform('u_sprites', sprite_data)
-            child_render.add_uniform('u_num_active_sprites', num_active)
-
             r = renpy.Render(width, height)
-            r.blit(child_render, (0,0))
+            r.blit(main_scene_render, (0,0))
             
-            # Damage flash
+            # Damage flash + Low Health Tint
             if self.damage_flash_timer > 0:
                 self.damage_flash_timer = max(0, self.damage_flash_timer - dtime)
-                alpha = int(140 * (self.damage_flash_timer / 0.2))
+
+            flash_alpha = 0
+            if self.damage_flash_timer > 0:
+                flash_alpha = int(140 * (self.damage_flash_timer / 0.2))
+            
+            health_alpha = 0
+            if self.player.health < 70:
+                severity = (70.0 - self.player.health) / 70.0
+                health_alpha = int(severity * 160)
+            
+            final_red_alpha = min(255, max(flash_alpha, health_alpha))
+
+            if final_red_alpha > 0:
+                flash_d = renpy.display.imagelike.Solid((255, 0, 0, final_red_alpha))
+                flash_r = renpy.render(flash_d, width, height, st, at)
+                r.blit(flash_r, (0,0))
+
+            if self.heal_flash_timer > 0:
+                self.heal_flash_timer = max(0, self.heal_flash_timer - dtime)
+                alpha = int(128 * (self.heal_flash_timer / 0.2))
                 if alpha > 0:
-                    flash_d = renpy.display.imagelike.Solid((255, 0, 0, alpha))
-                    flash_r = renpy.render(flash_d, width, height, st, at)
-                    r.blit(flash_r, (0,0))
+                    heal_d = renpy.display.imagelike.Solid((0, 255, 0, alpha))
+                    heal_r = renpy.render(heal_d, width, height, st, at)
+                    r.blit(heal_r, (0,0))
 
             # Crosshair
             sight_r = renpy.render(self.sight_d, width, height, st, at)
             sw, sh = sight_r.get_size()
             r.blit(sight_r, (width/2 - sw/2, height/2 - sh/2))
             
-            hp_color = "#FFF"
-            if self.player.health < 30: hp_color = "#F00"
-            elif self.player.health < 60: hp_color = "#FF0"
+            # Hit Marker
+            if self.hit_marker_timer > 0:
+                hm_w, hm_h = self.hit_marker_img.get_size()
+                hm_tex = renpy.display.draw.load_texture(self.hit_marker_img)
+                r.blit(hm_tex, (width/2 - hm_w/2, height/2 - hm_h/2))
+
+            # hp_color = "#FFF"
+            # if self.player.health < 30: hp_color = "#F00"
+            # elif self.player.health < 60: hp_color = "#FF0"
             
-            hud_text = Text(_("HP: {}%  |  WEAPON: {}").format(int(self.player.health), self.player.current_weapon_name.upper()), size=36, color=hp_color, outlines=[(2, "#000", 0, 0)])
-            hud_r = renpy.render(hud_text, width, height, st, at)
-            r.blit(hud_r, (30, height - 60))
+            # hud_text = Text(_("HP: {}%  |  WEAPON: {}").format(int(self.player.health), self.player.current_weapon_name.upper()), size=36, color=hp_color, outlines=[(2, "#000", 0, 0)])
+            # hud_r = renpy.render(hud_text, width, height, st, at)
+            # r.blit(hud_r, (30, height - 60))
 
             if self.is_arena_mode:
                 arena_text = Text(_("ROUND: {}  |  KILLS: {}  |  COINS: {}").format(self.current_round, persistent.stein_kills, renpy.store.stein_session_coins), size=28, color="#FFD700", outlines=[(2, "#000", 0, 0)])
@@ -863,12 +1050,22 @@ init 10 python:
             if self.player.health <= 0:
                 self.player.health = 0
                 pygame.mouse.set_visible(True); pygame.event.set_grab(False)
-                return 'game_over_arena' if self.is_arena_mode else 'game_over'
+                if self.return_value is None:
+                    if self.is_arena_mode:
+                        renpy.store.last_arena_round = self.current_round
+                        renpy.store.new_highscore = False
+                        if self.current_round > persistent.sayoristein_arena_highscore:
+                            persistent.sayoristein_arena_highscore = self.current_round
+                            renpy.store.new_highscore = True
+                        self.return_value = 'game_over_arena'
+                    else:
+                        self.return_value = 'game_over'
 
             for e in self.exits:
                 if math.fabs(e[0] - self.player.x) < 0.5 and math.fabs(e[1] - self.player.y) < 0.5:
                     pygame.mouse.set_visible(True); pygame.event.set_grab(False)
-                    return e[2]
+                    if self.return_value is None:
+                        self.return_value = e[2]
 
             # Weapon
             movement_state = {
@@ -879,15 +1076,27 @@ init 10 python:
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
             current_weapon_obj.render_to(r, width, height, st, at, is_ads=self.is_aiming or self.gp_aiming, is_firing=is_firing, movement_state=movement_state)
             
-            renpy.redraw(self, 0) 
+            renpy.redraw(self, 0.01) 
             return r
 
         def update_logic(self, dt):
+            self.hit_marker_timer = max(0, self.hit_marker_timer - dt)
             self.check_item_pickup()
             for enemy in self.enemies: enemy.update(dt, self.player)
             for p in list(self.projectiles):
                 if not p.update(dt): self.projectiles.remove(p)
             if self.mouse_firing or self.gp_firing: self.shoot_weapon()
+
+            if self.is_arena_mode:
+                if self.inter_round_timer > 0:
+                    self.inter_round_timer -= dt
+                    if self.inter_round_timer <= 0:
+                        self.start_next_round()
+                elif len(self.enemies) == 0 and self.current_round > 0:
+                    self.inter_round_timer = 10.0
+
+            renpy.store.stein_current_round = self.current_round
+            renpy.store.stein_inter_round_timer = self.inter_round_timer
 
         def check_item_pickup(self):
             for sprite in list(self.sprite_positions):
@@ -897,6 +1106,7 @@ init 10 python:
                     picked = False
                     if texture_index == 7 and self.player.health < 100:
                         self.player.health = min(100, self.player.health + 25); picked = True
+                        self.heal_flash_timer = 0.2
                     elif texture_index in (11, 12):
                         renpy.store.stein_session_coins += 100; picked = True
                     elif texture_index == 13 and not renpy.store.stein_has_shotgun:
@@ -912,17 +1122,19 @@ init 10 python:
             weapon.play()
             
             dx = self.player.dirx; dy = self.player.diry; pitch = self.player.pitch
+            is_ads = self.is_aiming or self.gp_aiming
             
             if weapon.projectile_type == 'shotgun':
                 import random
+                spread_mult = 0.1 if is_ads else 0.2
                 for _ in range(5):
-                    spread = (random.random() - 0.5) * 0.2
+                    spread = (random.random() - 0.5) * spread_mult
                     angle = self.player.rot + spread
                     pdx = math.cos(angle); pdy = math.sin(angle)
-                    self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch))
+                    self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
                 renpy.sound.play("sounds/shotgun.ogg", channel="gun_sfx")
             elif weapon.projectile_type == 'bullet':
-                self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch))
+                self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
                 renpy.sound.play("sounds/pew.ogg", channel="gun_sfx")
             else:
                 hit = False
@@ -949,6 +1161,9 @@ init 10 python:
 
         # EVENT HANDLING
         def event(self, ev, x, y, st):
+            if self.return_value:
+                return self.return_value
+
             global simulate_touch
             if not self.mouse_initialized and not simulate_touch:
                 pygame.mouse.set_visible(False); pygame.event.set_grab(True); self.mouse_initialized = True
@@ -995,16 +1210,70 @@ init 10 python:
                 if button_id in self.active_fingers: del self.active_fingers[button_id]
 
         def handle_pc_input(self, ev):
-            if ev.type == pygame.MOUSEMOTION: self.player.rot -= ev.rel[0] * 0.003; self.player.planerot -= ev.rel[0] * 0.003
+            # Handle mouse look
+            if ev.type == pygame.MOUSEMOTION:
+                sensitivity = 0.003
+                pitch_sensitivity = 0.8 
+                if self.is_aiming:
+                    sensitivity *= 0.25
+                    pitch_sensitivity *= 0.5
+
+                self.player.rot -= ev.rel[0] * sensitivity
+                self.player.planerot -= ev.rel[0] * sensitivity
+                
+                # Pitch (vertical look)
+                self.player.pitch -= ev.rel[1] * pitch_sensitivity
+                self.player.pitch = max(-200.0, min(200.0, self.player.pitch))
+
             if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_ESCAPE:
+                    pygame.mouse.set_visible(True)
+                    pygame.event.set_grab(False)
+                    self.mouse_initialized = False
+                    return
+
+                if ev.key == pygame.K_1: self.player.current_weapon_name = "fist"
+                if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
+                if ev.key == pygame.K_3: 
+                    if renpy.store.stein_has_shotgun:
+                        self.player.current_weapon_name = "shotgun"
+                if ev.key == pygame.K_4: 
+                    if renpy.store.stein_has_minigun:
+                        self.player.current_weapon_name = "minigun"
+
                 if ev.key == pygame.K_w: self.kb_speed = 1.0
                 if ev.key == pygame.K_s: self.kb_speed = -1.0
-                if ev.key == pygame.K_a: self.kb_strafe = 1.0
-                if ev.key == pygame.K_d: self.kb_strafe = -1.0
-                if ev.key == pygame.K_ESCAPE: pygame.mouse.set_visible(True); pygame.event.set_grab(False); self.mouse_initialized = False
+                if ev.key == pygame.K_a: self.kb_strafe = -1.0
+                if ev.key == pygame.K_d: self.kb_strafe = 1.0
+                
+                # Arrow key controls
+                if ev.key == pygame.K_UP: self.kb_speed = 1.0
+                if ev.key == pygame.K_DOWN: self.kb_speed = -1.0
+                if ev.key == pygame.K_LEFT: self.kb_dir = 1.0
+                if ev.key == pygame.K_RIGHT: self.kb_dir = -1.0
+                
+                if ev.key == pygame.K_SPACE: self.player.trigger_jump()
+                
+                if ev.key == pygame.K_LSHIFT or ev.key == pygame.K_RSHIFT:
+                    self.kb_running = True
+
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                if ev.button == 1: # Left mouse button
+                    self.mouse_firing = True
+                elif ev.button == 3: # Right mouse button (Aim)
+                    self.is_aiming = True
+            
+            if ev.type == pygame.MOUSEBUTTONUP:
+                if ev.button == 1:
+                    self.mouse_firing = False
+                elif ev.button == 3:
+                    self.is_aiming = False
+
             if ev.type == pygame.KEYUP:
-                if ev.key in (pygame.K_w, pygame.K_s): self.kb_speed = 0.0
+                if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): self.kb_speed = 0.0
                 if ev.key in (pygame.K_a, pygame.K_d): self.kb_strafe = 0.0
+                if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): self.kb_dir = 0.0
+                if ev.key in (pygame.K_LSHIFT, pygame.K_RSHIFT): self.kb_running = False
 
         def poll_gamepad(self):
             self.gp_speed = 0.0; self.gp_strafe = 0.0; self.gp_dir = 0.0
@@ -1048,9 +1317,17 @@ init 10 python:
                 except pygame.error: continue
             
             if is_switch_held and not getattr(self, 'prev_btn_weapon_switch', False):
-                w = self.player.current_weapon_name
-                if w == "fist": self.player.current_weapon_name = "gun"
-                elif w == "gun": self.player.current_weapon_name = "fist" # TODO: Add more checks
+                curr = self.player.current_weapon_name
+                if curr == "fist":
+                    self.player.current_weapon_name = "gun"
+                elif curr == "gun":
+                    if renpy.store.stein_has_shotgun: self.player.current_weapon_name = "shotgun"
+                    elif renpy.store.stein_has_minigun: self.player.current_weapon_name = "minigun"
+                    else: self.player.current_weapon_name = "fist"
+                elif curr == "shotgun":
+                    if renpy.store.stein_has_minigun: self.player.current_weapon_name = "minigun"
+                    else: self.player.current_weapon_name = "fist"
+                else: self.player.current_weapon_name = "fist"
             self.prev_btn_weapon_switch = is_switch_held
 
         def handle_gamepad_input(self, ev): pass
