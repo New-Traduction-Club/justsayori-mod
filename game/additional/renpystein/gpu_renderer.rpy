@@ -23,145 +23,164 @@ init 10 python:
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
     """, fragment_300="""
-        const int MAX_STEPS = 64; 
-        const float MAX_DIST = 20.0;
+        const int MAX_STEPS = 128; 
+        const float MAX_DIST = 60.0;
 
         vec2 uv = v_tex_coord;
-        // Ren'Py texture coords might be inverted or not depending on backend, but usually standard 0-1
-        // gl_FragCoord calculation had "uv.y = 1.0 - uv.y", check if needed
-        // Usually v_tex_coord y=0 is top, y=1 is bottom in Ren'Py models? 
-        // Or texture logic? Let's assume standard UV first
-        // If the world is upside down, we uncomment the inversion
-        // uv.y = 1.0 - uv.y; 
 
-        float cameraX = 2.0 * uv.x - 1.0; 
-        vec2 rayDir = u_player_dir + u_player_plane * cameraX;
+        // RAY GENERATION (3D)
+        // Player Position (Camera Origin). Z=0.5 is eye level + offsets
+        vec3 rayPos = vec3(u_player_pos.x, u_player_pos.y, 0.5 + u_z_offset);
         
-        // Setup DDA
-        ivec2 mapPos = ivec2(u_player_pos);
-        vec2 sideDist;
-        vec2 deltaDist = abs(1.0 / rayDir);
-        ivec2 stepDir;
+        // Ray Direction
+        float cameraX = 2.0 * uv.x - 1.0; 
+        vec2 rayDirXY = u_player_dir + u_player_plane * cameraX;
+        
+        // Map screen Y (0..1) to vertical view angle (slope)
+        // Center (0.5) is straight ahead (slope 0)
+        // 0.5 - uv.y gives range [0.5, -0.5]
+        // Scale by vertical FOV (u_vertical_scale) and add pitch (look up/down)
+        float screenY = (0.5 - uv.y) * 2.0; 
+        float rayDirZ = (screenY / u_vertical_scale) + u_pitch;
+        
+        vec3 rayDir = normalize(vec3(rayDirXY, rayDirZ));
+        
+        // DDA SETUP
+        ivec3 mapPos = ivec3(floor(rayPos));
+        vec3 deltaDist = abs(1.0 / rayDir);
+        ivec3 stepDir;
+        vec3 sideDist;
+        
+        if (rayDir.x < 0.0) { stepDir.x = -1; sideDist.x = (rayPos.x - float(mapPos.x)) * deltaDist.x; }
+        else                { stepDir.x = 1;  sideDist.x = (float(mapPos.x) + 1.0 - rayPos.x) * deltaDist.x; }
+        
+        if (rayDir.y < 0.0) { stepDir.y = -1; sideDist.y = (rayPos.y - float(mapPos.y)) * deltaDist.y; }
+        else                { stepDir.y = 1;  sideDist.y = (float(mapPos.y) + 1.0 - rayPos.y) * deltaDist.y; }
+        
+        if (rayDir.z < 0.0) { stepDir.z = -1; sideDist.z = (rayPos.z - float(mapPos.z)) * deltaDist.z; }
+        else                { stepDir.z = 1;  sideDist.z = (float(mapPos.z) + 1.0 - rayPos.z) * deltaDist.z; }
+
+        // DDA LOOP (3D)
         int hit = 0;
-        int side = 0; 
+        int side = 0; // 0=X, 1=Y, 2=Z
         int wallID = 0;
+        float rayDist = 0.0;
 
-        if (rayDir.x < 0.0) {
-            stepDir.x = -1;
-            sideDist.x = (u_player_pos.x - float(mapPos.x)) * deltaDist.x;
-        } else {
-            stepDir.x = 1;
-            sideDist.x = (float(mapPos.x) + 1.0 - u_player_pos.x) * deltaDist.x;
-        }
-        if (rayDir.y < 0.0) {
-            stepDir.y = -1;
-            sideDist.y = (u_player_pos.y - float(mapPos.y)) * deltaDist.y;
-        } else {
-            stepDir.y = 1;
-            sideDist.y = (float(mapPos.y) + 1.0 - u_player_pos.y) * deltaDist.y;
-        }
-
-        // DDA Loop
         for (int i = 0; i < MAX_STEPS; i++) {
-            if (hit == 1) break;
-            
             if (sideDist.x < sideDist.y) {
-                sideDist.x += deltaDist.x;
-                mapPos.x += stepDir.x;
-                side = 0;
+                if (sideDist.x < sideDist.z) {
+                    rayDist = sideDist.x;
+                    sideDist.x += deltaDist.x;
+                    mapPos.x += stepDir.x;
+                    side = 0;
+                } else {
+                    rayDist = sideDist.z;
+                    sideDist.z += deltaDist.z;
+                    mapPos.z += stepDir.z;
+                    side = 2;
+                }
             } else {
-                sideDist.y += deltaDist.y;
-                mapPos.y += stepDir.y;
-                side = 1;
+                if (sideDist.y < sideDist.z) {
+                    rayDist = sideDist.y;
+                    sideDist.y += deltaDist.y;
+                    mapPos.y += stepDir.y;
+                    side = 1;
+                } else {
+                    rayDist = sideDist.z;
+                    sideDist.z += deltaDist.z;
+                    mapPos.z += stepDir.z;
+                    side = 2;
+                }
             }
-
-            if (mapPos.x < 0 || mapPos.x >= int(u_map_size.x) || mapPos.y < 0 || mapPos.y >= int(u_map_size.y)) {
-                hit = 2; 
-                break;
-            }
-
-            vec2 mapUV = (vec2(mapPos) + 0.5) / u_map_size;
-            mapUV = mapUV * u_map_uv_scale;
-            vec4 mapPixel = texture2D(u_map_texture, mapUV);
             
-            if (mapPixel.r > 0.5) {
-                hit = 1;
+            if (rayDist > MAX_DIST) { hit = 2; break; } // Too far
+            
+            // Map Bounds Check
+            if (mapPos.x < 0 || mapPos.x >= int(u_map_size.x) || mapPos.y < 0 || mapPos.y >= int(u_map_size.y)) {
+                hit = 2; break; // Hit Sky
+            }
+            
+            // Voxel Check (Only Z=0 has blocks yet)
+            if (mapPos.z == 0) {
+                vec2 mapUV = (vec2(mapPos.x, mapPos.y) + 0.5) / u_map_size;
+                mapUV = mapUV * u_map_uv_scale;
+                vec4 mapPixel = texture2D(u_map_texture, mapUV);
+                if (mapPixel.r > 0.5) {
+                    wallID = int(mapPixel.g * 255.0 + 0.5);
+                    hit = 1;
+                    break;
+                }
+            } else if (mapPos.z < 0) {
+                
             }
         }
 
         vec3 color;
-        float perpWallDist = MAX_DIST; 
-        
-        float horizon = 0.5 + u_pitch;
         
         if (hit == 1) {
-            if (side == 0) perpWallDist = (sideDist.x - deltaDist.x);
-            else           perpWallDist = (sideDist.y - deltaDist.y);
+            vec3 hitPos = rayPos + rayDir * rayDist;
+            vec2 texUV;
             
-            float lineHeight = (1.0 / perpWallDist) * u_vertical_scale; 
-            
-            float z_perspective = (u_z_offset / perpWallDist) * u_vertical_scale;
-            
-            float drawStart = horizon - lineHeight / 2.0 + z_perspective;
-            float drawEnd = horizon + lineHeight / 2.0 + z_perspective;
-
-            if (uv.y >= drawStart && uv.y <= drawEnd) {
-                float wallX; 
-                if (side == 0) wallX = u_player_pos.y + perpWallDist * rayDir.y;
-                else           wallX = u_player_pos.x + perpWallDist * rayDir.x;
+            if (side == 0) { // X-Side
+                float wallX = hitPos.y; 
+                if (rayDir.x > 0.0) wallX = 1.0 - wallX;
                 wallX -= floor(wallX);
-
-                if (side == 0 && rayDir.x > 0.0) wallX = 1.0 - wallX;
-                if (side == 1 && rayDir.y < 0.0) wallX = 1.0 - wallX;
-
-                float texY = (uv.y - drawStart) / (drawEnd - drawStart);
-                
-                vec2 mapUV = (vec2(mapPos) + 0.5) / u_map_size;
-                mapUV = mapUV * u_map_uv_scale;
-                int wallID = int(texture2D(u_map_texture, mapUV).g * 255.0 + 0.5);
-
-                float singleTexWidth = 1.0 / u_num_textures;
-                float texOffset = float(wallID - 1) * singleTexWidth;
-                float texX = texOffset + (wallX * singleTexWidth);
-                
-                vec4 texColor = texture2D(u_wall_atlas, vec2(texX, texY));
-                
-                if (texColor.a < 0.1) texColor = vec4(1.0, 0.0, 0.0, 1.0);
-                
-                float lighting = (side == 1) ? 0.7 : 1.0; 
-                
-                // LIGHTING / FOG LOGIC
-                // Original "Flashlight" / Radial darkness effect:
-                // float fog = 1.0 / (1.0 + perpWallDist * perpWallDist * 0.05);
-                // Note: Currently this only affects walls. Sprites remain fully lit
-                // To implement full night mode, apply this fog factor to sprites in the sprite loop below
-                
-                float fog = 1.0; // Standard fully lit rendering
-                
-                color = texColor.rgb * lighting * fog; 
-
-            } else if (uv.y < drawStart) {
-                // Skybox
-                vec2 skyUV = uv;
-                skyUV.y -= u_pitch;
-                skyUV.y = clamp(skyUV.y, 0.0, 1.0);
-                color = texture2D(u_sky_texture, skyUV).rgb;
-            } else {
-                // Floor
-                vec2 floorUV = uv;
-                floorUV.y -= u_pitch;
-                floorUV.y = clamp(floorUV.y, 0.0, 1.0);
-                color = texture2D(u_sky_texture, floorUV).rgb;
+                float wallY = 1.0 - hitPos.z; 
+                texUV = vec2(wallX, wallY);
+            } 
+            else if (side == 1) { // Y-Side
+                float wallX = hitPos.x;
+                if (rayDir.y < 0.0) wallX = 1.0 - wallX;
+                wallX -= floor(wallX);
+                float wallY = 1.0 - hitPos.z;
+                texUV = vec2(wallX, wallY);
             }
+            else { // Z-Side (Top/Bottom)
+                float wallX = hitPos.x;
+                float wallY = hitPos.y;
+                // mapping
+                wallX -= floor(wallX);
+                wallY -= floor(wallY);
+                texUV = vec2(wallX, wallY);
+            }
+            
+            float singleTexWidth = 1.0 / u_num_textures;
+            float texOffset = float(wallID - 1) * singleTexWidth;
+            float finalU = texOffset + (texUV.x * singleTexWidth);
+            float finalV = texUV.y;
+            
+            if (finalV < 0.0 || finalV > 1.0) color = vec3(0.0);
+            else color = texture2D(u_wall_atlas, vec2(finalU, finalV)).rgb;
+            
+            if (side == 1) color *= 0.8;
+            if (side == 2) color *= 0.6; 
+            
+            // Fog disabled as requested
+            // color *= 1.0 / (1.0 + rayDist * rayDist * 0.05);
+
         } else {
-            // No hit -> Skybox
-             vec2 skyUV = uv;
-             skyUV.y -= u_pitch;
-             skyUV.y = clamp(skyUV.y, 0.0, 1.0);
-             color = texture2D(u_sky_texture, skyUV).rgb;
+            // Skybox
+            vec2 skyUV = uv;
+            // Apply pitch to skyUV.y
+            skyUV.y -= u_pitch; 
+            skyUV.y = clamp(skyUV.y, 0.0, 1.0);
+            color = texture2D(u_sky_texture, skyUV).rgb;
         }
 
+        // SPRITE RENDERING (Adapted for 3D)
+        // We approximate 2D billboard logic using the 3D ray distance
+        // Project rayDist onto the XY plane
+        // Using length() is safer, technically less accurate for planar depth...
+        float perpWallDist = rayDist * length(rayDir.xy); 
+        
+        // If we didnt hit a wall (Sky/Void), the depth is infinite
+        if (hit != 1) perpWallDist = 10000.0;
+        
         float currentDepth = perpWallDist;
+        
+        // Precalculate pitch shift in pixels for sprites
+        float pitchPixelShift = u_pitch * u_vertical_scale * (u_resolution.y / 2.0);
+
         float invDet = 1.0 / (u_player_plane.x * u_player_dir.y - u_player_dir.x * u_player_plane.y);
 
         for (int i = 0; i < 64; i++) {
@@ -170,33 +189,43 @@ init 10 python:
             vec4 spriteData = u_sprites[i];
             vec2 spritePos = spriteData.xy;
             float texID = spriteData.z;
-            float pitchOffset = spriteData.w;
+            float spritePitch = spriteData.w; 
 
             float spX = spritePos.x - u_player_pos.x;
             float spY = spritePos.y - u_player_pos.y;
 
             float transformX = invDet * (u_player_dir.y * spX - u_player_dir.x * spY);
-            float transformY = invDet * (-u_player_plane.y * spX + u_player_plane.x * spY); // Depth
+            float transformY = invDet * (-u_player_plane.y * spX + u_player_plane.x * spY); 
 
             if (transformY <= 0.1) continue;
-            if (transformY >= currentDepth) continue;
+            // Robust depth check
+            if (transformY >= currentDepth) continue; 
 
             float spriteScreenX = (u_resolution.x / 2.0) * (1.0 + transformX / transformY);
-            float spriteHeight = abs(u_resolution.y / transformY) * u_vertical_scale; 
+            
+            // Scale sprites down
+            float spriteScale = 0.55; 
+            float spriteHeight = abs(u_resolution.y / transformY) * u_vertical_scale * spriteScale; 
             float spriteWidth = spriteHeight; 
 
-            float z_sprite_offset = (u_z_offset * u_resolution.y / transformY) * u_vertical_scale;
-            // Corrected vertical position logic for top-down Y coordinates (v_tex_coord style)
-            // + u_pitch moves it down (horizon drops when looking up)
-            // + z_sprite_offset moves it down (perspective)
-            float drawStartY = (u_resolution.y / 2.0) - (spriteHeight / 2.0) + (u_pitch * u_resolution.y) + z_sprite_offset + pitchOffset;
+            // Sprite Anchoring Logic (Floor Alignment)
+            // Calculate where the floor (Z=0) is on screen at the sprite's depth
+            // Camera Height = 0.5 + u_z_offset
+            float camHeight = 0.5 + u_z_offset;
+            
+            // Projection of floor: Center + (CamHeight / Depth * Scale * Res/2) + Pitch
+            float floorPixelOffset = (camHeight / transformY) * u_vertical_scale * (u_resolution.y / 2.0);
+            
+            float spritePixelShift = spritePitch * u_vertical_scale * (u_resolution.y / 2.0);
+            
+            float drawEndY = (u_resolution.y / 2.0) + floorPixelOffset + pitchPixelShift - spritePixelShift;
+            float drawStartY = drawEndY - spriteHeight;
             
             float drawStartX = spriteScreenX - spriteWidth / 2.0;
             float drawEndX = spriteScreenX + spriteWidth / 2.0;
 
-            // Convert current pixel UV to local pixel coordinate
-            float currentPixelX = v_tex_coord.x * u_resolution.x;
-            float currentPixelY = v_tex_coord.y * u_resolution.y;
+            float currentPixelX = uv.x * u_resolution.x; 
+            float currentPixelY = uv.y * u_resolution.y;
 
             if (currentPixelX >= drawStartX && currentPixelX <= drawEndX) {
                 float texX = (currentPixelX - drawStartX) / spriteWidth;
@@ -594,28 +623,29 @@ init 10 python:
             
             if is_moving and c.player.is_grounded:
                 bob_speed = 10.0
-                bob_amp = 0.05
+                bob_amp = 0.01
                 if is_running:
                     bob_speed = 15.0
-                    bob_amp = 0.08
+                    bob_amp = 0.02
                 bob_offset = math.sin(st * bob_speed) * bob_amp
 
             sprite_data = []
             if hasattr(c, 'sprite_positions') and c.sprite_positions:
                 for spr in c.sprite_positions:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
+                    sprite_data.append((spr[0], spr[1], float(spr[2]), 0.0))
             elif hasattr(renpy.store, 'stein_sprites'):
                 for spr in renpy.store.stein_sprites:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 1.0))
+                    sprite_data.append((spr[0], spr[1], float(spr[2]), 0.0))
 
             if hasattr(c, 'enemies'):
                 for enemy in c.enemies:
-                    sprite_data.append((enemy.x, enemy.y, float(enemy.texture_index), 1.0))
+                    sprite_data.append((enemy.x, enemy.y, float(enemy.texture_index), 0.0))
             
             if hasattr(c, 'projectiles'):
                 for p in c.projectiles:
                     if getattr(p, 'is_invisible', False): continue
-                    pitch = getattr(p, 'pitch', 0.0)
+                    # Normalize pitch to match camera pitch logic (slope)
+                    pitch = getattr(p, 'pitch', 0.0) / float(height)
                     sprite_data.append((p.x, p.y, float(p.texture_index), pitch))
             
             def get_dist_sq(s):
@@ -637,7 +667,16 @@ init 10 python:
             # ADS Zoom Logic
             is_aiming = c.is_aiming or c.gp_aiming
             zoom_factor = 0.6 if is_aiming else 1.0
-            vertical_scale = 1.0 / zoom_factor
+            
+            # Aspect Ratio Correction for 3D
+            # Ensure square voxels by matching Vertical FOV to Horizontal FOV
+            aspect_ratio = float(width) / float(height)
+            plane_len = math.sqrt(c.player.planex**2 + c.player.planey**2)
+            if plane_len == 0: plane_len = 0.66 # Fallback
+            
+            # vertical_scale = (Aspect / Plane) * (1 / Zoom)
+            # Higher scale = Narrower Vertical FOV
+            vertical_scale = (aspect_ratio / plane_len) / zoom_factor
             
             # Apply zoom to plane
             plane_x = c.player.planex * zoom_factor
@@ -781,7 +820,7 @@ init 10 python:
 
         def start_next_round(self):
             self.current_round += 1
-            renpy.sound.play("sounds/music/round_start.ogg", channel="audio")
+            # renpy.sound.play("sounds/music/round_start.ogg", channel="audio")
             
             # Clean up bodies
             self.sprite_positions = [s for s in self.sprite_positions if s[2] not in (9, 4, 5, 10)]
@@ -1132,16 +1171,16 @@ init 10 python:
                     angle = self.player.rot + spread
                     pdx = math.cos(angle); pdy = math.sin(angle)
                     self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
-                renpy.sound.play("sounds/shotgun.ogg", channel="gun_sfx")
+                renpy.sound.play("sounds/shotgun.ogg", channel="audio")
             elif weapon.projectile_type == 'bullet':
                 self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
-                renpy.sound.play("sounds/pew.ogg", channel="gun_sfx")
+                renpy.sound.play("sounds/gunshot.ogg", channel="audio")
             else:
                 hit = False
                 for e in self.enemies:
                     dist = math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2)
                     if dist < 1.5: e.health -= weapon.damage; hit = True
-                if hit: renpy.sound.play("sounds/ow.ogg", channel="gun_sfx")
+                if hit: renpy.sound.play("sounds/ow.ogg", channel="audio")
 
         def add_damage_indicator(self, source_dir_x, source_dir_y):
             angle = math.atan2(source_dir_y, source_dir_x)
@@ -1223,7 +1262,7 @@ init 10 python:
                 
                 # Pitch (vertical look)
                 self.player.pitch -= ev.rel[1] * pitch_sensitivity
-                self.player.pitch = max(-200.0, min(200.0, self.player.pitch))
+                self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
 
             if ev.type == pygame.KEYDOWN:
                 if ev.key == pygame.K_ESCAPE:
@@ -1305,7 +1344,7 @@ init 10 python:
                             p_speed = 6.0
                             if self.is_aiming or self.gp_aiming: p_speed *= 0.5
                             self.player.pitch -= ry * p_speed
-                            self.player.pitch = max(-200.0, min(200.0, self.player.pitch))
+                            self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
 
                     if joy.get_numaxes() > 4 and joy.get_axis(4) > TRIGGER_THRESHOLD: self.gp_aiming = True
                     if joy.get_numaxes() > 5 and joy.get_axis(5) > TRIGGER_THRESHOLD: self.gp_firing = True
