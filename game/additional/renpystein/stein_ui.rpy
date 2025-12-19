@@ -101,6 +101,21 @@ screen sayoristein_settings_menu():
                         thumb Frame("pics/gui/button_bg.png", 10, 10) 
                         thumb_offset 5
 
+                    null height 20
+
+                    text _("Motion Blur: [int(persistent.stein_motion_blur_strength * 100)]%") style "sayoristein_menu_button_text":
+                        xalign 0.5
+                        size 30
+                    
+                    bar value FieldValue(persistent, "stein_motion_blur_strength", range=1.0, step=0.05):
+                        xalign 0.5
+                        xsize 400
+                        ysize 40
+                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        thumb Frame("pics/gui/button_bg.png", 10, 10) 
+                        thumb_offset 5
+
     textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
         xalign 0.5
         yalign 0.95
@@ -152,6 +167,9 @@ screen sayoristein_arena_hub():
         textbutton _("Back") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
 init python:
+    if getattr(persistent, "stein_motion_blur_strength", None) is None:
+        persistent.stein_motion_blur_strength = 0.0
+
     def buy_stein_upgrade(upgrade_type):
         if upgrade_type == "pistol":
             cost = 1000 + (persistent.stein_pistol_level * 100)

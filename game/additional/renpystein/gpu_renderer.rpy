@@ -250,6 +250,31 @@ init 10 python:
         gl_FragColor = vec4(color, 1.0);
     """)
 
+    renpy.register_shader("stein.motion_blur", variables="""
+        uniform sampler2D tex0;
+        uniform float u_blur_amount;
+        varying vec2 v_tex_coord;
+    """, fragment_200="""
+        vec2 mb_uv = v_tex_coord;
+        vec4 mb_color = texture2D(tex0, mb_uv);
+        
+        if (abs(u_blur_amount) > 0.001) {
+            float blur = u_blur_amount * 0.02;
+            vec4 sum = vec4(0.0);
+            
+            // 5-tap optimization
+            sum += texture2D(tex0, vec2(mb_uv.x - blur * 2.0, mb_uv.y)) * 0.1;
+            sum += texture2D(tex0, vec2(mb_uv.x - blur * 1.0, mb_uv.y)) * 0.25;
+            sum += texture2D(tex0, vec2(mb_uv.x, mb_uv.y)) * 0.3;
+            sum += texture2D(tex0, vec2(mb_uv.x + blur * 1.0, mb_uv.y)) * 0.25;
+            sum += texture2D(tex0, vec2(mb_uv.x + blur * 2.0, mb_uv.y)) * 0.1;
+            
+            gl_FragColor = sum;
+        } else {
+            gl_FragColor = mb_color;
+        }
+    """)
+
     import math
     import pygame
     import time
@@ -745,6 +770,7 @@ init 10 python:
             self.player = Player(self, renpy.store.player_x, renpy.store.player_y, renpy.store.player_dirx, renpy.store.player_diry, renpy.store.player_planex, renpy.store.player_planey)
             
             self.oldst = None
+            self.last_rot = None
             self.active_fingers = {}
             self.mouse_initialized = False
             
@@ -1039,13 +1065,35 @@ init 10 python:
             retro_w = self.internal_width
             retro_h = self.internal_height
             
-            # We assume RaycastLayer uses the controller (self) to get data
-            # Since RaycastLayer is a displayable, we render it
-            # But wait, RaycastLayer was initialized with 'self'
+            # Motion Blur Calculation
+            if self.last_rot is None: self.last_rot = self.player.rot
+            rot_diff = self.player.rot - self.last_rot
+            if rot_diff > math.pi: rot_diff -= 2 * math.pi
+            elif rot_diff < -math.pi: rot_diff += 2 * math.pi
+            self.last_rot = self.player.rot
             
-            # We wrap it in a Transform to scale it up nearest-neighbor
+            blur_strength = getattr(persistent, "stein_motion_blur_strength", 0.0)
+            blur_amount = 0.0
+            
+            if blur_strength > 0.0:
+                blur_amount = max(-0.15, min(0.15, rot_diff)) * blur_strength * 20.0
+
             scale = float(width) / float(retro_w)
-            t = Transform(child=self.raycast_layer, zoom=scale, nearest=True)
+            
+            # Flatten the raycast layer to ensure the 3D shader is baked before applying motion blur
+            flat_layer = renpy.display.layout.Flatten(self.raycast_layer)
+            
+            t_args = {
+                'child': flat_layer,
+                'zoom': scale,
+                'nearest': True
+            }
+            
+            if abs(blur_amount) > 0.005:
+                t_args['shader'] = "stein.motion_blur"
+                t_args['u_blur_amount'] = blur_amount
+
+            t = Transform(**t_args)
             
             main_scene_render = renpy.render(t, width, height, st, at)
             
