@@ -291,7 +291,7 @@ screen stein:
             internal_width = 142
             internal_height = 80
 
-    add Renpystein(
+    add GPURenpystein(
         1280, 720,
         worldMap=worldMap,
         exits=exits,
