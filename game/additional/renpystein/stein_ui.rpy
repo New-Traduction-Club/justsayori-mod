@@ -75,7 +75,7 @@ screen sayoristein_settings_menu():
                 spacing 15
                 xalign 0.5
 
-                label _("Graphics Quality") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
+                label _("Game Resolution") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
                     xalign 0.5
                     yalign 0.5
 
