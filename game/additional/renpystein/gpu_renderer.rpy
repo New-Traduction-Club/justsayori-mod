@@ -275,6 +275,39 @@ init 10 python:
         }
     """)
 
+    renpy.register_shader("stein.muzzle_flash", variables="""
+        varying vec2 v_tex_coord;
+        attribute vec2 a_tex_coord;
+        uniform float u_flash_progress; 
+        uniform float u_flash_angle;
+        uniform vec3 u_flash_color;
+    """, vertex_200="""
+        v_tex_coord = a_tex_coord;
+    """, fragment_200="""
+        // Center UVs to [-1, 1] range
+        vec2 mf_uv = (v_tex_coord - 0.5) * 2.0; 
+        
+        // Internal rotation
+        float mf_s = sin(u_flash_angle);
+        float mf_c = cos(u_flash_angle);
+        mf_uv = mat2(mf_c, -mf_s, mf_s, mf_c) * mf_uv;
+        
+        float mf_dist = length(mf_uv);
+        float mf_angle = atan(mf_uv.y, mf_uv.x);
+        
+        float mf_spikes = abs(sin(mf_angle * 4.0)) * 0.4 + abs(sin(mf_angle * 9.0)) * 0.6;
+        
+        float mf_core = exp(-mf_dist * 5.0) * 2.5;
+        float mf_rays = exp(-mf_dist * (4.0 + 8.0 * (1.0 - mf_spikes))) * 1.2;
+        
+        float mf_mask = smoothstep(1.0, 0.2, mf_dist);
+        
+        float mf_intensity = (mf_core + mf_rays) * (1.0 - u_flash_progress);
+        mf_intensity = clamp(mf_intensity * mf_mask, 0.0, 1.0);
+        
+        gl_FragColor = vec4(u_flash_color * mf_intensity, mf_intensity);
+    """)
+
     import math
     import pygame
     import time
@@ -596,16 +629,28 @@ init 10 python:
             return True
 
     class Weapon(object):
-        def __init__(self, weaponName="fist", frameCount=5, zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None):
+        def __init__(self, weaponName="fist", frameCount=5, zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None, flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7)):
             self.images = []; self.playing = False; self.frame = 0; self.oldst = None
             self.damage = damage; self.projectile_type = projectile_type; self.cooldown = cooldown
             self.last_fired = 0.0; self.loop_frames = loop_frames
+            self.flash_offset = flash_offset
+            self.flash_ads_offset = flash_ads_offset
+            self.flash_size = flash_size
+            self.flash_color = flash_color
+            self.current_flash_rot = 0.0
+            
             self.ads_idle = Transform(ads_idle, zoom=zoom_factor) if ads_idle else None
             self.ads_fire = Transform(ads_fire, zoom=zoom_factor) if ads_fire else None
             for i in range(frameCount): self.images.append(Transform("pics/weapons/%s%s.png" % (weaponName, i+1), zoom=zoom_factor))
+            
+            # Flash Displayable base (scaling an image ensures we have a mesh with UV coordinates)
+            self.flash_base = Transform(Image("pics/items/sight.png"), size=(512, 512))
 
         def play(self):
-            if not self.playing: self.playing = True; self.frame = 0; self.oldst = None
+            if not self.playing: 
+                self.playing = True; self.frame = 0; self.oldst = None
+                # Randomize flash rotation for each shot (using radians for the shader)
+                self.current_flash_rot = renpy.random.random() * math.pi * 2.0
 
         def render_to(self, r, width, height, st, at, is_ads=False, is_firing=False, movement_state=None):
             if self.oldst is None: self.oldst = st
@@ -630,6 +675,35 @@ init 10 python:
                 offset_x = math.sin(st * bob_speed) * bob_amp_x
                 offset_y = abs(math.cos(st * bob_speed)) * (bob_amp_x / 2.0)
             r.blit(eileen, (width/2 - ew/2 + offset_x, height - eh + offset_y))
+            
+            # Draw Muzzle Flash
+            if self.projectile_type:
+                import time
+                dt = time.time() - self.last_fired
+                flash_dur = 0.06
+                if dt < flash_dur:
+                    base_x = self.flash_ads_offset[0] if is_ads else self.flash_offset[0]
+                    base_y = self.flash_ads_offset[1] if is_ads else self.flash_offset[1]
+                    
+                    fx = base_x + offset_x
+                    fy = base_y + offset_y
+                    
+                    progress = dt / flash_dur
+                    
+                    # Create the flash transform with the shader and uniforms
+                    f_t = Transform(
+                        child=self.flash_base,
+                        shader="stein.muzzle_flash",
+                        u_flash_progress=progress,
+                        u_flash_color=self.flash_color,
+                        u_flash_angle=self.current_flash_rot,
+                        zoom=self.flash_size,
+                        additive=1.0
+                    )
+                    f_r = renpy.render(f_t, width, height, st, at)
+                    fw, fh = f_r.get_size()
+                    
+                    r.blit(f_r, (width/2 + fx - fw/2, height + fy - fh/2))
 
     class RaycastLayer(renpy.Displayable):
         def __init__(self, controller, **kwargs):
@@ -807,9 +881,9 @@ init 10 python:
 
             self.weapons = {
                 "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
-                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6, ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png"),
-                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0),
-                "minigun": Weapon("minigun", 5, 1, damage=minigun_dmg, projectile_type='bullet', cooldown=0.05, loop_frames=[2, 3])
+                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6, ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png", flash_offset=(0, -170), flash_ads_offset=(0, -280), flash_size=0.8, flash_color=(1.0, 0.9, 0.6)),
+                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0, flash_offset=(0, -170), flash_ads_offset=(0, -170), flash_size=1.5, flash_color=(1.0, 0.6, 0.2)),
+                "minigun": Weapon("minigun", 5, 1, damage=minigun_dmg, projectile_type='bullet', cooldown=0.05, loop_frames=[2, 3], flash_offset=(0, -180), flash_ads_offset=(0, -180), flash_size=1.0, flash_color=(1.0, 0.9, 0.6))
             }
             for w_name in self.weapons: self.weapons[w_name].last_fired = -100.0
             
