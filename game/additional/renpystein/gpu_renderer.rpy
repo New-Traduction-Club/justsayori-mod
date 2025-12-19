@@ -179,7 +179,7 @@ init 10 python:
         float currentDepth = perpWallDist;
         
         // Precalculate pitch shift in pixels for sprites
-        float pitchPixelShift = u_pitch * u_vertical_scale * (u_resolution.y / 2.0);
+        float pitchPixeLCTRL = u_pitch * u_vertical_scale * (u_resolution.y / 2.0);
 
         float invDet = 1.0 / (u_player_plane.x * u_player_dir.y - u_player_dir.x * u_player_plane.y);
 
@@ -216,9 +216,9 @@ init 10 python:
             // Projection of floor: Center + (CamHeight / Depth * Scale * Res/2) + Pitch
             float floorPixelOffset = (camHeight / transformY) * u_vertical_scale * (u_resolution.y / 2.0);
             
-            float spritePixelShift = spritePitch * u_vertical_scale * (u_resolution.y / 2.0);
+            float spritePixeLCTRL = spritePitch * u_vertical_scale * (u_resolution.y / 2.0);
             
-            float drawEndY = (u_resolution.y / 2.0) + floorPixelOffset + pitchPixelShift - spritePixelShift;
+            float drawEndY = (u_resolution.y / 2.0) + floorPixelOffset + pitchPixeLCTRL - spritePixeLCTRL;
             float drawStartY = drawEndY - spriteHeight;
             
             float drawStartX = spriteScreenX - spriteWidth / 2.0;
@@ -1293,7 +1293,7 @@ init 10 python:
                 
                 if ev.key == pygame.K_SPACE: self.player.trigger_jump()
                 
-                if ev.key == pygame.K_LSHIFT or ev.key == pygame.K_RSHIFT:
+                if ev.key == pygame.K_LCTRL or ev.key == pygame.K_RCTRL:
                     self.kb_running = True
 
             if ev.type == pygame.MOUSEBUTTONDOWN:
@@ -1312,7 +1312,7 @@ init 10 python:
                 if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): self.kb_speed = 0.0
                 if ev.key in (pygame.K_a, pygame.K_d): self.kb_strafe = 0.0
                 if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): self.kb_dir = 0.0
-                if ev.key in (pygame.K_LSHIFT, pygame.K_RSHIFT): self.kb_running = False
+                if ev.key in (pygame.K_LCTRL, pygame.K_RCTRL): self.kb_running = False
 
         def poll_gamepad(self):
             self.gp_speed = 0.0; self.gp_strafe = 0.0; self.gp_dir = 0.0
