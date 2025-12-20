@@ -19,6 +19,9 @@ init 10 python:
         uniform float u_num_sprite_textures;
         uniform vec4 u_sprites[64]; // x, y, texture_id, pitch_offset
         uniform int u_num_active_sprites;
+        uniform float u_flash_intensity;
+        uniform vec4 u_light_positions[16];
+        uniform float u_num_active_lights;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
@@ -161,8 +164,46 @@ init 10 python:
                     color = texture2D(u_wall_atlas, vec2(finalU, finalV), -4.0).rgb;
                 }
                 
-                if (side == 1) color *= 0.8;
-                if (side == 2) color *= 0.6;
+                vec3 finalColor = color;
+                
+                float fogDist = length(hitPos.xy - u_player_pos);
+                float ambientParams = 1.0 - (fogDist / 15.0); 
+                vec3 ambientLight = vec3(0.1, 0.1, 0.15); 
+                ambientLight += max(0.0, ambientParams) * 0.4; 
+                
+                vec3 totalLight = ambientLight;
+
+                if (u_flash_intensity > 0.01) {
+                    float distToPlayer = distance(hitPos.xy, u_player_pos);
+                    float flashAtt = 1.0 / (0.5 + (distToPlayer * distToPlayer) * 0.1);
+                    vec3 flashColor = vec3(1.0, 0.8, 0.4);
+                    totalLight += flashColor * u_flash_intensity * flashAtt * 2.0;
+                }
+
+                for (int i = 0; i < 16; i++) {
+                    if (float(i) >= u_num_active_lights) break;
+                    
+                    vec4 lightData = u_light_positions[i]; 
+                    vec2 lightPos = lightData.xy;
+                    float radius = lightData.z;
+                    float intensity = lightData.w;
+                    
+                    float distToLight = distance(hitPos.xy, lightPos);
+                    
+                    if (distToLight < radius) {
+                        float att = 1.0 - (distToLight / radius);
+                        att = att * att; 
+                        
+                        vec3 lampColor = vec3(0.2, 1.0, 0.2); 
+                        totalLight += lampColor * intensity * att;
+                    }
+                }
+
+                float faceShadow = 1.0;
+                if (side == 1) faceShadow = 0.7; 
+                if (side == 2) faceShadow = 1.0; 
+                
+                color = finalColor * totalLight * faceShadow;
             }
 
         } else {
@@ -401,58 +442,85 @@ init 10 python:
     class Projectile(object):
         def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False, pitch=0.0):
             self.wm = wm
-            self.x = x; self.y = y
-            self.dir_x = dir_x; self.dir_y = dir_y
+            self.x = x
+            self.y = y
+            self.dir_x = dir_x
+            self.dir_y = dir_y
             self.texture_index = texture_index
             self.damage = damage
             self.fired_by_player = fired_by_player
             self.is_invisible = is_invisible
             self.pitch = pitch
-            self.speed = 20.0
+            
+            if self.fired_by_player:
+                self.speed = 100.0 
+            else:
+                self.speed = 12.0
 
         def update(self, dt):
-            new_x = self.x + self.dir_x * self.speed * dt
-            new_y = self.y + self.dir_y * self.speed * dt
-            if self.wm.isBlocking(new_x, new_y): return False
-            self.x = new_x; self.y = new_y
+            distance_to_travel = self.speed * dt
+            
+            step_size = 0.4
+            dist_traveled = 0.0
 
-            if not self.fired_by_player:
-                player = self.wm.player
-                if math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2) < 0.5:
-                    player.health -= self.damage
-                    self.wm.add_damage_indicator(-self.dir_x, -self.dir_y)
-                    self.wm.damage_flash_timer = 0.2
-                    renpy.sound.play("sounds/ow.ogg", channel="audio")
+            while dist_traveled < distance_to_travel:
+                step = min(step_size, distance_to_travel - dist_traveled)
+                
+                self.x += self.dir_x * step
+                self.y += self.dir_y * step
+                dist_traveled += step
+
+                if self.wm.isBlocking(self.x, self.y): 
                     return False
-            else:
-                for enemy in self.wm.enemies:
-                    if math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2) < 0.5:
-                        if hasattr(self, 'pitch'):
-                            safe_dist = max(0.1, math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2))
-                            enemy_vis_height = self.wm.height / safe_dist
-                            calc_height = min(enemy_vis_height, self.wm.height * 1.2)
-                            if abs(self.pitch) > (calc_height / 2.0) * 0.2: continue
-                        
-                        taken = True
-                        if hasattr(enemy, 'take_damage'): taken = enemy.take_damage(self.damage)
-                        else: enemy.health -= self.damage
-                        
-                        if taken:
-                            if enemy.health <= 0:
-                                renpy.sound.play("sounds/ow.ogg", channel="audio")
-                                if self.wm.is_arena_mode: persistent.stein_kills += 1
-                                self.wm.enemies.remove(enemy)
-                                self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
-                                if renpy.random.random() < 0.40: self.wm.sprite_positions.append((enemy.x, enemy.y, 7))
-                                if self.wm.is_arena_mode:
-                                    drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
-                                    if renpy.random.random() < drop_prob: self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index))
-                                    if not renpy.store.stein_has_shotgun:
-                                        if renpy.random.random() < (0.25 if enemy.coin_index == 12 else 0.10): self.wm.sprite_positions.append((enemy.x, enemy.y, 13))
-                                    if not renpy.store.stein_has_minigun:
-                                        if renpy.random.random() < 0.10: self.wm.sprite_positions.append((enemy.x, enemy.y, 15))
-                            self.wm.hit_marker_timer = 0.15
+
+                if not self.fired_by_player:
+                    player = self.wm.player
+                    if math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2) < 0.5:
+                        player.health -= self.damage
+                        self.wm.add_damage_indicator(-self.dir_x, -self.dir_y)
+                        self.wm.damage_flash_timer = 0.2
+                        renpy.sound.play("sounds/ow.ogg", channel="audio")
                         return False
+                else:
+                    for enemy in list(self.wm.enemies):
+                        if math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2) < 0.5:
+                            if hasattr(self, 'pitch'):
+                                safe_dist = max(0.1, math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2))
+                                enemy_vis_height = self.wm.height / safe_dist
+                                calc_height = min(enemy_vis_height, self.wm.height * 1.2)
+                                if abs(self.pitch) > (calc_height / 2.0) * 0.2: 
+                                    continue
+
+                            taken = True
+                            if hasattr(enemy, 'take_damage'): 
+                                taken = enemy.take_damage(self.damage)
+                            else:
+                                enemy.health -= self.damage
+                            
+                            if taken:
+                                self.wm.hit_marker_timer = 0.15
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                                if enemy.health <= 0:
+                                    if self.wm.is_arena_mode: persistent.stein_kills += 1
+                                    if enemy in self.wm.enemies: self.wm.enemies.remove(enemy)
+                                    self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
+                                    if renpy.random.random() < 0.40:
+                                        self.wm.sprite_positions.append((enemy.x, enemy.y, 7)) # Medkit
+                                    
+                                    if self.wm.is_arena_mode:
+                                        drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
+                                        if renpy.random.random() < drop_prob:
+                                            self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index)) # Coins
+
+                                        if not renpy.store.stein_has_shotgun:
+                                            if renpy.random.random() < (0.25 if enemy.coin_index == 12 else 0.10):
+                                                self.wm.sprite_positions.append((enemy.x, enemy.y, 13)) # Shotgun
+                                        
+                                        if not renpy.store.stein_has_minigun:
+                                            if renpy.random.random() < 0.10:
+                                                self.wm.sprite_positions.append((enemy.x, enemy.y, 15)) # Minigun
+
+                                return False
             return True
 
     class BaseEnemy(object):
@@ -755,6 +823,39 @@ init 10 python:
                     pitch = getattr(p, 'pitch', 0.0) / float(height)
                     sprite_data.append((p.x, p.y, float(p.texture_index), pitch))
             
+            flash_intensity = 0.0
+            
+            import time 
+            current_sys_time = time.time()
+            
+            current_weapon = c.weapons[c.player.current_weapon_name]
+            
+            time_since_shot = current_sys_time - current_weapon.last_fired
+            
+            if time_since_shot < 0.1:
+                flash_intensity = 1.0 - (time_since_shot / 0.1)
+                flash_intensity = max(0.0, min(1.0, flash_intensity))
+            
+            MAX_LIGHTS = 16
+            lamp_id = 2.0 
+            
+            potential_lights = []
+            if hasattr(c, 'sprite_positions'):
+                for spr in c.sprite_positions:
+                    if spr[2] == lamp_id: 
+                        potential_lights.append((spr[0], spr[1]))
+            
+            def dist_sq_lights(pos): return (pos[0] - c.player.x)**2 + (pos[1] - c.player.y)**2
+            potential_lights.sort(key=dist_sq_lights)
+            
+            final_lights_data = []
+            for i in range(MAX_LIGHTS):
+                if i < len(potential_lights):
+                    lx, ly = potential_lights[i]
+                    final_lights_data.append((lx, ly, 4.0, 1.5)) 
+                else:
+                    final_lights_data.append((0.0, 0.0, 0.0, 0.0))
+
             def get_dist_sq(s):
                 return (s[0] - c.player.x)**2 + (s[1] - c.player.y)**2
             sprite_data.sort(key=get_dist_sq, reverse=True)
@@ -814,6 +915,10 @@ init 10 python:
             child_render.add_uniform('u_sprites', sprite_data)
             child_render.add_uniform('u_num_active_sprites', num_active)
 
+            child_render.add_uniform('u_flash_intensity', flash_intensity)
+            child_render.add_uniform('u_light_positions', final_lights_data)
+            child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
+
             renpy.redraw(self, 0.01)
             return child_render
 
@@ -838,6 +943,9 @@ init 10 python:
             self.heal_flash_timer = 0.0
             self.hit_marker_timer = 0.0
             self.damage_indicators = []
+            
+            self.pickup_msg = ""
+            self.pickup_msg_timer = 0.0
             
             self.map_texture = self.create_map_texture()
             self.wall_atlas, self.num_textures = self.create_wall_atlas()
@@ -1234,6 +1342,20 @@ init 10 python:
                 hm_tex = renpy.display.draw.load_texture(self.hit_marker_img)
                 r.blit(hm_tex, (width/2 - hm_w/2, height/2 - hm_h/2))
 
+            if self.pickup_msg_timer > 0:
+                self.pickup_msg_timer -= dtime 
+                
+                alpha_val = 255
+                if self.pickup_msg_timer < 0.5:
+                    alpha_val = int(255 * (self.pickup_msg_timer / 0.5))
+                
+                if alpha_val > 0:
+                    pickup_text = Text(self.pickup_msg, size=40, color="#FFFF00", outlines=[(3, "#000", 0, 0)])
+                    pt_render = renpy.render(pickup_text, width, height, st, at)
+                    pw, ph = pt_render.get_size()
+                    
+                    r.blit(pt_render, (width/2 - pw/2, height * 0.20))
+
             # hp_color = "#FFF"
             # if self.player.health < 30: hp_color = "#F00"
             # elif self.player.health < 60: hp_color = "#FF0"
@@ -1338,9 +1460,13 @@ init 10 python:
                     elif texture_index in (11, 12):
                         renpy.store.stein_session_coins += 100; picked = True
                     elif texture_index == 13 and not renpy.store.stein_has_shotgun:
-                        renpy.store.stein_has_shotgun = True; renpy.notify("Shotgun Acquired"); picked = True
+                        renpy.store.stein_has_shotgun = True; picked = True
+                        self.pickup_msg = "SHOTGUN ACQUIRED"
+                        self.pickup_msg_timer = 3.0
                     elif texture_index == 15 and not renpy.store.stein_has_minigun:
-                        renpy.store.stein_has_minigun = True; renpy.notify("Minigun Acquired"); picked = True
+                        renpy.store.stein_has_minigun = True; picked = True
+                        self.pickup_msg = "MINIGUN ACQUIRED"
+                        self.pickup_msg_timer = 3.0
                     if picked: self.sprite_positions.remove(sprite)
 
         def shoot_weapon(self):
@@ -1349,20 +1475,25 @@ init 10 python:
             weapon.last_fired = time.time()
             weapon.play()
             
-            dx = self.player.dirx; dy = self.player.diry; pitch = self.player.pitch
+            dx = self.player.dirx
+            dy = self.player.diry 
+            pitch = self.player.pitch
             is_ads = self.is_aiming or self.gp_aiming
             
+            bullet_invisible = True 
+
             if weapon.projectile_type == 'shotgun':
                 import random
                 spread_mult = 0.1 if is_ads else 0.2
                 for _ in range(5):
                     spread = (random.random() - 0.5) * spread_mult
                     angle = self.player.rot + spread
-                    pdx = math.cos(angle); pdy = math.sin(angle)
-                    self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
+                    pdx = math.cos(angle)
+                    pdy = math.sin(angle)
+                    self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=bullet_invisible))
                 renpy.sound.play("sounds/shotgun.ogg", channel="audio")
             elif weapon.projectile_type == 'bullet':
-                self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=is_ads))
+                self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=bullet_invisible))
                 renpy.sound.play("sounds/gunshot.ogg", channel="audio")
             else:
                 hit = False
@@ -1434,6 +1565,16 @@ init 10 python:
 
         # EVENT HANDLING
         def event(self, ev, x, y, st):
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_LCTRL or ev.key == pygame.K_RCTRL:
+                    self.kb_running = True
+                    raise renpy.IgnoreEvent()
+            
+            if ev.type == pygame.KEYUP:
+                if ev.key == pygame.K_LCTRL or ev.key == pygame.K_RCTRL:
+                    self.kb_running = False
+                    raise renpy.IgnoreEvent()
+
             if self.return_value:
                 return self.return_value
 
