@@ -1,75 +1,4 @@
-default debug_wep_pos_x = 0.2
-default debug_wep_pos_y = 0.15 
-default debug_wep_pos_z = 0.2
-
-default debug_wep_rot_x = 2.97
-default debug_wep_rot_y = 8.0
-default debug_wep_rot_z = 0.0
-default debug_wep_scale = 1.0
-
 init 10 python:
-    def load_obj_data(filename, max_triangles=60):
-        vertices = []
-        triangles = []
-        
-        try:
-            if not renpy.loadable(filename):
-                print(f"!!! ERROR: No se encuentra el archivo {filename}")
-                return [0.0] * (max_triangles * 9), 0
-
-            with renpy.open_file(filename) as f:
-                for line in f:
-                    if isinstance(line, bytes):
-                        line = line.decode("utf-8")
-                        
-                    parts = line.split()
-                    if not parts: continue
-                    
-                    if parts[0] == 'v':
-                        vertices.append((float(parts[1]), float(parts[2]), float(parts[3])))
-                    
-                    elif parts[0] == 'f':
-                        idx = [int(p.split('/')[0]) - 1 for p in parts[1:]]
-                        
-                        for i in range(1, len(idx) - 1):
-                            triangles.append((vertices[idx[0]], vertices[idx[i]], vertices[idx[i+1]]))
-                            
-            flat_data = []
-            for t in triangles:
-                if len(flat_data) // 9 >= max_triangles: break
-                for v in t:
-                    flat_data.extend([v[0], v[1], v[2]])
-            
-            needed_floats = max_triangles * 9
-            while len(flat_data) < needed_floats:
-                flat_data.append(0.0)
-                
-            print(f"!!! EXITO: OBJ cargado. Triángulos: {len(triangles)}")
-            return flat_data, len(triangles)
-            
-        except Exception as e:
-            print("Error cargando OBJ: " + str(e))
-            return [0.0] * (max_triangles * 9), 0
-
-    class MeshObject(object):
-        def __init__(self, x, y, z, mesh_name, scale=0.3, rotation=0.0, radius=0.4):
-            self.x = x
-            self.y = y
-            self.z = z
-            self.scale = scale
-            self.rotation = rotation
-            self.radius = radius
-            self.mesh_name = mesh_name
-            
-            if mesh_name not in renpy.store.mesh_cache:
-                data, tris = load_obj_data(f"mod_assets/{mesh_name}.obj", max_triangles=50)
-                renpy.store.mesh_cache[mesh_name] = (data, tris)
-            
-            self.cached_data, self.cached_tris = renpy.store.mesh_cache[mesh_name]
-
-    if not hasattr(renpy.store, 'mesh_cache'):
-        renpy.store.mesh_cache = {}
-
     renpy.register_shader("stein.raycaster", variables="""
         uniform float u_time;
         uniform vec2 u_resolution;
@@ -95,44 +24,8 @@ init 10 python:
         uniform float u_num_active_lights;
         uniform float u_flashlight_active;
         uniform vec2 u_flashlight_bob;
-        
-        uniform vec3 u_mesh_verts[150]; 
-        uniform int u_mesh_tri_count;
-        uniform vec3 u_mesh_pos;
-        uniform float u_mesh_scale;
-        uniform float u_mesh_rot;
-
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
-    """, fragment_functions="""
-        float hitTriangle(vec3 ro, vec3 rd, vec3 v0, vec3 v1, vec3 v2) {
-            vec3 e1 = v1 - v0;
-            vec3 e2 = v2 - v0;
-            vec3 h = cross(rd, e2);
-            float a = dot(e1, h);
-            
-            if (a > -0.0001 && a < 0.0001) return -1.0;
-            
-            float f = 1.0 / a;
-            vec3 s = ro - v0;
-            float u = f * dot(s, h);
-            if (u < 0.0 || u > 1.0) return -1.0;
-            
-            vec3 q = cross(s, e1);
-            float v = f * dot(rd, q);
-            if (v < 0.0 || u + v > 1.0) return -1.0;
-            
-            float t = f * dot(e2, q);
-            if (t > 0.0001) return t;
-            
-            return -1.0;
-        }
-
-        vec2 rotate2D(vec2 v, float a) {
-            float s = sin(a);
-            float c = cos(a);
-            return mat2(c, -s, s, c) * v;
-        }
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
     """, fragment_300="""
@@ -345,55 +238,6 @@ init 10 python:
             color = texture2D(u_sky_texture, skyUV).rgb;
         }
 
-        vec3 localRayPos = rayPos - u_mesh_pos;
-        vec3 localRayDir = rayDir;
-        localRayPos.xy = rotate2D(localRayPos.xy, -u_mesh_rot);
-        localRayDir.xy = rotate2D(localRayDir.xy, -u_mesh_rot);
-        
-        localRayPos /= u_mesh_scale;
-
-        float meshMinDist = 10000.0;
-        bool hitMesh = false;
-        vec3 meshNormal = vec3(0.0, 0.0, 1.0);
-
-        for (int m=0; m < 50; m++) {
-            if (m >= u_mesh_tri_count) break;
-            
-            vec3 v0 = u_mesh_verts[m*3];
-            vec3 v1 = u_mesh_verts[m*3+1];
-            vec3 v2 = u_mesh_verts[m*3+2];
-            
-            float t = hitTriangle(localRayPos, localRayDir, v0, v1, v2);
-            
-            if (t > 0.0) {
-                t = t * u_mesh_scale;
-                
-                float currentWallDist = (hit==1) ? rayDist : 10000.0;
-                
-                if (t < currentWallDist && t < meshMinDist) {
-                    meshMinDist = t;
-                    hitMesh = true;
-                    vec3 e1 = v1 - v0;
-                    vec3 e2 = v2 - v0;
-                    meshNormal = normalize(cross(e1, e2));
-                }
-            }
-        }
-
-        if (hitMesh) {
-            vec3 lightDir = normalize(vec3(0.5, 0.5, 0.8));
-            float diff = max(dot(meshNormal, lightDir), 0.2);
-            
-            vec3 objColor = vec3(0.8, 0.4, 0.1); 
-            
-            color = objColor * diff;
-            
-            float fogDistObj = meshMinDist; // Aproximado
-            float fogFactor = 1.0 - (fogDistObj / 15.0);
-            vec3 fogColor = vec3(0.0, 0.0, 0.0); // O tu ambientLight
-            color = mix(fogColor, color, clamp(fogFactor, 0.0, 1.0));
-        }
-
         // SPRITE RENDERING (Adapted for 3D)
         // We approximate 2D billboard logic using the 3D ray distance
         // Project rayDist onto the XY plane
@@ -575,107 +419,6 @@ init 10 python:
         gl_FragColor = vec4(u_flash_color * mf_intensity, mf_intensity);
     """)
 
-    renpy.register_shader("stein.weapon_shader", variables="""
-        uniform vec2 u_resolution;
-        uniform float u_time;
-        
-        uniform vec3 u_verts[540]; 
-        uniform int u_tri_count;
-        
-        uniform vec3 u_position;
-        uniform vec3 u_rotation;
-        uniform float u_scale;
-        
-        varying vec2 v_tex_coord;
-        attribute vec2 a_tex_coord;
-    """, fragment_functions="""
-        float hitTriangleW(vec3 ro, vec3 rd, vec3 v0, vec3 v1, vec3 v2) {
-            vec3 e1 = v1 - v0;
-            vec3 e2 = v2 - v0;
-            vec3 h = cross(rd, e2);
-            float a = dot(e1, h);
-            if (a > -0.0001 && a < 0.0001) return -1.0;
-            float f = 1.0 / a;
-            vec3 s = ro - v0;
-            float u = f * dot(s, h);
-            if (u < 0.0 || u > 1.0) return -1.0;
-            vec3 q = cross(s, e1);
-            float v = f * dot(rd, q);
-            if (v < 0.0 || u + v > 1.0) return -1.0;
-            float t = f * dot(e2, q);
-            if (t > 0.0001) return t;
-            return -1.0;
-        }
-
-        vec3 rotatePoint(vec3 p, vec3 rot) {
-            float cx = cos(rot.x); float sx = sin(rot.x);
-            p.yz = mat2(cx, -sx, sx, cx) * p.yz;
-            float cy = cos(rot.y); float sy = sin(rot.y);
-            p.xz = mat2(cy, -sy, sy, cy) * p.xz;
-            float cz = cos(rot.z); float sz = sin(rot.z);
-            p.xy = mat2(cz, -sz, sz, cz) * p.xy;
-            return p;
-        }
-    """, vertex_200="""
-        v_tex_coord = a_tex_coord;
-    """, fragment_300="""
-        vec2 uv = v_tex_coord;
-
-        if (uv.x < 0.4 || uv.y < 0.3) {
-            gl_FragColor = vec4(0.0);
-            return; 
-        }
-
-        vec3 rayOrigin = vec3(0.0, 0.0, 0.0);
-        vec2 screenPos = (uv - 0.5) * 2.0;
-        screenPos.x *= u_resolution.x / u_resolution.y; 
-        vec3 rayDir = normalize(vec3(screenPos, 1.0)); 
-
-        float minDist = 10000.0;
-        float alpha = 0.0;
-        vec3 normal = vec3(0.0, 0.0, -1.0);
-
-        for(int i=0; i<180; i++) { 
-            if (i >= u_tri_count) break;
-            
-            vec3 v0 = u_verts[i*3];
-            vec3 v1 = u_verts[i*3+1];
-            vec3 v2 = u_verts[i*3+2];
-            
-            v0 = rotatePoint(v0 * u_scale, u_rotation) + u_position;
-            v1 = rotatePoint(v1 * u_scale, u_rotation) + u_position;
-            v2 = rotatePoint(v2 * u_scale, u_rotation) + u_position;
-            
-            float t = hitTriangleW(rayOrigin, rayDir, v0, v1, v2);
-            
-            if (t > 0.0 && t < minDist) {
-                minDist = t;
-                alpha = 1.0;
-                vec3 e1 = v1 - v0;
-                vec3 e2 = v2 - v0;
-                normal = normalize(cross(e1, e2));
-            }
-        }
-
-        vec4 finalColor = vec4(0.0);
-        
-        if (alpha > 0.5) {
-            vec3 lightDir = normalize(vec3(-0.5, 1.0, -0.5));
-            float diff = max(dot(normal, lightDir), 0.1);
-            
-            vec3 baseColor = vec3(0.15, 0.15, 0.18);
-            
-            vec3 viewDir = normalize(rayOrigin - (rayOrigin + rayDir * minDist));
-            vec3 reflectDir = reflect(-lightDir, normal);
-            float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-            
-            vec3 col = baseColor * (diff + 0.4) + vec3(0.5) * spec;
-            finalColor = vec4(col, 1.0);
-        }
-        
-        gl_FragColor = finalColor;
-    """)
-
     import math
     import pygame
     import time
@@ -759,60 +502,6 @@ init 10 python:
             position = self.wm.checkCollision(self.x, self.y, newX, newY, 0.45)
             self.x = position[0]; self.y = position[1]
 
-    class Weapon3DDisplayable(renpy.Displayable):
-        def __init__(self, controller, mesh_file, **kwargs):
-            super(Weapon3DDisplayable, self).__init__(**kwargs)
-            self.c = controller
-            
-            self.base = Transform(Image("pics/background.png"), size=(self.c.internal_width, self.c.internal_height))
-            
-            self.verts, self.tri_count = load_obj_data(mesh_file, max_triangles=180)
-            
-            self.vert_tuples = []
-            for i in range(0, len(self.verts), 3):
-                self.vert_tuples.append((self.verts[i], self.verts[i+1], self.verts[i+2]))
-
-        def render(self, width, height, st, at):
-            w = self.c.internal_width
-            h = self.c.internal_height
-            
-            cr = renpy.render(self.base, w, h, st, at)
-            
-            is_moving = abs(self.c.player.speed) > 0.1 or abs(self.c.player.strafe_speed) > 0.1
-            
-            base_pos = [
-                renpy.store.debug_wep_pos_x, 
-                renpy.store.debug_wep_pos_y, 
-                renpy.store.debug_wep_pos_z
-            ]
-            base_rot = [
-                renpy.store.debug_wep_rot_x, 
-                renpy.store.debug_wep_rot_y, 
-                renpy.store.debug_wep_rot_z
-            ]
-            
-            if is_moving:
-                bob_speed = 8.0
-                bob_amt = 0.01
-                base_pos[0] += math.sin(st * bob_speed) * bob_amt
-                base_pos[1] += abs(math.cos(st * bob_speed)) * bob_amt
-            
-            cr.add_shader("stein.weapon_shader")
-            
-            w_internal = float(self.c.internal_width)
-            h_internal = float(self.c.internal_height)
-            
-            cr.add_uniform("u_resolution", (w_internal, h_internal))
-            cr.add_uniform("u_time", st)
-            cr.add_uniform("u_verts", self.vert_tuples)
-            cr.add_uniform("u_tri_count", self.tri_count)
-            cr.add_uniform("u_position", tuple(base_pos))
-            cr.add_uniform("u_rotation", tuple(base_rot))
-            cr.add_uniform("u_scale", renpy.store.debug_wep_scale)
-            
-            renpy.redraw(self, 0.01)
-            return cr
-
     class Projectile(object):
         def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False, pitch=0.0):
             self.wm = wm
@@ -846,11 +535,6 @@ init 10 python:
 
                 if self.wm.isBlocking(self.x, self.y): 
                     return False
-
-                for obj in self.wm.mesh_objects:
-                    dist_sq = (self.x - obj.x)**2 + (self.y - obj.y)**2
-                    if dist_sq < (obj.radius * 0.8)**2:
-                        return False
 
                 if not self.fired_by_player:
                     player = self.wm.player
@@ -1165,10 +849,6 @@ init 10 python:
             self.c = controller
             # We use an Image instead of Solid to ensure a_tex_coord attributes are generated for the shader
             self.base_displayable = Transform(Image("pics/background.png"), size=(self.c.internal_width, self.c.internal_height))
-            
-            # Test
-            self.mesh_data, self.mesh_tris = load_obj_data("mod_assets/crate.obj", max_triangles=50)
-            self.mesh_rot = 0.0
 
         def render(self, width, height, st, at):
             c = self.c
@@ -1320,35 +1000,6 @@ init 10 python:
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
 
-            target_obj = None
-            min_dist = 20.0
-            
-            for obj in c.mesh_objects:
-                dist = math.sqrt((obj.x - c.player.x)**2 + (obj.y - c.player.y)**2)
-                if dist < min_dist:
-                    target_obj = obj
-                    min_dist = dist
-            
-            if target_obj:
-                target_obj.rotation += 0.02
-                
-                mesh_verts_tuples = []
-                data = target_obj.cached_data
-                for i in range(0, len(data), 3):
-                    mesh_verts_tuples.append((data[i], data[i+1], data[i+2]))
-
-                child_render.add_uniform('u_mesh_verts', mesh_verts_tuples)
-                child_render.add_uniform('u_mesh_tri_count', target_obj.cached_tris)
-                child_render.add_uniform('u_mesh_pos', (target_obj.x, target_obj.y, target_obj.z)) 
-                child_render.add_uniform('u_mesh_scale', target_obj.scale)
-                child_render.add_uniform('u_mesh_rot', target_obj.rotation)
-            else:
-                child_render.add_uniform('u_mesh_tri_count', 0)
-                child_render.add_uniform('u_mesh_verts', [(0.0,0.0,0.0)]*150) 
-                child_render.add_uniform('u_mesh_pos', (0.0,0.0,0.0))
-                child_render.add_uniform('u_mesh_scale', 0.1)
-                child_render.add_uniform('u_mesh_rot', 0.0)
-
             renpy.redraw(self, 0.01)
             return child_render
 
@@ -1417,11 +1068,6 @@ init 10 python:
             self.prev_btn_flashlight = False
             
             self.raycast_layer = RaycastLayer(self)
-            
-            self.mesh_objects = []
-            self.mesh_objects.append(MeshObject(20.0, 11.5, 0.5, "crate"))
-            
-            self.weapon_3d = Weapon3DDisplayable(self, "mod_assets/shotgun.obj")
             
             pygame.joystick.init()
             self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -1851,23 +1497,13 @@ init 10 python:
                         self.return_value = e[2]
 
             # Weapon
-            if self.player.current_weapon_name == "shotgun":
-                scale_factor = float(width) / float(self.internal_width)
-                
-                flat_weapon = renpy.display.layout.Flatten(self.weapon_3d)
-                
-                wep_scaled = Transform(child=flat_weapon, zoom=scale_factor, nearest=True)
-                
-                wep_final_render = renpy.render(wep_scaled, width, height, st, at)
-                r.blit(wep_final_render, (0,0))
-            else:
-                movement_state = {
-                    'is_moving': abs(self.player.speed) > 0.1 or abs(self.player.strafe_speed) > 0.1, 
-                    'is_running': self.kb_running or self.gp_running
-                }
-                is_firing = self.mouse_firing or self.gp_firing
-                current_weapon_obj = self.weapons[self.player.current_weapon_name]
-                current_weapon_obj.render_to(r, width, height, st, at, is_ads=self.is_aiming or self.gp_aiming, is_firing=is_firing, movement_state=movement_state)
+            movement_state = {
+                'is_moving': abs(self.player.speed) > 0.1 or abs(self.player.strafe_speed) > 0.1, 
+                'is_running': self.kb_running or self.gp_running
+            }
+            is_firing = self.mouse_firing or self.gp_firing
+            current_weapon_obj = self.weapons[self.player.current_weapon_name]
+            current_weapon_obj.render_to(r, width, height, st, at, is_ads=self.is_aiming or self.gp_aiming, is_firing=is_firing, movement_state=movement_state)
             
             if self.return_value:
                 renpy.timeout(0)
@@ -2008,14 +1644,6 @@ init 10 python:
             if toY < 0 or toY >= self.mapHeight or toX < 0 or toX >= self.mapWidth: return pos
             blockX = math.floor(toX); blockY = math.floor(toY)
             if self.isBlocking(blockX, blockY): return pos
-            
-            for obj in self.mesh_objects:
-                dist_sq = (toX - obj.x)**2 + (toY - obj.y)**2
-                min_dist = radius + obj.radius
-
-                if dist_sq < min_dist**2:
-                    return pos
-            
             pos[0] = toX; pos[1] = toY
             return pos
 
