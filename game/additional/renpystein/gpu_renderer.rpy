@@ -22,6 +22,8 @@ init 10 python:
         uniform float u_flash_intensity;
         uniform vec4 u_light_positions[16];
         uniform float u_num_active_lights;
+        uniform float u_flashlight_active;
+        uniform vec2 u_flashlight_bob;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
@@ -48,6 +50,11 @@ init 10 python:
         float rayDirZ = (screenY / u_vertical_scale) + u_pitch;
         
         vec3 rayDir = normalize(vec3(rayDirXY, rayDirZ));
+
+        vec2 flashDirXY = u_player_dir + (u_player_plane * u_flashlight_bob.x);
+        float flashDirZ = u_pitch + u_flashlight_bob.y;
+        
+        vec3 flashDir = normalize(vec3(flashDirXY, flashDirZ));
         
         // DDA SETUP
         ivec3 mapPos = ivec3(floor(rayPos));
@@ -174,6 +181,22 @@ init 10 python:
             
             vec3 totalLight = ambientLight;
 
+            if (u_flashlight_active > 0.5) {
+                vec3 lightVec = normalize(hitPos - rayPos);
+                
+                float dotProd = dot(lightVec, flashDir); 
+                float dist3D = distance(hitPos, rayPos);
+
+                if (dotProd > 0.88) { 
+                    float spotEffect = smoothstep(0.88, 0.95, dotProd);
+                    
+                    float att = 1.0 / (1.0 + dist3D * 0.1 + dist3D * dist3D * 0.02);
+                    vec3 flashLightColor = vec3(0.95, 0.95, 1.0);
+                    
+                    totalLight += flashLightColor * att * 1.8 * spotEffect;
+                }
+            }
+
             if (u_flash_intensity > 0.01) {
                 float distToPlayer = distance(hitPos.xy, u_player_pos);
                 float flashAtt = 1.0 / (0.5 + (distToPlayer * distToPlayer) * 0.1);
@@ -293,6 +316,20 @@ init 10 python:
                         float sprAmbParams = 1.0 - (sprDist / 15.0);
                         vec3 sprLight = vec3(0.1, 0.1, 0.15);
                         sprLight += max(0.0, sprAmbParams) * 0.4;
+
+                        if (u_flashlight_active > 0.5) {
+                            float dotProd = dot(rayDir, flashDir);
+                            
+                            float dist3D = transformY;
+                            
+                            if (dotProd > 0.88) {
+                                float spotEffect = smoothstep(0.88, 0.95, dotProd);
+                                float att = 1.0 / (1.0 + dist3D * 0.1 + dist3D * dist3D * 0.02);
+                                vec3 flashLightColor = vec3(0.95, 0.95, 1.0);
+                                
+                                sprLight += flashLightColor * att * 1.8 * spotEffect;
+                            }
+                        }
 
                         if (u_flash_intensity > 0.01) {
                             float flashAtt = 1.0 / (0.5 + (sprDist * sprDist) * 0.1);
@@ -818,6 +855,10 @@ init 10 python:
             
             # Bobbing Logic
             bob_offset = 0.0
+            
+            fl_bob_x = 0.0
+            fl_bob_y = 0.0
+            
             is_moving = abs(c.player.speed) > 0.1 or abs(c.player.strafe_speed) > 0.1
             is_running = c.kb_running or c.gp_running
             effective_aiming = c.is_aiming or c.gp_aiming
@@ -825,10 +866,20 @@ init 10 python:
             if is_moving and c.player.is_grounded and not effective_aiming:
                 bob_speed = 10.0
                 bob_amp = 0.01
+                
+                fl_amp_x = 0.05
+                fl_amp_y = 0.03
+                
                 if is_running:
                     bob_speed = 15.0
                     bob_amp = 0.02
+                    fl_amp_x = 0.08 
+                    fl_amp_y = 0.05
+
                 bob_offset = math.sin(st * bob_speed) * bob_amp
+                
+                fl_bob_x = math.sin(st * bob_speed) * fl_amp_x
+                fl_bob_y = abs(math.cos(st * bob_speed)) * fl_amp_y
 
             sprite_data = []
             if hasattr(c, 'sprite_positions') and c.sprite_positions:
@@ -942,6 +993,10 @@ init 10 python:
             child_render.add_uniform('u_num_active_sprites', num_active)
 
             child_render.add_uniform('u_flash_intensity', flash_intensity)
+            child_render.add_uniform('u_flashlight_active', 1.0 if c.flashlight_on else 0.0)
+            
+            child_render.add_uniform('u_flashlight_bob', (fl_bob_x, fl_bob_y))
+            
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
 
@@ -1008,6 +1063,9 @@ init 10 python:
             self.mouse_firing = False
             self.gp_running = False
             self.kb_running = False
+            
+            self.flashlight_on = False 
+            self.prev_btn_flashlight = False
             
             self.raycast_layer = RaycastLayer(self)
             
@@ -1681,6 +1739,9 @@ init 10 python:
                     if renpy.store.stein_has_minigun:
                         self.player.current_weapon_name = "minigun"
 
+                if ev.key == pygame.K_f:
+                    self.flashlight_on = not self.flashlight_on
+
                 if ev.key == pygame.K_w: self.kb_speed = 1.0
                 if ev.key == pygame.K_s: self.kb_speed = -1.0
                 if ev.key == pygame.K_a: self.kb_strafe = -1.0
@@ -1745,7 +1806,7 @@ init 10 python:
                     if joy.get_numaxes() > 3:
                         ry = joy.get_axis(3)
                         if abs(ry) > DEADZONE:
-                            p_speed = 6.0
+                            p_speed = 19.0
                             if self.is_aiming or self.gp_aiming: p_speed *= 0.5
                             self.player.pitch -= ry * p_speed
                             self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
@@ -1754,6 +1815,14 @@ init 10 python:
                     if joy.get_numbuttons() > 5 and joy.get_button(5): self.gp_firing = True
                     if joy.get_numbuttons() > 0 and joy.get_button(0): self.player.trigger_jump()
                     if joy.get_numbuttons() > 3 and joy.get_button(3): is_switch_held = True
+
+                    btn_r3 = False
+                    if joy.get_numbuttons() > 10 and joy.get_button(10): btn_r3 = True
+                    elif joy.get_numbuttons() > 9 and joy.get_button(9): btn_r3 = True
+                    
+                    if btn_r3 and not self.prev_btn_flashlight:
+                        self.flashlight_on = not self.flashlight_on
+                    self.prev_btn_flashlight = btn_r3
 
                 except pygame.error: continue
             

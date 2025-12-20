@@ -274,6 +274,7 @@ screen stein:
     key "K_RSHIFT" action None
     key "K_LCTRL" action None
     key "K_RCTRL" action None
+    key "K_f" action None
 
     python:
         # Quality settings: 0=High, 1=Low, 2=Ultra Low
