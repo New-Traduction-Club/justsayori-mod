@@ -163,48 +163,48 @@ init 10 python:
                 } else {
                     color = texture2D(u_wall_atlas, vec2(finalU, finalV), -4.0).rgb;
                 }
-                
-                vec3 finalColor = color;
-                
-                float fogDist = length(hitPos.xy - u_player_pos);
-                float ambientParams = 1.0 - (fogDist / 15.0); 
-                vec3 ambientLight = vec3(0.1, 0.1, 0.15); 
-                ambientLight += max(0.0, ambientParams) * 0.4; 
-                
-                vec3 totalLight = ambientLight;
-
-                if (u_flash_intensity > 0.01) {
-                    float distToPlayer = distance(hitPos.xy, u_player_pos);
-                    float flashAtt = 1.0 / (0.5 + (distToPlayer * distToPlayer) * 0.1);
-                    vec3 flashColor = vec3(1.0, 0.8, 0.4);
-                    totalLight += flashColor * u_flash_intensity * flashAtt * 2.0;
-                }
-
-                for (int i = 0; i < 16; i++) {
-                    if (float(i) >= u_num_active_lights) break;
-                    
-                    vec4 lightData = u_light_positions[i]; 
-                    vec2 lightPos = lightData.xy;
-                    float radius = lightData.z;
-                    float intensity = lightData.w;
-                    
-                    float distToLight = distance(hitPos.xy, lightPos);
-                    
-                    if (distToLight < radius) {
-                        float att = 1.0 - (distToLight / radius);
-                        att = att * att; 
-                        
-                        vec3 lampColor = vec3(0.2, 1.0, 0.2); 
-                        totalLight += lampColor * intensity * att;
-                    }
-                }
-
-                float faceShadow = 1.0;
-                if (side == 1) faceShadow = 0.7; 
-                if (side == 2) faceShadow = 1.0; 
-                
-                color = finalColor * totalLight * faceShadow;
             }
+            
+            vec3 finalColor = color;
+            
+            float fogDist = length(hitPos.xy - u_player_pos);
+            float ambientParams = 1.0 - (fogDist / 15.0); 
+            vec3 ambientLight = vec3(0.1, 0.1, 0.15); 
+            ambientLight += max(0.0, ambientParams) * 0.4; 
+            
+            vec3 totalLight = ambientLight;
+
+            if (u_flash_intensity > 0.01) {
+                float distToPlayer = distance(hitPos.xy, u_player_pos);
+                float flashAtt = 1.0 / (0.5 + (distToPlayer * distToPlayer) * 0.1);
+                vec3 flashColor = vec3(1.0, 0.8, 0.4);
+                totalLight += flashColor * u_flash_intensity * flashAtt * 2.0;
+            }
+
+            for (int i = 0; i < 16; i++) {
+                if (float(i) >= u_num_active_lights) break;
+                
+                vec4 lightData = u_light_positions[i]; 
+                vec2 lightPos = lightData.xy;
+                float radius = lightData.z;
+                float intensity = lightData.w;
+                
+                float distToLight = distance(hitPos.xy, lightPos);
+                
+                if (distToLight < radius) {
+                    float att = 1.0 - (distToLight / radius);
+                    att = att * att; 
+                    
+                    vec3 lampColor = vec3(0.2, 1.0, 0.2); 
+                    totalLight += lampColor * intensity * att;
+                }
+            }
+
+            float faceShadow = 1.0;
+            if (side == 1) faceShadow = 0.7; 
+            if (side == 2) faceShadow = 1.0; 
+            
+            color = finalColor * totalLight * faceShadow;
 
         } else {
             // Skybox
@@ -288,7 +288,33 @@ init 10 python:
                     vec4 spriteCol = texture2D(u_sprite_atlas, vec2(atlasX, texY));
                     
                     if (spriteCol.a > 0.5) {
-                        color = spriteCol.rgb;
+                        
+                        float sprDist = length(vec2(spX, spY)); 
+                        float sprAmbParams = 1.0 - (sprDist / 15.0);
+                        vec3 sprLight = vec3(0.1, 0.1, 0.15);
+                        sprLight += max(0.0, sprAmbParams) * 0.4;
+
+                        if (u_flash_intensity > 0.01) {
+                            float flashAtt = 1.0 / (0.5 + (sprDist * sprDist) * 0.1);
+                            vec3 flashColor = vec3(1.0, 0.8, 0.4);
+                            sprLight += flashColor * u_flash_intensity * flashAtt * 2.0;
+                        }
+
+                        for (int j = 0; j < 16; j++) {
+                            if (float(j) >= u_num_active_lights) break;
+                            
+                            vec4 lData = u_light_positions[j];
+                            float lDist = distance(spritePos, lData.xy);
+                            
+                            if (lDist < lData.z) {
+                                float att = 1.0 - (lDist / lData.z);
+                                att = att * att;
+                                vec3 lampColor = vec3(0.4, 0.9, 0.4);
+                                sprLight += lampColor * lData.w * att;
+                            }
+                        }
+
+                        color = spriteCol.rgb * sprLight;
                         currentDepth = transformY; 
                     }
                 }
@@ -832,7 +858,7 @@ init 10 python:
             
             time_since_shot = current_sys_time - current_weapon.last_fired
             
-            if time_since_shot < 0.1:
+            if current_weapon.projectile_type and time_since_shot < 0.1:
                 flash_intensity = 1.0 - (time_since_shot / 0.1)
                 flash_intensity = max(0.0, min(1.0, flash_intensity))
             
@@ -852,7 +878,7 @@ init 10 python:
             for i in range(MAX_LIGHTS):
                 if i < len(potential_lights):
                     lx, ly = potential_lights[i]
-                    final_lights_data.append((lx, ly, 4.0, 1.5)) 
+                    final_lights_data.append((lx, ly, 6.5, 1.8)) 
                 else:
                     final_lights_data.append((0.0, 0.0, 0.0, 0.0))
 
