@@ -359,6 +359,8 @@ label renpystein_demo:
     jump start_level_1
 
 label sayoristein_main_menu(mg_obj=None):
+    $ preferences.gl_powersave = False
+    $ preferences.gl_framerate = 120
     $ js_stein_audio.enter_minigame()
     $ js_stein_audio.play("menu")
     show black zorder 99 with dissolve
