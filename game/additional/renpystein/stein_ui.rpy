@@ -20,6 +20,15 @@ screen stein_controls_overlay():
         if renpy.android:
             textbutton _("Touch & Gamepad") action SetVariable("simulate_touch", True)
 
+    if persistent.stein_show_fps:
+        text "FPS: [stein_current_fps]":
+            xalign 0.98
+            yalign 0.02
+            size 30
+            color "#607567"
+            outlines [(2, "#000000", 0, 0)]
+            font "mod_assets/fonts/BebasNeue-Regular.ttf"
+
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
     size 20
@@ -38,6 +47,24 @@ style sayoristein_menu_button is default:
     xsize 250
     ysize 75
 
+style stein_settings_header:
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
+    size 32
+    color "#AAAAAA"
+    xalign 0.5
+    text_align 0.5
+
+style stein_settings_label:
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
+    size 26
+    color "#FFFFFF"
+    xalign 0.5
+    text_align 0.5
+
+style stein_tab_button is sayoristein_menu_button:
+    xsize 200
+    ysize 60
+
 screen sayoristein_menu():
     tag menu
 
@@ -54,71 +81,168 @@ screen sayoristein_menu():
 
 screen sayoristein_settings_menu():
     tag menu
+    modal True
+    
+    default current_tab = "graphics"
 
     add "pics/gui/main_menu_bg.png"
 
-    viewport id "stein_settings_vp":
+    text "SETTINGS":
+        font "mod_assets/fonts/BebasNeue-Regular.ttf"
+        size 70
+        color "#ffffff"
         xalign 0.5
-        yalign 0.5
-        xsize 1200
-        ysize 600
-        scrollbars "vertical"
-        mousewheel True
-        draggable True
-        pagekeys True
+        yalign 0.03
+        outlines [(4, "#000", 0, 0)]
 
-        hbox:
-            xalign 0.5
-            spacing 50
+    hbox:
+        xalign 0.5
+        yalign 0.14 
+        spacing 15
+        
+        textbutton _("Graphics"):
+            action SetScreenVariable("current_tab", "graphics")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "graphics" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
 
+        textbutton _("Controls"):
+            action SetScreenVariable("current_tab", "controls")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "controls" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
+
+        textbutton _("Gameplay"):
+            action SetScreenVariable("current_tab", "gameplay")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "gameplay" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
+
+    frame:
+        background None
+        xalign 0.5
+        yalign 0.8
+        xsize 1100
+        ysize 500
+        
+        if current_tab == "graphics":
             vbox:
-                spacing 15
                 xalign 0.5
-
-                label _("Game Resolution") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
+                yalign 0.0
+                spacing 25
+                
+                vbox:
+                    spacing 10
                     xalign 0.5
-                    yalign 0.5
+                    text _("Resolution") style "stein_settings_header"
+                    
+                    hbox:
+                        spacing 15
+                        xalign 0.5
+                        textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                    hbox:
+                        spacing 15
+                        xalign 0.5
+                        textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
 
-                textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-                textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-                textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-                textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-                textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-
-            vbox:
+                null height 10
+                
+                vbox:
                     spacing 5
                     xalign 0.5
-                    text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "sayoristein_menu_button_text":
-                        xalign 0.5
-                        size 30
-                    
-                    bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
-                        xalign 0.5
-                        xsize 400
-                        ysize 40
-                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        thumb Frame("pics/gui/button_bg.png", 10, 10) 
-                        thumb_offset 5
-
-                    null height 20
-
-                    text _("Motion Blur: [int(persistent.stein_motion_blur_strength * 100)]%") style "sayoristein_menu_button_text":
-                        xalign 0.5
-                        size 30
+                    text _("Motion Blur Strength: [int(persistent.stein_motion_blur_strength * 100)]%") style "stein_settings_label"
                     
                     bar value FieldValue(persistent, "stein_motion_blur_strength", range=1.0, step=0.05):
                         xalign 0.5
-                        xsize 400
-                        ysize 40
+                        xsize 600
+                        ysize 45
                         left_bar Frame("pics/gui/button_bg.png", 10, 10)
                         right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        thumb Frame("pics/gui/button_bg.png", 10, 10) 
-                        thumb_offset 5
+                        thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+        elif current_tab == "controls":
+            hbox:
+                spacing 80
+                xalign 0.5
+                yalign 0.0
+                
+                vbox:
+                    spacing 15
+                    xsize 400
+                    text _("Mouse & Keyboad") style "stein_settings_header"
+                    
+                    vbox:
+                        spacing 5
+                        text _("Sensitivity: [persistent.stein_mouse_sens:.2f]") style "stein_settings_label"
+                        bar value FieldValue(persistent, "stein_mouse_sens", range=3.0, step=0.1):
+                            xalign 0.5
+                            xsize 350
+                            ysize 35
+                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                vbox:
+                    spacing 15
+                    xsize 400
+                    text _("Gamepad (Controller)") style "stein_settings_header"
+
+                    vbox:
+                        spacing 5
+                        text _("Horiz. Sensitivity: [persistent.stein_gamepad_sens_x:.2f]") style "stein_settings_label"
+                        bar value FieldValue(persistent, "stein_gamepad_sens_x", range=3.0, step=0.1):
+                            xalign 0.5
+                            xsize 350
+                            ysize 35
+                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                    vbox:
+                        spacing 5
+                        text _("Vert. Sensitivity: [persistent.stein_gamepad_sens_y:.2f]") style "stein_settings_label"
+                        bar value FieldValue(persistent, "stein_gamepad_sens_y", range=3.0, step=0.1):
+                            xalign 0.5
+                            xsize 350
+                            ysize 35
+                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+        elif current_tab == "gameplay":
+            vbox:
+                xalign 0.5
+                spacing 30
+                
+                vbox:
+                    spacing 5
+                    xalign 0.5
+                    text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "stein_settings_label"
+                    bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
+                        xalign 0.5
+                        xsize 600
+                        ysize 45
+                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                        thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                vbox:
+                    spacing 5
+                    xalign 0.5
+                    textbutton ("Show FPS Counter: [persistent.stein_show_fps]"):
+                        action ToggleVariable("persistent.stein_show_fps")
+                        style "sayoristein_menu_button"
+                        text_style "sayoristein_menu_button_text"
+                        xalign 0.5
+                    
+                    text _("Shows frames per second in top-right corner") font "mod_assets/fonts/BebasNeue-Regular.ttf" size 18 color "#888" xalign 0.5
 
     textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
         xalign 0.5
-        yalign 0.95
+        yalign 0.96
 
 
 screen sayoristein_level_select():

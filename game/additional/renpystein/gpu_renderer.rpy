@@ -1,4 +1,9 @@
 init 10 python:
+    SLOT_MELEE   = 0
+    SLOT_HANDGUN = 1
+    SLOT_LONG    = 2
+    SLOT_SPECIAL = 3
+
     renpy.register_shader("stein.raycaster", variables="""
         uniform float u_time;
         uniform vec2 u_resolution;
@@ -767,7 +772,10 @@ init 10 python:
             return True
 
     class Weapon(object):
-        def __init__(self, weaponName="fist", frameCount=5, zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None, flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7)):
+        def __init__(self, name, category, frameCount=5, zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None, flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7)):
+            self.name = name
+            self.category = category
+            
             self.images = []; self.playing = False; self.frame = 0; self.oldst = None
             self.damage = damage; self.projectile_type = projectile_type; self.cooldown = cooldown
             self.last_fired = 0.0; self.loop_frames = loop_frames
@@ -779,7 +787,7 @@ init 10 python:
             
             self.ads_idle = Transform(ads_idle, zoom=zoom_factor) if ads_idle else None
             self.ads_fire = Transform(ads_fire, zoom=zoom_factor) if ads_fire else None
-            for i in range(frameCount): self.images.append(Transform("pics/weapons/%s%s.png" % (weaponName, i+1), zoom=zoom_factor))
+            for i in range(frameCount): self.images.append(Transform("pics/weapons/%s%s.png" % (name, i+1), zoom=zoom_factor))
             
             # Flash Displayable base (scaling an image ensures we have a mesh with UV coordinates)
             self.flash_base = Transform(Image("pics/items/sight.png"), size=(512, 512))
@@ -1014,6 +1022,10 @@ init 10 python:
             self.mapHeight = len(worldMap[0]) if self.mapWidth > 0 else 0
             self.map_w = self.mapWidth
             self.map_h = self.mapHeight
+            
+            self.fps_frame_count = 0
+            self.fps_timer_accum = 0.0
+
             self.exits = exits
             
             self.is_arena_mode = getattr(renpy.store, 'is_arena_mode', False)
@@ -1074,19 +1086,46 @@ init 10 python:
             for joy in self.joysticks:
                 joy.init()
 
-            gun_dmg = 50; shotgun_dmg = 35; minigun_dmg = 40
+            self.gun_dmg = 50; self.shotgun_dmg = 35; self.minigun_dmg = 40
             if self.is_arena_mode:
-                gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
-                shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
-                minigun_dmg += 3 * (persistent.stein_minigun_level * 0.10)
+                self.gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
+                self.shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
+                self.minigun_dmg += 3 * (persistent.stein_minigun_level * 0.10)
 
-            self.weapons = {
-                "fist": Weapon("fist", 5, 1, damage=100, projectile_type=None, cooldown=0.5),
-                "gun": Weapon("gun", 5, 1, damage=gun_dmg, projectile_type='bullet', cooldown=0.6, ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png", flash_offset=(0, -170), flash_ads_offset=(0, -280), flash_size=0.8, flash_color=(1.0, 0.9, 0.6)),
-                "shotgun": Weapon("shotgun", 5, 1, damage=shotgun_dmg, projectile_type='shotgun', cooldown=1.0, flash_offset=(0, -170), flash_ads_offset=(0, -170), flash_size=1.5, flash_color=(1.0, 0.6, 0.2)),
-                "minigun": Weapon("minigun", 5, 1, damage=minigun_dmg, projectile_type='bullet', cooldown=0.05, loop_frames=[2, 3], flash_offset=(0, -180), flash_ads_offset=(0, -180), flash_size=1.0, flash_color=(1.0, 0.9, 0.6))
-            }
-            for w_name in self.weapons: self.weapons[w_name].last_fired = -100.0
+            self.weapon_library = {}
+            
+            def register_weapon(w_obj):
+                self.weapon_library[w_obj.name] = w_obj
+
+            register_weapon(Weapon("fist", SLOT_MELEE, 5, 1, damage=100, cooldown=0.5))
+
+            register_weapon(Weapon("gun", SLOT_HANDGUN, 5, 1, damage=self.gun_dmg, projectile_type='bullet', cooldown=0.6, 
+                ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png", 
+                flash_offset=(0, -170), flash_ads_offset=(0, -280), flash_size=0.8))
+
+            register_weapon(Weapon("shotgun", SLOT_LONG, 5, 1, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.0, 
+                flash_offset=(0, -170), flash_ads_offset=(0, -170), flash_size=1.5, flash_color=(1.0, 0.6, 0.2)))
+            
+            register_weapon(Weapon("minigun", SLOT_SPECIAL, 5, 1, damage=self.minigun_dmg, projectile_type='bullet', cooldown=0.05, 
+                loop_frames=[2, 3], flash_offset=(0, -180), flash_ads_offset=(0, -180)))
+            
+            self.inventory = [None, None, None, None] # [Melee, Handgun, Long, Special]
+            
+            self.weapons = self.weapon_library
+
+            self.current_slot_index = SLOT_MELEE
+
+            self.equip_weapon("fist")
+            self.equip_weapon("gun")
+            
+            if renpy.store.stein_has_shotgun:
+                self.equip_weapon("shotgun")
+            
+            if renpy.store.stein_has_minigun:
+                self.equip_weapon("minigun")
+
+            self.current_slot_index = SLOT_HANDGUN
+            self.update_current_weapon_ref()
             
             self.bullet_texture_index = 6
             self.sight_d = Image("pics/items/sight.png")
@@ -1121,6 +1160,35 @@ init 10 python:
 
             if self.is_arena_mode and self.current_round == 0:
                 self.start_next_round()
+
+        def equip_weapon(self, weapon_name):
+            if weapon_name in self.weapon_library:
+                w_obj = self.weapon_library[weapon_name]
+                self.inventory[w_obj.category] = w_obj
+                if self.inventory[self.current_slot_index] == w_obj:
+                    self.update_current_weapon_ref()
+
+        def update_current_weapon_ref(self):
+            weapon = self.inventory[self.current_slot_index]
+            if weapon:
+                self.player.current_weapon_name = weapon.name
+            else:
+                self.current_slot_index = SLOT_MELEE
+                self.player.current_weapon_name = self.inventory[SLOT_MELEE].name
+
+        def switch_to_slot(self, slot_idx):
+            if 0 <= slot_idx < 4:
+                if self.inventory[slot_idx] is not None:
+                    self.current_slot_index = slot_idx
+                    self.update_current_weapon_ref()
+
+        def cycle_weapon(self):
+            start_idx = self.current_slot_index
+            for i in range(1, 4):
+                next_idx = (start_idx + i) % 4
+                if self.inventory[next_idx] is not None:
+                    self.switch_to_slot(next_idx)
+                    return
 
         def start_next_round(self):
             self.current_round += 1
@@ -1317,6 +1385,15 @@ init 10 python:
             if self.oldst is None: self.oldst = st
             dtime = st - self.oldst
             self.oldst = st
+
+            self.fps_frame_count += 1
+            self.fps_timer_accum += dtime
+            
+            if self.fps_timer_accum >= 0.5:
+                current_fps = int(self.fps_frame_count / self.fps_timer_accum)
+                renpy.store.stein_current_fps = current_fps
+                self.fps_frame_count = 0
+                self.fps_timer_accum = 0.0
 
             if simulate_touch: self.update_player_from_touch_state()
             else: self.touch_speed = 0.0; self.touch_strafe = 0.0; self.touch_dir = 0.0
@@ -1710,8 +1787,12 @@ init 10 python:
         def handle_pc_input(self, ev):
             # Handle mouse look
             if ev.type == pygame.MOUSEMOTION:
-                sensitivity = 0.003
-                pitch_sensitivity = 0.8 
+                base_sens = 0.003
+                base_pitch = 0.8
+                
+                sensitivity = base_sens * persistent.stein_mouse_sens
+                pitch_sensitivity = base_pitch * persistent.stein_mouse_sens
+
                 if self.is_aiming:
                     sensitivity *= 0.25
                     pitch_sensitivity *= 0.5
@@ -1730,14 +1811,10 @@ init 10 python:
                     self.mouse_initialized = False
                     return
 
-                if ev.key == pygame.K_1: self.player.current_weapon_name = "fist"
-                if ev.key == pygame.K_2: self.player.current_weapon_name = "gun"
-                if ev.key == pygame.K_3: 
-                    if renpy.store.stein_has_shotgun:
-                        self.player.current_weapon_name = "shotgun"
-                if ev.key == pygame.K_4: 
-                    if renpy.store.stein_has_minigun:
-                        self.player.current_weapon_name = "minigun"
+                if ev.key == pygame.K_1: self.switch_to_slot(SLOT_MELEE)
+                if ev.key == pygame.K_2: self.switch_to_slot(SLOT_HANDGUN)
+                if ev.key == pygame.K_3: self.switch_to_slot(SLOT_LONG)
+                if ev.key == pygame.K_4: self.switch_to_slot(SLOT_SPECIAL)
 
                 if ev.key == pygame.K_f:
                     self.flashlight_on = not self.flashlight_on
@@ -1800,13 +1877,13 @@ init 10 python:
                     if joy.get_numaxes() > 2:
                         rx = joy.get_axis(2)
                         if abs(rx) > DEADZONE:
-                            sens = 2.5
+                            sens = 2.5 * persistent.stein_gamepad_sens_x
                             if self.is_aiming or self.gp_aiming: sens *= 0.25
                             self.gp_dir -= rx * sens
                     if joy.get_numaxes() > 3:
                         ry = joy.get_axis(3)
                         if abs(ry) > DEADZONE:
-                            p_speed = 19.0
+                            p_speed = 19.0 * persistent.stein_gamepad_sens_y
                             if self.is_aiming or self.gp_aiming: p_speed *= 0.5
                             self.player.pitch -= ry * p_speed
                             self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
@@ -1816,28 +1893,23 @@ init 10 python:
                     if joy.get_numbuttons() > 0 and joy.get_button(0): self.player.trigger_jump()
                     if joy.get_numbuttons() > 3 and joy.get_button(3): is_switch_held = True
 
-                    btn_r3 = False
-                    if joy.get_numbuttons() > 10 and joy.get_button(10): btn_r3 = True
-                    elif joy.get_numbuttons() > 9 and joy.get_button(9): btn_r3 = True
+                    btn_flashlight_held = False
+
+                    if joy.get_numhats() > 0:
+                        hat_x, hat_y = joy.get_hat(0)
+                        if hat_y == 1: 
+                            btn_flashlight_held = True
                     
-                    if btn_r3 and not self.prev_btn_flashlight:
+                    if btn_flashlight_held and not self.prev_btn_flashlight:
                         self.flashlight_on = not self.flashlight_on
-                    self.prev_btn_flashlight = btn_r3
+                    
+                    self.prev_btn_flashlight = btn_flashlight_held
 
                 except pygame.error: continue
             
             if is_switch_held and not getattr(self, 'prev_btn_weapon_switch', False):
-                curr = self.player.current_weapon_name
-                if curr == "fist":
-                    self.player.current_weapon_name = "gun"
-                elif curr == "gun":
-                    if renpy.store.stein_has_shotgun: self.player.current_weapon_name = "shotgun"
-                    elif renpy.store.stein_has_minigun: self.player.current_weapon_name = "minigun"
-                    else: self.player.current_weapon_name = "fist"
-                elif curr == "shotgun":
-                    if renpy.store.stein_has_minigun: self.player.current_weapon_name = "minigun"
-                    else: self.player.current_weapon_name = "fist"
-                else: self.player.current_weapon_name = "fist"
+                self.cycle_weapon()
+            
             self.prev_btn_weapon_switch = is_switch_held
 
         def handle_gamepad_input(self, ev):

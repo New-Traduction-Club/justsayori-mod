@@ -34,6 +34,12 @@ default stein_yuritler_count = 0
 default worldMap = []
 default exits = []
 
+default stein_current_fps = 60
+
+default persistent.stein_mouse_sens = 1.0
+default persistent.stein_gamepad_sens_x = 1.0
+default persistent.stein_gamepad_sens_y = 1.0
+default persistent.stein_show_fps = True
 
 init python:
     # --- Level 1 Data ---
