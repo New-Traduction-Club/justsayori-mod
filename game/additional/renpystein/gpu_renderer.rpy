@@ -772,84 +772,221 @@ init 10 python:
             return True
 
     class Weapon(object):
-        def __init__(self, name, category, frameCount=5, zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, ads_idle=None, ads_fire=None, loop_frames=None, flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7)):
+        def __init__(self, name, category, 
+            normal_frameCount=5, normal_fps=15, normal_flash_frame=0, normal_name=None,
+            ads_enter_frameCount=0, ads_enter_fps=20, ads_enter_name=None,
+            ads_fire_frameCount=0, ads_fire_fps=15, ads_fire_flash_frame=0, ads_fire_name=None,
+            zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, 
+            ads_idle=None, ads_fire=None, loop_frames=None, 
+            flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7),
+            frameCount=None, ads_name=None, ads_frameCount=None 
+            ):
+            
             self.name = name
             self.category = category
             
-            self.images = []; self.playing = False; self.frame = 0; self.oldst = None
+            if frameCount is not None: normal_frameCount = frameCount
+            if ads_frameCount is not None: ads_fire_frameCount = ads_frameCount
+            if ads_name is not None: ads_fire_name = ads_name
+
             self.damage = damage; self.projectile_type = projectile_type; self.cooldown = cooldown
-            self.last_fired = 0.0; self.loop_frames = loop_frames
-            self.flash_offset = flash_offset
-            self.flash_ads_offset = flash_ads_offset
-            self.flash_size = flash_size
-            self.flash_color = flash_color
+            self.loop_frames = loop_frames
+            
+            self.flash_config = {
+                'offset_normal': flash_offset,
+                'offset_ads': flash_ads_offset,
+                'size': flash_size,
+                'color': flash_color,
+                'frame_normal': normal_flash_frame,
+                'frame_ads': ads_fire_flash_frame
+            }
+            
+            self.playing = False
+            self.frame_index = 0
+            self.oldst = None
+            self.last_fired = 0.0
             self.current_flash_rot = 0.0
             
-            self.ads_idle = Transform(ads_idle, zoom=zoom_factor) if ads_idle else None
-            self.ads_fire = Transform(ads_fire, zoom=zoom_factor) if ads_fire else None
-            for i in range(frameCount): self.images.append(Transform("pics/weapons/%s%s.png" % (name, i+1), zoom=zoom_factor))
+            # --- Animation Data ---
+            self.anims = {
+                'normal': [],
+                'ads_enter': [],
+                'ads_fire': []
+            }
             
-            # Flash Displayable base (scaling an image ensures we have a mesh with UV coordinates)
+            self.fps = {
+                'normal': normal_fps,
+                'ads_enter': ads_enter_fps,
+                'ads_fire': ads_fire_fps
+            }
+            
+            # Load Normal
+            base_normal = normal_name if normal_name else name
+            for i in range(normal_frameCount): 
+                self.anims['normal'].append(Transform("pics/weapons/%s%s.webp" % (base_normal, i+1), xysize=(1280, 720)))
+                
+            # Load ADS Enter
+            if ads_enter_frameCount > 0:
+                base_enter = ads_enter_name if ads_enter_name else (name + "_ads_enter")
+                for i in range(ads_enter_frameCount):
+                    self.anims['ads_enter'].append(Transform("pics/weapons/%s%s.webp" % (base_enter, i+1), xysize=(1280, 720)))
+
+            # Load ADS Fire
+            if ads_fire_frameCount > 0:
+                base_ads_fire = ads_fire_name if ads_fire_name else (name + "_ads")
+                for i in range(ads_fire_frameCount):
+                    self.anims['ads_fire'].append(Transform("pics/weapons/%s%s.webp" % (base_ads_fire, i+1), xysize=(1280, 720)))
+            
+            self.ads_idle_img = Transform(ads_idle, xysize=(1280, 720)) if ads_idle else None
+            self.ads_fire_static = Transform(ads_fire, xysize=(1280, 720)) if ads_fire else None
+            
+            # State: 'hip', 'entering_ads', 'ads'
+            self.aim_state = 'hip'
+            self.anim_state = 'idle' # 'idle', 'playing'
+            
             self.flash_base = Transform(Image("pics/items/sight.png"), size=(512, 512))
 
         def play(self):
-            if not self.playing: 
-                self.playing = True; self.frame = 0; self.oldst = None
-                # Randomize flash rotation for each shot (using radians for the shader)
+            if self.anim_state != 'playing':
+                self.anim_state = 'playing'
+                self.frame_index = 0
+                self.oldst = None
                 self.current_flash_rot = renpy.random.random() * math.pi * 2.0
 
         def render_to(self, r, width, height, st, at, is_ads=False, is_firing=False, movement_state=None):
             if self.oldst is None: self.oldst = st
-            time_passed = st - self.oldst
-            if time_passed > 0.05 and self.playing:
-                self.oldst = st
-                if self.loop_frames and is_firing:
-                    if self.frame == self.loop_frames[-1]: self.frame = self.loop_frames[0]
-                    else: self.frame += 1; 
-                    if self.frame >= len(self.images): self.frame = 0
+            dt = st - self.oldst
+            
+            if is_ads:
+                if self.aim_state == 'hip':
+                    if self.anims['ads_enter']:
+                        self.aim_state = 'entering_ads'
+                        self.frame_index = 0
+                        self.anim_state = 'idle'
+                        self.oldst = st
+                    else:
+                        self.aim_state = 'ads'
+            else:
+                if self.aim_state != 'hip':
+                    self.aim_state = 'hip'
+            
+            current_img = None
+            frame_duration = 0.1
+            active_anim_list = []
+            
+            # Determine which animation list to use and frame duration
+            if self.aim_state == 'entering_ads':
+                active_anim_list = self.anims['ads_enter']
+                frame_duration = 1.0 / self.fps['ads_enter']
+                
+                if dt >= frame_duration:
+                    self.oldst = st
+                    self.frame_index += 1
+                    if self.frame_index >= len(active_anim_list):
+                        self.aim_state = 'ads'
+                        self.frame_index = 0
+            
+            if self.aim_state == 'hip':
+                if self.anim_state == 'playing':
+                    active_anim_list = self.anims['normal']
+                    frame_duration = 1.0 / self.fps['normal']
+                    
+                    if dt >= frame_duration:
+                        self.oldst = st
+                        if self.loop_frames and is_firing:
+                            if self.frame_index == self.loop_frames[-1]: self.frame_index = self.loop_frames[0]
+                            else: self.frame_index += 1
+                        else:
+                            self.frame_index += 1
+                        
+                        if self.frame_index >= len(active_anim_list):
+                            self.frame_index = 0
+                            self.anim_state = 'idle'
+                    
+                    if active_anim_list:
+                        safe_idx = min(self.frame_index, len(active_anim_list)-1)
+                        current_img = active_anim_list[safe_idx]
                 else:
-                    self.frame += 1
-                    if self.frame >= len(self.images): self.frame = 0; self.playing = False
+                    if self.anims['normal']:
+                        current_img = self.anims['normal'][0]
             
-            img_to_render = self.ads_fire if (is_ads and self.playing and self.ads_fire and is_firing) else (self.ads_idle if is_ads and self.ads_idle else self.images[self.frame])
-            eileen = renpy.render(img_to_render, width, height, st, at)
-            ew, eh = eileen.get_size()
-            offset_x = 0; offset_y = 0
-            if movement_state and movement_state.get('is_moving', False) and not is_ads:
-                bob_speed = 15.0 if movement_state.get('is_running', False) else 10.0
-                bob_amp_x = 50.0 if movement_state.get('is_running', False) else 20.0
-                offset_x = math.sin(st * bob_speed) * bob_amp_x
-                offset_y = abs(math.cos(st * bob_speed)) * (bob_amp_x / 2.0)
-            r.blit(eileen, (width/2 - ew/2 + offset_x, height - eh + offset_y))
+            elif self.aim_state == 'ads':
+                if self.anim_state == 'playing':
+                    active_anim_list = self.anims['ads_fire']
+                    if active_anim_list:
+                        frame_duration = 1.0 / self.fps['ads_fire']
+                        if dt >= frame_duration:
+                            self.oldst = st
+                            self.frame_index += 1
+                            if self.frame_index >= len(active_anim_list):
+                                self.frame_index = 0
+                                self.anim_state = 'idle'
+                        
+                        safe_idx = min(self.frame_index, len(active_anim_list)-1)
+                        current_img = active_anim_list[safe_idx]
+                    else:
+                        current_img = self.ads_fire_static if (self.ads_fire_static and is_firing) else self.ads_idle_img
+                else:
+                    current_img = self.ads_idle_img
             
-            # Draw Muzzle Flash
-            if self.projectile_type:
-                import time
-                dt = time.time() - self.last_fired
-                flash_dur = 0.06
-                if dt < flash_dur:
-                    base_x = self.flash_ads_offset[0] if is_ads else self.flash_offset[0]
-                    base_y = self.flash_ads_offset[1] if is_ads else self.flash_offset[1]
+            elif self.aim_state == 'entering_ads':
+                if active_anim_list:
+                    safe_idx = min(self.frame_index, len(active_anim_list)-1)
+                    current_img = active_anim_list[safe_idx]
+
+            # Render Weapon
+            if current_img:
+                eileen = renpy.render(current_img, 1280, 720, st, at)
+                ew, eh = eileen.get_size()
+                
+                # Bobbing
+                offset_x = 0; offset_y = 0
+                if movement_state and movement_state.get('is_moving', False) and self.aim_state == 'hip':
+                    bob_speed = 15.0 if movement_state.get('is_running', False) else 10.0
+                    bob_amp_x = 50.0 if movement_state.get('is_running', False) else 20.0
+                    offset_x = math.sin(st * bob_speed) * bob_amp_x
+                    offset_y = abs(math.cos(st * bob_speed)) * (bob_amp_x / 2.0)
+                
+                if self.projectile_type and self.anim_state == 'playing':
+                    should_flash = False
+                    flash_config_key = 'normal'
                     
-                    fx = base_x + offset_x
-                    fy = base_y + offset_y
+                    if self.aim_state == 'hip':
+                        if self.frame_index == self.flash_config['frame_normal']:
+                            should_flash = True
+                            flash_config_key = 'normal'
+                    elif self.aim_state == 'ads':
+                        if self.frame_index == self.flash_config['frame_ads']:
+                            should_flash = True
+                            flash_config_key = 'ads'
                     
-                    progress = dt / flash_dur
+                    import time
+                    time_diff = time.time() - self.last_fired
+                    flash_dur = 0.06
                     
-                    # Create the flash transform with the shader and uniforms
-                    f_t = Transform(
-                        child=self.flash_base,
-                        shader="stein.muzzle_flash",
-                        u_flash_progress=progress,
-                        u_flash_color=self.flash_color,
-                        u_flash_angle=self.current_flash_rot,
-                        zoom=self.flash_size,
-                        additive=1.0
-                    )
-                    f_r = renpy.render(f_t, width, height, st, at)
-                    fw, fh = f_r.get_size()
-                    
-                    r.blit(f_r, (width/2 + fx - fw/2, height + fy - fh/2))
+                    if should_flash or (time_diff < flash_dur): 
+                        base_x = self.flash_config['offset_ads'][0] if (self.aim_state == 'ads') else self.flash_config['offset_normal'][0]
+                        base_y = self.flash_config['offset_ads'][1] if (self.aim_state == 'ads') else self.flash_config['offset_normal'][1]
+                        
+                        fx = base_x + offset_x
+                        fy = base_y + offset_y
+                        
+                        progress = time_diff / flash_dur
+                        
+                        f_t = Transform(
+                            child=self.flash_base,
+                            shader="stein.muzzle_flash",
+                            u_flash_progress=progress,
+                            u_flash_color=self.flash_config['color'],
+                            u_flash_angle=self.current_flash_rot,
+                            zoom=self.flash_config['size'],
+                            additive=1.0
+                        )
+                        f_r = renpy.render(f_t, width, height, st, at)
+                        fw, fh = f_r.get_size()
+                        r.blit(f_r, (width/2 + fx - fw/2, height + fy - fh/2))
+
+                r.blit(eileen, (width/2 - ew/2 + offset_x, height - eh + offset_y))
 
     class RaycastLayer(renpy.Displayable):
         def __init__(self, controller, **kwargs):
@@ -1097,14 +1234,67 @@ init 10 python:
             def register_weapon(w_obj):
                 self.weapon_library[w_obj.name] = w_obj
 
-            register_weapon(Weapon("fist", SLOT_MELEE, 5, 1, damage=100, cooldown=0.5))
+            ### example of new guns registrations
 
-            register_weapon(Weapon("gun", SLOT_HANDGUN, 5, 1, damage=self.gun_dmg, projectile_type='bullet', cooldown=0.6, 
-                ads_idle="pics/weapons/gun_s.png", ads_fire="pics/weapons/gun_s_f.png", 
-                flash_offset=(0, -170), flash_ads_offset=(0, -280), flash_size=0.8))
+            # register_weapon(Weapon("gun", SLOT_HANDGUN, damage=self.gun_dmg, projectile_type='bullet', cooldown=0.38, flash_offset=(0, -170), flash_ads_offset=(0, -360), flash_size=1.0, ads_idle="pics/weapons/gun_ads1.webp",
+            #     # Normal configs
+            #     normal_frameCount=11,
+            #     normal_fps=60,
+            #     normal_flash_frame=2,
+            
+            #     # ADS transition
+            #     ads_enter_frameCount=14,
+            #     ads_enter_fps=60,
+            #     ads_enter_name="gun_raise",
+        
+            #     # ADS shooting animation
+            #     ads_fire_frameCount=9,
+            #     ads_fire_fps=60,
+            #     ads_fire_flash_frame=1,
+            # ))
 
-            register_weapon(Weapon("shotgun", SLOT_LONG, 5, 1, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.0, 
-                flash_offset=(0, -170), flash_ads_offset=(0, -170), flash_size=1.5, flash_color=(1.0, 0.6, 0.2)))
+            register_weapon(Weapon("gun", SLOT_HANDGUN, damage=self.gun_dmg, projectile_type='bullet', cooldown=0.38, flash_offset=(0, -170), flash_ads_offset=(0, -360), flash_size=1.0, ads_idle="pics/weapons/gun_ads1.webp",
+                # Normal configs
+                normal_frameCount=11,
+                normal_fps=60,
+                normal_flash_frame=2,
+            
+                # ADS transition
+                ads_enter_frameCount=14,
+                ads_enter_fps=60,
+                ads_enter_name="gun_raise",
+        
+                # ADS shooting animation
+                ads_fire_frameCount=9,
+                ads_fire_fps=60,
+                ads_fire_flash_frame=1,
+            ))
+
+            register_weapon(Weapon("shotgun", SLOT_LONG, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.4, flash_offset=(0, -170), flash_ads_offset=(0, -360), flash_size=1.0, ads_idle="pics/weapons/shotgun_ads1.webp",
+                # Normal configs
+                normal_frameCount=45,
+                normal_fps=60,
+                normal_flash_frame=12,
+            
+                # ADS transition
+                ads_enter_frameCount=5,
+                ads_enter_fps=60,
+                ads_enter_name="shotgun_raised",
+        
+                # ADS shooting animation
+                ads_fire_frameCount=45,
+                ads_fire_fps=60,
+                ads_fire_flash_frame=1,
+            ))
+
+            register_weapon(Weapon("fist", SLOT_MELEE, 5, 1, damage=25, cooldown=0.5))
+
+            # register_weapon(Weapon("gun", SLOT_HANDGUN, 5, 1, damage=self.gun_dmg, projectile_type='bullet', cooldown=0.6, 
+            #     ads_idle="pics/weapons/beta_gun_s.png", ads_fire="pics/weapons/beta_gun_s_f.png", 
+            #     flash_offset=(0, -170), flash_ads_offset=(0, -360), flash_size=1.0))
+
+            # register_weapon(Weapon("shotgun", SLOT_LONG, 5, 1, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.0, 
+            #     flash_offset=(0, -170), flash_ads_offset=(0, -170), flash_size=1.5, flash_color=(1.0, 0.6, 0.2)))
             
             register_weapon(Weapon("minigun", SLOT_SPECIAL, 5, 1, damage=self.minigun_dmg, projectile_type='bullet', cooldown=0.05, 
                 loop_frames=[2, 3], flash_offset=(0, -180), flash_ads_offset=(0, -180)))
