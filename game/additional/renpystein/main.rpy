@@ -40,6 +40,7 @@ default persistent.stein_mouse_sens = 1.0
 default persistent.stein_gamepad_sens_x = 1.0
 default persistent.stein_gamepad_sens_y = 1.0
 default persistent.stein_show_fps = True
+default persistent.stein_enable_bloom = True
 
 init python:
     # --- Level 1 Data ---

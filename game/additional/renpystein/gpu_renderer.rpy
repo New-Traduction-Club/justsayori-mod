@@ -29,6 +29,7 @@ init 10 python:
         uniform float u_num_active_lights;
         uniform float u_flashlight_active;
         uniform vec2 u_flashlight_bob;
+        uniform float u_soft_shadows;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
@@ -180,25 +181,29 @@ init 10 python:
             vec3 finalColor = color;
             
             float fogDist = length(hitPos.xy - u_player_pos);
-            float ambientParams = 1.0 - (fogDist / 15.0); 
-            vec3 ambientLight = vec3(0.1, 0.1, 0.15); 
-            ambientLight += max(0.0, ambientParams) * 0.4; 
+            
+            vec3 ambientLight = vec3(0.02, 0.02, 0.05); 
+            
+            float personalLight = max(0.0, 1.0 - (fogDist / 4.0)); 
+            ambientLight += vec3(0.05, 0.05, 0.08) * personalLight;
             
             vec3 totalLight = ambientLight;
 
             if (u_flashlight_active > 0.5) {
-                vec3 lightVec = normalize(hitPos - rayPos);
+                vec3 flashPos = rayPos;
+
+                vec3 lightVec = normalize(hitPos - flashPos);
                 
                 float dotProd = dot(lightVec, flashDir); 
-                float dist3D = distance(hitPos, rayPos);
+                float dist3D = distance(hitPos, flashPos);
 
-                if (dotProd > 0.88) { 
-                    float spotEffect = smoothstep(0.88, 0.95, dotProd);
+                if (dotProd > 0.82) { 
+                    float spotEffect = smoothstep(0.82, 0.92, dotProd);
                     
-                    float att = 1.0 / (1.0 + dist3D * 0.1 + dist3D * dist3D * 0.02);
+                    float att = 1.0 / (1.5 + dist3D * 0.03 + dist3D * dist3D * 0.002);
                     vec3 flashLightColor = vec3(0.95, 0.95, 1.0);
                     
-                    totalLight += flashLightColor * att * 1.8 * spotEffect;
+                    totalLight += flashLightColor * att * 2.2 * spotEffect;
                 }
             }
 
@@ -220,11 +225,68 @@ init 10 python:
                 float distToLight = distance(hitPos.xy, lightPos);
                 
                 if (distToLight < radius) {
-                    float att = 1.0 - (distToLight / radius);
-                    att = att * att; 
+                    float visibility = 0.0;
+                    int samples = 1;
+                    float spread = 0.0;
                     
-                    vec3 lampColor = vec3(0.2, 1.0, 0.2); 
-                    totalLight += lampColor * intensity * att;
+                    if (u_soft_shadows > 0.5) {
+                        samples = 9;
+                        spread = 0.55;
+                    }
+                    
+                    vec2 dirToLight = normalize(lightPos - hitPos.xy);
+                    vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
+                    
+                    for (int k = 0; k < 9; k++) {
+                        if (k >= samples) break;
+                        
+                        float offScale = 0.0;
+                        if (k == 1) offScale = 1.0;
+                        if (k == 2) offScale = -1.0;
+                        if (k == 3) offScale = 0.5;
+                        if (k == 4) offScale = -0.5;
+                        if (k == 5) offScale = 0.75;
+                        if (k == 6) offScale = -0.75;
+                        if (k == 7) offScale = 0.25;
+                        if (k == 8) offScale = -0.25;
+                        
+                        vec2 offset = perp * offScale;
+                        
+                        vec2 targetPos = lightPos + offset;
+                        vec2 rayDir = normalize(targetPos - hitPos.xy);
+                        float rayDist = distance(targetPos, hitPos.xy);
+                        
+                        float stepSize = 0.2;
+                        int steps = int(rayDist / stepSize);
+                        vec2 checkPos = hitPos.xy + rayDir * 0.1;
+                        bool hitWall = false;
+                        
+                        for(int s=0; s<64; s++) { 
+                            if (s >= steps) break;
+                            checkPos += rayDir * stepSize;
+                            
+                            if (abs(floor(checkPos.x) - float(mapPos.x)) < 0.1 && abs(floor(checkPos.y) - float(mapPos.y)) < 0.1) continue;
+
+                            vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
+                            mapUV *= u_map_uv_scale;
+                            if (texture2D(u_map_texture, mapUV).r > 0.5) {
+                                hitWall = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!hitWall) visibility += 1.0;
+                    }
+                    
+                    visibility /= float(samples);
+
+                    if (visibility > 0.0) {
+                        float att = 1.0 - (distToLight / radius);
+                        att = att * att; 
+                        
+                        vec3 lampColor = vec3(0.2, 1.0, 0.2); 
+                        totalLight += lampColor * intensity * att * visibility;
+                    }
                 }
             }
 
@@ -318,21 +380,22 @@ init 10 python:
                     if (spriteCol.a > 0.5) {
                         
                         float sprDist = length(vec2(spX, spY)); 
-                        float sprAmbParams = 1.0 - (sprDist / 15.0);
-                        vec3 sprLight = vec3(0.1, 0.1, 0.15);
-                        sprLight += max(0.0, sprAmbParams) * 0.4;
+                        
+                        vec3 sprLight = vec3(0.02, 0.02, 0.05);
+                        float sprPersonal = max(0.0, 1.0 - (sprDist / 4.0));
+                        sprLight += vec3(0.05, 0.05, 0.08) * sprPersonal;
 
                         if (u_flashlight_active > 0.5) {
                             float dotProd = dot(rayDir, flashDir);
                             
                             float dist3D = transformY;
                             
-                            if (dotProd > 0.88) {
-                                float spotEffect = smoothstep(0.88, 0.95, dotProd);
-                                float att = 1.0 / (1.0 + dist3D * 0.1 + dist3D * dist3D * 0.02);
+                            if (dotProd > 0.82) {
+                                float spotEffect = smoothstep(0.82, 0.92, dotProd);
+                                float att = 1.0 / (1.5 + dist3D * 0.03 + dist3D * dist3D * 0.002);
                                 vec3 flashLightColor = vec3(0.95, 0.95, 1.0);
                                 
-                                sprLight += flashLightColor * att * 1.8 * spotEffect;
+                                sprLight += flashLightColor * att * 2.2 * spotEffect;
                             }
                         }
 
@@ -349,10 +412,65 @@ init 10 python:
                             float lDist = distance(spritePos, lData.xy);
                             
                             if (lDist < lData.z) {
-                                float att = 1.0 - (lDist / lData.z);
-                                att = att * att;
-                                vec3 lampColor = vec3(0.4, 0.9, 0.4);
-                                sprLight += lampColor * lData.w * att;
+                                float visibility = 0.0;
+                                int samples = 1;
+                                float spread = 0.0;
+                                
+                                if (u_soft_shadows > 0.5) {
+                                    samples = 9;
+                                    spread = 0.55;
+                                }
+                                
+                                vec2 dirToLight = normalize(lData.xy - spritePos);
+                                vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
+                                
+                                for (int k = 0; k < 9; k++) {
+                                    if (k >= samples) break;
+                                    
+                                    float offScale = 0.0;
+                                    if (k == 1) offScale = 1.0;
+                                    if (k == 2) offScale = -1.0;
+                                    if (k == 3) offScale = 0.5;
+                                    if (k == 4) offScale = -0.5;
+                                    if (k == 5) offScale = 0.75;
+                                    if (k == 6) offScale = -0.75;
+                                    if (k == 7) offScale = 0.25;
+                                    if (k == 8) offScale = -0.25;
+                                    
+                                    vec2 offset = perp * offScale;
+                                    
+                                    vec2 targetPos = lData.xy + offset;
+                                    vec2 rayDir = normalize(targetPos - spritePos);
+                                    float rayDist = distance(targetPos, spritePos);
+                                    
+                                    float stepSize = 0.2;
+                                    int steps = int(rayDist / stepSize);
+                                    vec2 checkPos = spritePos + rayDir * 0.1;
+                                    bool hitWall = false;
+                                    
+                                    for(int s=0; s<64; s++) {
+                                        if (s >= steps) break;
+                                        checkPos += rayDir * stepSize;
+                                        
+                                        vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
+                                        mapUV *= u_map_uv_scale;
+                                        if (texture2D(u_map_texture, mapUV).r > 0.5) {
+                                            hitWall = true;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (!hitWall) visibility += 1.0;
+                                }
+                                
+                                visibility /= float(samples);
+
+                                if (visibility > 0.0) {
+                                    float att = 1.0 - (lDist / lData.z);
+                                    att = att * att;
+                                    vec3 lampColor = vec3(0.4, 0.9, 0.4);
+                                    sprLight += lampColor * lData.w * att * visibility;
+                                }
                             }
                         }
 
@@ -391,37 +509,146 @@ init 10 python:
         }
     """)
 
-    renpy.register_shader("stein.muzzle_flash", variables="""
+    renpy.register_shader("stein.weapon_fx", variables="""
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
         uniform float u_flash_progress; 
         uniform float u_flash_angle;
         uniform vec3 u_flash_color;
+        uniform float u_heat_distortion;
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
     """, fragment_200="""
         // Center UVs to [-1, 1] range
-        vec2 mf_uv = (v_tex_coord - 0.5) * 2.0; 
+        vec2 uv = (v_tex_coord - 0.5) * 2.0; 
         
         // Internal rotation
-        float mf_s = sin(u_flash_angle);
-        float mf_c = cos(u_flash_angle);
-        mf_uv = mat2(mf_c, -mf_s, mf_s, mf_c) * mf_uv;
+        float s = sin(u_flash_angle);
+        float c = cos(u_flash_angle);
+        vec2 rotated_uv = mat2(c, -s, s, c) * uv;
         
-        float mf_dist = length(mf_uv);
-        float mf_angle = atan(mf_uv.y, mf_uv.x);
+        float dist = length(rotated_uv);
+        float angle = atan(rotated_uv.y, rotated_uv.x);
         
-        float mf_spikes = abs(sin(mf_angle * 4.0)) * 0.4 + abs(sin(mf_angle * 9.0)) * 0.6;
+        // MUZZLE FLASH
+        // Flash happens in the first 4% of the duration (1.5s * 0.04 = 0.06s)
+        float flash_p = u_flash_progress * 25.0; 
+        float flash_intensity = 0.0;
         
-        float mf_core = exp(-mf_dist * 5.0) * 2.5;
-        float mf_rays = exp(-mf_dist * (4.0 + 8.0 * (1.0 - mf_spikes))) * 1.2;
+        if (flash_p < 1.0) {
+            float spikes = abs(sin(angle * 4.0)) * 0.4 + abs(sin(angle * 9.0)) * 0.6;
+            float core = exp(-dist * 5.0) * 2.5;
+            float rays = exp(-dist * (4.0 + 8.0 * (1.0 - spikes))) * 1.2;
+            float mask = smoothstep(1.0, 0.2, dist);
+            
+            flash_intensity = (core + rays) * (1.0 - flash_p);
+            flash_intensity = clamp(flash_intensity * mask, 0.0, 1.0);
+        }
+
+        // BARREL SMOKE
+        // Simulates smoke emanating from the hot barrel and rising up
+        float smoke_alpha = 0.0;
+        if (u_flash_progress > 0.02) {
+            float smoke_p = (u_flash_progress - 0.02) / 0.98;
+            
+            // Use unrotated UV so smoke always rises UP relative to screen
+            vec2 stream_uv = uv;
+            
+            // Detach from bottom logic (Smoke moves up/away from barrel)
+            // We mask out the bottom part, and this mask moves up over time
+            // uv.y is negative for up, 0 is center
+            float detach_y = -0.1 - (smoke_p * 1.2);
+            
+            // Mask: Visible if y < detach_y (above the cut-off point)
+            // We use smoothstep for a soft bottom edge
+            float detach_mask = smoothstep(detach_y + 0.3, detach_y, stream_uv.y);
+            
+            // Wiggle the stream (turbulence)
+            float wiggle = sin(stream_uv.y * 12.0 + u_flash_progress * 15.0) * 0.04;
+            stream_uv.x += wiggle;
+            
+            // Stream shape
+            float stream_width = 0.04 + abs(stream_uv.y) * 0.15; 
+            float stream_shape = smoothstep(stream_width, 0.0, abs(stream_uv.x));
+            
+            // Top fade
+            float height_mask = smoothstep(-0.95, -0.2, stream_uv.y); 
+            
+            // Scroll noise up through the stream
+            float noise_y = uv.y + u_flash_progress * 3.0;
+            float noise = sin(uv.x * 40.0) * sin(noise_y * 12.0);
+            
+            // Overall fade out over time
+            float fade_out = 1.0 - smoothstep(0.2, 0.9, smoke_p);
+            
+            smoke_alpha = stream_shape * detach_mask * height_mask * (0.6 + 0.4 * noise) * fade_out * 0.8;
+        }
+
+        // HEAT DISTORTION
+        float heat_val = 0.0;
+        /*
+        if (u_heat_distortion > 0.5) {
+            float heat_prog = u_flash_progress * 3.0;
+            if (heat_prog < 1.0) {
+                float wave = sin(rotated_uv.x * 10.0 + heat_prog * 10.0) * 0.1;
+                float heat_d = length(rotated_uv + vec2(wave, heat_prog * 0.5));
+                float heat_ring = smoothstep(0.05, 0.0, abs(heat_d - 0.4 - heat_prog * 0.3));
+                float turb = sin(angle * 20.0 + heat_prog * 20.0);
+                heat_val = heat_ring * 0.4 * (1.0 - heat_prog) * (0.5 + 0.5 * turb);
+            }
+        }
         
-        float mf_mask = smoothstep(1.0, 0.2, mf_dist);
+        heat_val *= (1.0 - smoke_alpha * 1.5);
+        heat_val = max(0.0, heat_val);
+        */
+
+        // Combine
+        vec3 final_color = u_flash_color * flash_intensity;
+        float final_alpha = flash_intensity;
         
-        float mf_intensity = (mf_core + mf_rays) * (1.0 - u_flash_progress);
-        mf_intensity = clamp(mf_intensity * mf_mask, 0.0, 1.0);
+        // Add Heat
+        final_color += vec3(heat_val);
+        final_alpha = max(final_alpha, heat_val);
         
-        gl_FragColor = vec4(u_flash_color * mf_intensity, mf_intensity);
+        // Add Smoke
+        vec3 smoke_col = vec3(0.95, 0.95, 1.0); // White/Grey smoke
+        
+        // Mix Smoke
+        final_color = mix(final_color, smoke_col, smoke_alpha);
+        final_alpha = max(final_alpha, smoke_alpha);
+        
+        gl_FragColor = vec4(final_color, final_alpha);
+    """)
+
+    renpy.register_shader("stein.bloom", variables="""
+        uniform sampler2D tex0;
+        uniform vec2 u_resolution;
+        varying vec2 v_tex_coord;
+    """, fragment_200="""
+        vec2 uv = v_tex_coord;
+        vec4 source = texture2D(tex0, uv);
+        
+        float bloomSpread = 4.0;
+        float threshold = 0.8;
+        float intensity = 0.5;
+
+        vec4 sum = vec4(0.0);
+        vec2 size = vec2(1.0) / u_resolution;
+
+        for (float i = -1.0; i <= 1.0; i++) {
+            for (float j = -1.0; j <= 1.0; j++) {
+                vec2 offset = vec2(i, j) * bloomSpread * size;
+                vec4 col = texture2D(tex0, uv + offset);
+                
+                float brightness = dot(col.rgb, vec3(0.2126, 0.7152, 0.0722));
+                if (brightness > threshold) {
+                    sum += col * brightness; 
+                }
+            }
+        }
+        
+        sum = sum / 9.0;
+        gl_FragColor = source + (sum * intensity);
     """)
 
     import math
@@ -1013,13 +1240,33 @@ init 10 python:
                 eileen = renpy.render(current_img, 1280, 720, st, at)
                 ew, eh = eileen.get_size()
                 
-                # Bobbing
+                # Bobbing & Breathing Logic
                 offset_x = 0; offset_y = 0
-                if movement_state and movement_state.get('is_moving', False) and self.aim_state in ('hip', 'entering_run', 'running', 'exiting_run'):
+                is_moving = movement_state and movement_state.get('is_moving', False)
+                
+                if is_moving and self.aim_state in ('hip', 'entering_run', 'running', 'exiting_run'):
                     bob_speed = 15.0 if movement_state.get('is_running', False) else 10.0
                     bob_amp_x = 50.0 if movement_state.get('is_running', False) else 20.0
                     offset_x = math.sin(st * bob_speed) * bob_amp_x
                     offset_y = abs(math.cos(st * bob_speed)) * (bob_amp_x / 2.0)
+                
+                elif self.aim_state == 'ads':
+                    # ADS Breathing
+                    breath_speed = 1.5
+                    breath_amp_x = 1.5
+                    breath_amp_y = 2.5
+                    offset_x = math.sin(st * breath_speed) * breath_amp_x
+                    # Ensure y offset is always positive (moves down) to avoid revealing bottom cut
+                    offset_y = (math.sin(st * breath_speed * 1.1) + 1.0) * 0.5 * breath_amp_y
+                    
+                elif self.aim_state == 'hip' and not is_moving:
+                    # Idle Breathing
+                    breath_speed = 2.0
+                    breath_amp_x = 4.0
+                    breath_amp_y = 6.0
+                    offset_x = math.sin(st * breath_speed) * breath_amp_x
+                    # Ensure y offset is always positive
+                    offset_y = (math.sin(st * breath_speed * 0.95) + 1.0) * 0.5 * breath_amp_y
                 
                 if self.projectile_type and self.anim_state == 'playing':
                     should_flash = False
@@ -1036,7 +1283,7 @@ init 10 python:
                     
                     import time
                     time_diff = time.time() - self.last_fired
-                    flash_dur = 0.06
+                    flash_dur = 1.0
                     
                     if should_flash or (time_diff < flash_dur): 
                         base_x = self.flash_config['offset_ads'][0] if (self.aim_state == 'ads') else self.flash_config['offset_normal'][0]
@@ -1049,10 +1296,11 @@ init 10 python:
                         
                         f_t = Transform(
                             child=self.flash_base,
-                            shader="stein.muzzle_flash",
+                            shader="stein.weapon_fx",
                             u_flash_progress=progress,
                             u_flash_color=self.flash_config['color'],
                             u_flash_angle=self.current_flash_rot,
+                            u_heat_distortion=1.0 if getattr(persistent, "stein_heat_distortion", True) else 0.0,
                             zoom=self.flash_config['size'],
                             additive=1.0
                         )
@@ -1216,6 +1464,9 @@ init 10 python:
             
             child_render.add_uniform('u_flashlight_bob', (fl_bob_x, fl_bob_y))
             
+            soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
+            child_render.add_uniform('u_soft_shadows', soft_shadows)
+            
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
 
@@ -1344,7 +1595,7 @@ init 10 python:
                 ads_fire_flash_frame=1,
             ))
 
-            register_weapon(Weapon("shotgun", SLOT_LONG, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.4, flash_offset=(0, -170), flash_ads_offset=(0, -340), flash_size=1.0, ads_idle="pics/weapons/shotgun_ads1.webp",
+            register_weapon(Weapon("shotgun", SLOT_LONG, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.4, flash_offset=(75, -260), flash_ads_offset=(0, -340), flash_size=1.0, ads_idle="pics/weapons/shotgun_ads1.webp",
                 # Normal configs
                 normal_frameCount=39,
                 normal_fps=60,
@@ -1698,37 +1949,49 @@ init 10 python:
             retro_w = self.internal_width
             retro_h = self.internal_height
             
-            # Motion Blur Calculation
-            if self.last_rot is None: self.last_rot = self.player.rot
-            rot_diff = self.player.rot - self.last_rot
-            if rot_diff > math.pi: rot_diff -= 2 * math.pi
-            elif rot_diff < -math.pi: rot_diff += 2 * math.pi
-            self.last_rot = self.player.rot
-            
-            blur_strength = getattr(persistent, "stein_motion_blur_strength", 0.0)
-            blur_amount = 0.0
-            
-            if blur_strength > 0.0:
-                blur_amount = max(-0.15, min(0.15, rot_diff)) * blur_strength * 20.0
+            scale = float(width) / float(self.internal_width)
 
-            scale = float(width) / float(retro_w)
+            if self.last_rot is None:
+                self.last_rot = self.player.rot
+
+            diff_rot = self.player.rot - self.last_rot
             
-            # Flatten the raycast layer to ensure the 3D shader is baked before applying motion blur
+            if diff_rot > math.pi: 
+                diff_rot -= (math.pi * 2)
+            elif diff_rot < -math.pi: 
+                diff_rot += (math.pi * 2)
+
+            mb_strength = getattr(persistent, "stein_motion_blur_strength", 0.0)
+            
+            blur_amount = -diff_rot * mb_strength * 10.0 
+
+            self.last_rot = self.player.rot
+
+            # Flatten the raycast layer
             flat_layer = renpy.display.layout.Flatten(self.raycast_layer)
             
-            t_args = {
-                'child': flat_layer,
-                'zoom': scale,
-                'nearest': True
-            }
+            args_blur = { 'child': flat_layer, 'zoom': 1.0 } 
             
             if abs(blur_amount) > 0.005:
-                t_args['shader'] = "stein.motion_blur"
-                t_args['u_blur_amount'] = blur_amount
-
-            t = Transform(**t_args)
+                args_blur['shader'] = "stein.motion_blur"
+                args_blur['u_blur_amount'] = blur_amount
             
-            main_scene_render = renpy.render(t, width, height, st, at)
+            blur_transform = Transform(**args_blur)
+
+            if abs(blur_amount) > 0.005:
+                blur_transform = renpy.display.layout.Flatten(blur_transform)
+
+            use_bloom = getattr(persistent, "stein_enable_bloom", True)
+            
+            args_bloom = { 'child': blur_transform, 'zoom': scale, 'nearest': True }
+            
+            if use_bloom:
+                args_bloom['shader'] = "stein.bloom"
+                args_bloom['u_resolution'] = (float(width), float(height))
+
+            final_transform = Transform(**args_bloom)
+            
+            main_scene_render = renpy.render(final_transform, width, height, st, at)
             
             r = renpy.Render(width, height)
             r.blit(main_scene_render, (0,0))

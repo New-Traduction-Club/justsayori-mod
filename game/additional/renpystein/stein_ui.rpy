@@ -125,120 +125,144 @@ screen sayoristein_settings_menu():
         xsize 1100
         ysize 500
         
-        if current_tab == "graphics":
+        viewport id "settings_vp":
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
+            pagekeys True
+            yinitial 0.0
+            
             vbox:
                 xalign 0.5
-                yalign 0.0
                 spacing 25
-                
-                vbox:
-                    spacing 10
-                    xalign 0.5
-                    text _("Resolution") style "stein_settings_header"
+                xsize 1080
+
+                if current_tab == "graphics":
+                    vbox:
+                        spacing 10
+                        xalign 0.5
+                        text _("Resolution") style "stein_settings_header"
+                        
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+
+                    null height 10
                     
+                    vbox:
+                        spacing 10
+                        xalign 0.5
+                        text _("Post-Processing") style "stein_settings_header"
+                        
+                        textbutton ("Bloom Effect: " + ("ON" if persistent.stein_enable_bloom else "OFF")):
+                            action ToggleVariable("persistent.stein_enable_bloom")
+                            style "sayoristein_menu_button"
+                            text_style "sayoristein_menu_button_text"
+
+                        textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
+                            action ToggleVariable("persistent.stein_soft_shadows")
+                            style "sayoristein_menu_button"
+                            text_style "sayoristein_menu_button_text"
+
+                        # textbutton ("Heat Distortion: " + ("ON" if persistent.stein_heat_distortion else "OFF")):
+                        #     action ToggleVariable("persistent.stein_heat_distortion")
+                        #     style "sayoristein_menu_button"
+                        #     text_style "sayoristein_menu_button_text"
+
+                    null height 10
+
+                    vbox:
+                        spacing 5
+                        xalign 0.5
+                        text _("Motion Blur Strength: [int(persistent.stein_motion_blur_strength * 100)]%") style "stein_settings_label"
+                        bar value FieldValue(persistent, "stein_motion_blur_strength", range=1.0, step=0.05):
+                            xalign 0.5
+                            xsize 600
+                            ysize 45
+                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+                    
+                    null height 50
+
+                elif current_tab == "controls":
                     hbox:
-                        spacing 15
+                        spacing 80
                         xalign 0.5
-                        textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
-                        textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
-                        textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
-                    hbox:
-                        spacing 15
-                        xalign 0.5
-                        textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
-                        textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        vbox:
+                            spacing 15
+                            xsize 400
+                            text _("Mouse & Keyboard") style "stein_settings_header"
+                            text _("Sensitivity: [persistent.stein_mouse_sens:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_mouse_sens", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
 
-                null height 10
-                
-                vbox:
-                    spacing 5
-                    xalign 0.5
-                    text _("Motion Blur Strength: [int(persistent.stein_motion_blur_strength * 100)]%") style "stein_settings_label"
-                    
-                    bar value FieldValue(persistent, "stein_motion_blur_strength", range=1.0, step=0.05):
-                        xalign 0.5
-                        xsize 600
-                        ysize 45
-                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+                        vbox:
+                            spacing 15
+                            xsize 400
+                            text _("Gamepad (Controller)") style "stein_settings_header"
+                            text _("Horiz. Sensitivity: [persistent.stein_gamepad_sens_x:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_gamepad_sens_x", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
 
-        elif current_tab == "controls":
-            hbox:
-                spacing 80
-                xalign 0.5
-                yalign 0.0
-                
-                vbox:
-                    spacing 15
-                    xsize 400
-                    text _("Mouse & Keyboad") style "stein_settings_header"
-                    
+                            text _("Vert. Sensitivity: [persistent.stein_gamepad_sens_y:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_gamepad_sens_y", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                    null height 50
+
+                elif current_tab == "gameplay":
                     vbox:
-                        spacing 5
-                        text _("Sensitivity: [persistent.stein_mouse_sens:.2f]") style "stein_settings_label"
-                        bar value FieldValue(persistent, "stein_mouse_sens", range=3.0, step=0.1):
-                            xalign 0.5
-                            xsize 350
-                            ysize 35
-                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
-
-                vbox:
-                    spacing 15
-                    xsize 400
-                    text _("Gamepad (Controller)") style "stein_settings_header"
-
-                    vbox:
-                        spacing 5
-                        text _("Horiz. Sensitivity: [persistent.stein_gamepad_sens_x:.2f]") style "stein_settings_label"
-                        bar value FieldValue(persistent, "stein_gamepad_sens_x", range=3.0, step=0.1):
-                            xalign 0.5
-                            xsize 350
-                            ysize 35
-                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
-
-                    vbox:
-                        spacing 5
-                        text _("Vert. Sensitivity: [persistent.stein_gamepad_sens_y:.2f]") style "stein_settings_label"
-                        bar value FieldValue(persistent, "stein_gamepad_sens_y", range=3.0, step=0.1):
-                            xalign 0.5
-                            xsize 350
-                            ysize 35
-                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
-
-        elif current_tab == "gameplay":
-            vbox:
-                xalign 0.5
-                spacing 30
-                
-                vbox:
-                    spacing 5
-                    xalign 0.5
-                    text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "stein_settings_label"
-                    bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
                         xalign 0.5
-                        xsize 600
-                        ysize 45
-                        left_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        right_bar Frame("pics/gui/button_bg.png", 10, 10)
-                        thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+                        spacing 30
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
+                                xalign 0.5
+                                xsize 600
+                                ysize 45
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
 
-                vbox:
-                    spacing 5
-                    xalign 0.5
-                    textbutton ("Show FPS Counter: [persistent.stein_show_fps]"):
-                        action ToggleVariable("persistent.stein_show_fps")
-                        style "sayoristein_menu_button"
-                        text_style "sayoristein_menu_button_text"
-                        xalign 0.5
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            textbutton ("Show FPS Counter: [persistent.stein_show_fps]"):
+                                action ToggleVariable("persistent.stein_show_fps")
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                xalign 0.5
+                            
+                            text _("Shows frames per second in top-right corner") font "mod_assets/fonts/BebasNeue-Regular.ttf" size 18 color "#888" xalign 0.5
                     
-                    text _("Shows frames per second in top-right corner") font "mod_assets/fonts/BebasNeue-Regular.ttf" size 18 color "#888" xalign 0.5
+                    null height 50
 
     textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
         xalign 0.5
@@ -293,6 +317,15 @@ screen sayoristein_arena_hub():
 init python:
     if getattr(persistent, "stein_motion_blur_strength", None) is None:
         persistent.stein_motion_blur_strength = 0.0
+    
+    if getattr(persistent, "stein_soft_shadows", None) is None:
+        persistent.stein_soft_shadows = True
+
+    if getattr(persistent, "stein_flashlight_shadows", None) is None:
+        persistent.stein_flashlight_shadows = False
+
+    if getattr(persistent, "stein_heat_distortion", None) is None:
+        persistent.stein_heat_distortion = True
 
     def buy_stein_upgrade(upgrade_type):
         if upgrade_type == "pistol":
