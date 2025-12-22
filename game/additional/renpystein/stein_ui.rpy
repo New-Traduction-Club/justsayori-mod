@@ -21,13 +21,9 @@ screen stein_controls_overlay():
             textbutton _("Touch & Gamepad") action SetVariable("simulate_touch", True)
 
     if persistent.stein_show_fps:
-        text "FPS: [stein_current_fps]":
+        add DynamicDisplayable(stein_fps_displayable):
             xalign 0.98
             yalign 0.02
-            size 30
-            color "#607567"
-            outlines [(2, "#000000", 0, 0)]
-            font "mod_assets/fonts/BebasNeue-Regular.ttf"
 
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
@@ -167,10 +163,22 @@ screen sayoristein_settings_menu():
                             style "sayoristein_menu_button"
                             text_style "sayoristein_menu_button_text"
 
-                        textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
-                            action ToggleVariable("persistent.stein_soft_shadows")
+                        textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
+                            action [ToggleVariable("persistent.stein_enable_shadows"), Function(lambda: setattr(persistent, "stein_soft_shadows", False) if not persistent.stein_enable_shadows else None)]
                             style "sayoristein_menu_button"
                             text_style "sayoristein_menu_button_text"
+
+                        if persistent.stein_enable_shadows:
+                            textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
+                                action ToggleVariable("persistent.stein_soft_shadows")
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                        else:
+                            textbutton _("Soft Shadows: LOCKED"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
 
                         # textbutton ("Heat Distortion: " + ("ON" if persistent.stein_heat_distortion else "OFF")):
                         #     action ToggleVariable("persistent.stein_heat_distortion")
@@ -316,16 +324,23 @@ screen sayoristein_arena_hub():
 
 init python:
     if getattr(persistent, "stein_motion_blur_strength", None) is None:
-        persistent.stein_motion_blur_strength = 0.0
+        persistent.stein_motion_blur_strength = 0.3
     
     if getattr(persistent, "stein_soft_shadows", None) is None:
-        persistent.stein_soft_shadows = True
+        persistent.stein_soft_shadows = False
+
+    if getattr(persistent, "stein_enable_shadows", None) is None:
+        persistent.stein_enable_shadows = False
 
     if getattr(persistent, "stein_flashlight_shadows", None) is None:
         persistent.stein_flashlight_shadows = False
 
     if getattr(persistent, "stein_heat_distortion", None) is None:
-        persistent.stein_heat_distortion = True
+        persistent.stein_heat_distortion = False
+
+    def stein_fps_displayable(st, at):
+        fps = getattr(renpy.store, 'stein_current_fps', 0)
+        return Text(f"FPS: {fps}", size=30, color="#607567", outlines=[(2, "#000000", 0, 0)], font="mod_assets/fonts/BebasNeue-Regular.ttf"), 0.01
 
     def buy_stein_upgrade(upgrade_type):
         if upgrade_type == "pistol":

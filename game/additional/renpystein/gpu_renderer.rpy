@@ -30,6 +30,7 @@ init 10 python:
         uniform float u_flashlight_active;
         uniform vec2 u_flashlight_bob;
         uniform float u_soft_shadows;
+        uniform float u_enable_shadows;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
@@ -225,60 +226,64 @@ init 10 python:
                 float distToLight = distance(hitPos.xy, lightPos);
                 
                 if (distToLight < radius) {
-                    float visibility = 0.0;
-                    int samples = 1;
-                    float spread = 0.0;
+                    float visibility = 1.0;
                     
-                    if (u_soft_shadows > 0.5) {
-                        samples = 9;
-                        spread = 0.55;
-                    }
-                    
-                    vec2 dirToLight = normalize(lightPos - hitPos.xy);
-                    vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
-                    
-                    for (int k = 0; k < 9; k++) {
-                        if (k >= samples) break;
+                    if (u_enable_shadows > 0.5) {
+                        visibility = 0.0;
+                        int samples = 1;
+                        float spread = 0.0;
                         
-                        float offScale = 0.0;
-                        if (k == 1) offScale = 1.0;
-                        if (k == 2) offScale = -1.0;
-                        if (k == 3) offScale = 0.5;
-                        if (k == 4) offScale = -0.5;
-                        if (k == 5) offScale = 0.75;
-                        if (k == 6) offScale = -0.75;
-                        if (k == 7) offScale = 0.25;
-                        if (k == 8) offScale = -0.25;
-                        
-                        vec2 offset = perp * offScale;
-                        
-                        vec2 targetPos = lightPos + offset;
-                        vec2 rayDir = normalize(targetPos - hitPos.xy);
-                        float rayDist = distance(targetPos, hitPos.xy);
-                        
-                        float stepSize = 0.2;
-                        int steps = int(rayDist / stepSize);
-                        vec2 checkPos = hitPos.xy + rayDir * 0.1;
-                        bool hitWall = false;
-                        
-                        for(int s=0; s<64; s++) { 
-                            if (s >= steps) break;
-                            checkPos += rayDir * stepSize;
-                            
-                            if (abs(floor(checkPos.x) - float(mapPos.x)) < 0.1 && abs(floor(checkPos.y) - float(mapPos.y)) < 0.1) continue;
-
-                            vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
-                            mapUV *= u_map_uv_scale;
-                            if (texture2D(u_map_texture, mapUV).r > 0.5) {
-                                hitWall = true;
-                                break;
-                            }
+                        if (u_soft_shadows > 0.5) {
+                            samples = 9;
+                            spread = 0.55;
                         }
                         
-                        if (!hitWall) visibility += 1.0;
+                        vec2 dirToLight = normalize(lightPos - hitPos.xy);
+                        vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
+                        
+                        for (int k = 0; k < 9; k++) {
+                            if (k >= samples) break;
+                            
+                            float offScale = 0.0;
+                            if (k == 1) offScale = 1.0;
+                            if (k == 2) offScale = -1.0;
+                            if (k == 3) offScale = 0.5;
+                            if (k == 4) offScale = -0.5;
+                            if (k == 5) offScale = 0.75;
+                            if (k == 6) offScale = -0.75;
+                            if (k == 7) offScale = 0.25;
+                            if (k == 8) offScale = -0.25;
+                            
+                            vec2 offset = perp * offScale;
+                            
+                            vec2 targetPos = lightPos + offset;
+                            vec2 rayDir = normalize(targetPos - hitPos.xy);
+                            float rayDist = distance(targetPos, hitPos.xy);
+                            
+                            float stepSize = 0.2;
+                            int steps = int(rayDist / stepSize);
+                            vec2 checkPos = hitPos.xy + rayDir * 0.1;
+                            bool hitWall = false;
+                            
+                            for(int s=0; s<64; s++) { 
+                                if (s >= steps) break;
+                                checkPos += rayDir * stepSize;
+                                
+                                if (abs(floor(checkPos.x) - float(mapPos.x)) < 0.1 && abs(floor(checkPos.y) - float(mapPos.y)) < 0.1) continue;
+
+                                vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
+                                mapUV *= u_map_uv_scale;
+                                if (texture2D(u_map_texture, mapUV).r > 0.5) {
+                                    hitWall = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!hitWall) visibility += 1.0;
+                        }
+                        
+                        visibility /= float(samples);
                     }
-                    
-                    visibility /= float(samples);
 
                     if (visibility > 0.0) {
                         float att = 1.0 - (distToLight / radius);
@@ -412,58 +417,62 @@ init 10 python:
                             float lDist = distance(spritePos, lData.xy);
                             
                             if (lDist < lData.z) {
-                                float visibility = 0.0;
-                                int samples = 1;
-                                float spread = 0.0;
+                                float visibility = 1.0;
                                 
-                                if (u_soft_shadows > 0.5) {
-                                    samples = 9;
-                                    spread = 0.55;
-                                }
-                                
-                                vec2 dirToLight = normalize(lData.xy - spritePos);
-                                vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
-                                
-                                for (int k = 0; k < 9; k++) {
-                                    if (k >= samples) break;
+                                if (u_enable_shadows > 0.5) {
+                                    visibility = 0.0;
+                                    int samples = 1;
+                                    float spread = 0.0;
                                     
-                                    float offScale = 0.0;
-                                    if (k == 1) offScale = 1.0;
-                                    if (k == 2) offScale = -1.0;
-                                    if (k == 3) offScale = 0.5;
-                                    if (k == 4) offScale = -0.5;
-                                    if (k == 5) offScale = 0.75;
-                                    if (k == 6) offScale = -0.75;
-                                    if (k == 7) offScale = 0.25;
-                                    if (k == 8) offScale = -0.25;
-                                    
-                                    vec2 offset = perp * offScale;
-                                    
-                                    vec2 targetPos = lData.xy + offset;
-                                    vec2 rayDir = normalize(targetPos - spritePos);
-                                    float rayDist = distance(targetPos, spritePos);
-                                    
-                                    float stepSize = 0.2;
-                                    int steps = int(rayDist / stepSize);
-                                    vec2 checkPos = spritePos + rayDir * 0.1;
-                                    bool hitWall = false;
-                                    
-                                    for(int s=0; s<64; s++) {
-                                        if (s >= steps) break;
-                                        checkPos += rayDir * stepSize;
-                                        
-                                        vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
-                                        mapUV *= u_map_uv_scale;
-                                        if (texture2D(u_map_texture, mapUV).r > 0.5) {
-                                            hitWall = true;
-                                            break;
-                                        }
+                                    if (u_soft_shadows > 0.5) {
+                                        samples = 9;
+                                        spread = 0.55;
                                     }
                                     
-                                    if (!hitWall) visibility += 1.0;
+                                    vec2 dirToLight = normalize(lData.xy - spritePos);
+                                    vec2 perp = vec2(-dirToLight.y, dirToLight.x) * spread;
+                                    
+                                    for (int k = 0; k < 9; k++) {
+                                        if (k >= samples) break;
+                                        
+                                        float offScale = 0.0;
+                                        if (k == 1) offScale = 1.0;
+                                        if (k == 2) offScale = -1.0;
+                                        if (k == 3) offScale = 0.5;
+                                        if (k == 4) offScale = -0.5;
+                                        if (k == 5) offScale = 0.75;
+                                        if (k == 6) offScale = -0.75;
+                                        if (k == 7) offScale = 0.25;
+                                        if (k == 8) offScale = -0.25;
+                                        
+                                        vec2 offset = perp * offScale;
+                                        
+                                        vec2 targetPos = lData.xy + offset;
+                                        vec2 rayDir = normalize(targetPos - spritePos);
+                                        float rayDist = distance(targetPos, spritePos);
+                                        
+                                        float stepSize = 0.2;
+                                        int steps = int(rayDist / stepSize);
+                                        vec2 checkPos = spritePos + rayDir * 0.1;
+                                        bool hitWall = false;
+                                        
+                                        for(int s=0; s<64; s++) {
+                                            if (s >= steps) break;
+                                            checkPos += rayDir * stepSize;
+                                            
+                                            vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
+                                            mapUV *= u_map_uv_scale;
+                                            if (texture2D(u_map_texture, mapUV).r > 0.5) {
+                                                hitWall = true;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if (!hitWall) visibility += 1.0;
+                                    }
+                                    
+                                    visibility /= float(samples);
                                 }
-                                
-                                visibility /= float(samples);
 
                                 if (visibility > 0.0) {
                                     float att = 1.0 - (lDist / lData.z);
@@ -1467,6 +1476,9 @@ init 10 python:
             soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
             child_render.add_uniform('u_soft_shadows', soft_shadows)
             
+            enable_shadows = 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0
+            child_render.add_uniform('u_enable_shadows', enable_shadows)
+
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
 
@@ -1906,14 +1918,12 @@ init 10 python:
             dtime = st - self.oldst
             self.oldst = st
 
-            self.fps_frame_count += 1
-            self.fps_timer_accum += dtime
-            
-            if self.fps_timer_accum >= 0.5:
-                current_fps = int(self.fps_frame_count / self.fps_timer_accum)
-                renpy.store.stein_current_fps = current_fps
-                self.fps_frame_count = 0
-                self.fps_timer_accum = 0.0
+            if dtime > 0.0:
+                inst_fps = 1.0 / dtime
+                
+                current_fps = getattr(renpy.store, 'stein_current_fps', 60)
+                new_fps = (current_fps * 0.9) + (inst_fps * 0.1)
+                renpy.store.stein_current_fps = int(new_fps)
 
             if simulate_touch: self.update_player_from_touch_state()
             else: self.touch_speed = 0.0; self.touch_strafe = 0.0; self.touch_dir = 0.0
