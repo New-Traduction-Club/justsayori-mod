@@ -111,7 +111,7 @@ init python:
         "player_dirx": 0.0, "player_diry": 1.0,
         "player_planex": 0.66, "player_planey": 0.0,
         "enemies": [ (13.5, 2.5, 4, 5), (2.5, 13.5, 4, 5), (7.5, 13.5, 4, 5) ],
-        "sprites": [ (2.5, 2.5, 2), (13.5, 13.5, 2) ],
+        "sprites": [],
         "exits": [ (1.5, 1.5, "Exit") ]
     }
 
