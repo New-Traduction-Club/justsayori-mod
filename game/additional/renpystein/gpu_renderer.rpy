@@ -776,6 +776,7 @@ init 10 python:
             normal_frameCount=5, normal_fps=15, normal_flash_frame=0, normal_name=None,
             ads_enter_frameCount=0, ads_enter_fps=20, ads_enter_name=None,
             ads_fire_frameCount=0, ads_fire_fps=15, ads_fire_flash_frame=0, ads_fire_name=None,
+            run_enter_frameCount=0, run_enter_fps=15, run_enter_flash_frame=0, run_enter_name=None,
             zoom_factor=11, damage=25, projectile_type=None, cooldown=0.5, 
             ads_idle=None, ads_fire=None, loop_frames=None, 
             flash_offset=(0,0), flash_ads_offset=(0,0), flash_size=1.0, flash_color=(1.0, 0.9, 0.7),
@@ -798,7 +799,8 @@ init 10 python:
                 'size': flash_size,
                 'color': flash_color,
                 'frame_normal': normal_flash_frame,
-                'frame_ads': ads_fire_flash_frame
+                'frame_ads': ads_fire_flash_frame,
+                'frame_run': run_enter_flash_frame
             }
             
             self.playing = False
@@ -811,13 +813,15 @@ init 10 python:
             self.anims = {
                 'normal': [],
                 'ads_enter': [],
-                'ads_fire': []
+                'ads_fire': [],
+                'run_enter': []
             }
             
             self.fps = {
                 'normal': normal_fps,
                 'ads_enter': ads_enter_fps,
-                'ads_fire': ads_fire_fps
+                'ads_fire': ads_fire_fps,
+                'run_enter': run_enter_fps
             }
             
             # Load Normal
@@ -836,6 +840,12 @@ init 10 python:
                 base_ads_fire = ads_fire_name if ads_fire_name else (name + "_ads")
                 for i in range(ads_fire_frameCount):
                     self.anims['ads_fire'].append(Transform("pics/weapons/%s%s.webp" % (base_ads_fire, i+1), xysize=(1280, 720)))
+            
+            # Load Run Enter
+            if run_enter_frameCount > 0:
+                base_run = run_enter_name if run_enter_name else (name + "_run")
+                for i in range(run_enter_frameCount):
+                    self.anims['run_enter'].append(Transform("pics/weapons/%s%s.webp" % (base_run, i+1), xysize=(1280, 720)))
             
             self.ads_idle_img = Transform(ads_idle, xysize=(1280, 720)) if ads_idle else None
             self.ads_fire_static = Transform(ads_fire, xysize=(1280, 720)) if ads_fire else None
@@ -857,7 +867,15 @@ init 10 python:
             if self.oldst is None: self.oldst = st
             dt = st - self.oldst
             
+            is_running = movement_state.get('is_running', False) if movement_state else False
+
+            if is_firing:
+                is_running = False
+            
             if is_ads:
+                if self.aim_state in ('entering_run', 'running', 'exiting_run'):
+                    self.aim_state = 'hip'
+
                 if self.aim_state == 'hip':
                     if self.anims['ads_enter']:
                         self.aim_state = 'entering_ads'
@@ -866,10 +884,28 @@ init 10 python:
                         self.oldst = st
                     else:
                         self.aim_state = 'ads'
-            else:
-                if self.aim_state != 'hip':
+            elif is_running and self.anims.get('run_enter'):
+                if self.aim_state in ('hip', 'exiting_run'):
+                    if self.aim_state == 'hip' and self.anim_state == 'playing':
+                        pass
+                    else:
+                        self.aim_state = 'entering_run'
+                        self.frame_index = 0
+                        self.anim_state = 'idle'
+                        self.oldst = st
+                elif self.aim_state in ('ads', 'entering_ads'):
                     self.aim_state = 'hip'
-            
+            else:
+                if is_firing and self.aim_state in ('running', 'entering_run', 'exiting_run'):
+                    self.aim_state = 'hip'
+                elif self.aim_state in ('running', 'entering_run'):
+                    self.aim_state = 'exiting_run'
+                    self.frame_index = 0
+                    self.oldst = st
+
+                if self.aim_state != 'hip' and self.aim_state != 'exiting_run':
+                    self.aim_state = 'hip'
+
             current_img = None
             frame_duration = 0.1
             active_anim_list = []
@@ -884,6 +920,28 @@ init 10 python:
                     self.frame_index += 1
                     if self.frame_index >= len(active_anim_list):
                         self.aim_state = 'ads'
+                        self.frame_index = 0
+            
+            if self.aim_state == 'entering_run':
+                active_anim_list = self.anims['run_enter']
+                frame_duration = 1.0 / self.fps['run_enter']
+                
+                if dt >= frame_duration:
+                    self.oldst = st
+                    self.frame_index += 1
+                    if self.frame_index >= len(active_anim_list):
+                        self.aim_state = 'running'
+                        self.frame_index = len(active_anim_list) - 1
+            
+            if self.aim_state == 'exiting_run':
+                active_anim_list = self.anims['run_enter']
+                frame_duration = 1.0 / self.fps['run_enter']
+                
+                if dt >= frame_duration:
+                    self.oldst = st
+                    self.frame_index += 1
+                    if self.frame_index >= len(active_anim_list):
+                        self.aim_state = 'hip'
                         self.frame_index = 0
             
             if self.aim_state == 'hip':
@@ -934,6 +992,22 @@ init 10 python:
                     safe_idx = min(self.frame_index, len(active_anim_list)-1)
                     current_img = active_anim_list[safe_idx]
 
+            elif self.aim_state == 'entering_run':
+                if active_anim_list:
+                    safe_idx = min(self.frame_index, len(active_anim_list)-1)
+                    current_img = active_anim_list[safe_idx]
+
+            elif self.aim_state == 'exiting_run':
+                run_list = self.anims['run_enter']
+                if run_list:
+                    rev_idx = len(run_list) - 1 - self.frame_index
+                    safe_idx = max(0, min(rev_idx, len(run_list)-1))
+                    current_img = run_list[safe_idx]
+            
+            elif self.aim_state == 'running':
+                if self.anims['run_enter']:
+                    current_img = self.anims['run_enter'][-1]
+
             # Render Weapon
             if current_img:
                 eileen = renpy.render(current_img, 1280, 720, st, at)
@@ -941,7 +1015,7 @@ init 10 python:
                 
                 # Bobbing
                 offset_x = 0; offset_y = 0
-                if movement_state and movement_state.get('is_moving', False) and self.aim_state == 'hip':
+                if movement_state and movement_state.get('is_moving', False) and self.aim_state in ('hip', 'entering_run', 'running', 'exiting_run'):
                     bob_speed = 15.0 if movement_state.get('is_running', False) else 10.0
                     bob_amp_x = 50.0 if movement_state.get('is_running', False) else 20.0
                     offset_x = math.sin(st * bob_speed) * bob_amp_x
@@ -1270,13 +1344,13 @@ init 10 python:
                 ads_fire_flash_frame=1,
             ))
 
-            register_weapon(Weapon("shotgun", SLOT_LONG, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.4, flash_offset=(0, -170), flash_ads_offset=(0, -360), flash_size=1.0, ads_idle="pics/weapons/shotgun_ads1.webp",
+            register_weapon(Weapon("shotgun", SLOT_LONG, damage=self.shotgun_dmg, projectile_type='shotgun', cooldown=1.4, flash_offset=(0, -170), flash_ads_offset=(0, -340), flash_size=1.0, ads_idle="pics/weapons/shotgun_ads1.webp",
                 # Normal configs
-                normal_frameCount=45,
+                normal_frameCount=39,
                 normal_fps=60,
-                normal_flash_frame=12,
+                normal_flash_frame=1,
             
-                # ADS transition
+                # ADS transition (normal-ads)
                 ads_enter_frameCount=5,
                 ads_enter_fps=60,
                 ads_enter_name="shotgun_raised",
@@ -1285,6 +1359,11 @@ init 10 python:
                 ads_fire_frameCount=45,
                 ads_fire_fps=60,
                 ads_fire_flash_frame=1,
+
+                # Run enter (normal-running)
+                run_enter_frameCount=5,
+                run_enter_fps=60,
+                run_enter_name="shotgun_run",
             ))
 
             register_weapon(Weapon("fist", SLOT_MELEE, 5, 1, damage=25, cooldown=0.5))
