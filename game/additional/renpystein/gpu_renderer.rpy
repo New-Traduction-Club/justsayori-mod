@@ -2057,18 +2057,7 @@ init 10 python:
             # hud_r = renpy.render(hud_text, width, height, st, at)
             # r.blit(hud_r, (30, height - 60))
 
-            if self.is_arena_mode:
-                arena_text = Text(_("ROUND: {}  |  KILLS: {}  |  COINS: {}").format(self.current_round, persistent.stein_kills, renpy.store.stein_session_coins), size=28, color="#FFD700", outlines=[(2, "#000", 0, 0)])
-                arena_r = renpy.render(arena_text, width, height, st, at)
-                aw, ah = arena_r.get_size()
-                r.blit(arena_r, (width - aw - 30, height - 60))
-                
-                # Next Round Timer
-                if self.inter_round_timer > 0 and self.current_round > 0:
-                    timer_text = Text(_("NEXT ROUND IN: {:.1f}").format(self.inter_round_timer), size=48, color="#F00", outlines=[(2, "#000", 0, 0)])
-                    timer_r = renpy.render(timer_text, width, height, st, at)
-                    tw, th = timer_r.get_size()
-                    r.blit(timer_r, (width/2 - tw/2, 100))
+
 
             # Damage indicators
             center_x = width / 2; center_y = height / 2; indicator_radius = 200
@@ -2113,6 +2102,19 @@ init 10 python:
             is_firing = self.mouse_firing or self.gp_firing
             current_weapon_obj = self.weapons[self.player.current_weapon_name]
             current_weapon_obj.render_to(r, width, height, st, at, is_ads=self.is_aiming or self.gp_aiming, is_firing=is_firing, movement_state=movement_state)
+
+            if self.is_arena_mode:
+                arena_text = Text(_("ROUND: {}  |  KILLS: {}  |  COINS: {}").format(self.current_round, persistent.stein_kills, renpy.store.stein_session_coins), size=28, color="#FFD700", outlines=[(2, "#000", 0, 0)])
+                arena_r = renpy.render(arena_text, width, height, st, at)
+                aw, ah = arena_r.get_size()
+                r.blit(arena_r, (width - aw - 30, height - 60))
+                
+                # Next Round Timer
+                if self.inter_round_timer > 0 and self.current_round > 0:
+                    timer_text = Text(_("NEXT ROUND IN: {:.1f}").format(self.inter_round_timer), size=48, color="#F00", outlines=[(2, "#000", 0, 0)])
+                    timer_r = renpy.render(timer_text, width, height, st, at)
+                    tw, th = timer_r.get_size()
+                    r.blit(timer_r, (width/2 - tw/2, 100))
             
             if self.return_value:
                 renpy.timeout(0)
@@ -2152,14 +2154,33 @@ init 10 python:
                         self.heal_flash_timer = 0.2
                     elif texture_index in (11, 12):
                         renpy.store.stein_session_coins += 100; picked = True
-                    elif texture_index == 13 and not renpy.store.stein_has_shotgun:
-                        renpy.store.stein_has_shotgun = True; picked = True
-                        self.pickup_msg = "SHOTGUN ACQUIRED"
-                        self.pickup_msg_timer = 3.0
-                    elif texture_index == 15 and not renpy.store.stein_has_minigun:
-                        renpy.store.stein_has_minigun = True; picked = True
-                        self.pickup_msg = "MINIGUN ACQUIRED"
-                        self.pickup_msg_timer = 3.0
+                    elif texture_index == 13:
+                        w_obj = self.weapon_library["shotgun"]
+                        has_shotgun = renpy.store.stein_has_shotgun or (self.inventory[w_obj.category] and self.inventory[w_obj.category].name == "shotgun")
+                        
+                        if not has_shotgun:
+                            if self.is_arena_mode:
+                                self.equip_weapon("shotgun")
+                            else:
+                                renpy.store.stein_has_shotgun = True
+                            
+                            picked = True
+                            self.pickup_msg = "SHOTGUN ACQUIRED"
+                            self.pickup_msg_timer = 3.0
+
+                    elif texture_index == 15:
+                        w_obj = self.weapon_library["minigun"]
+                        has_minigun = renpy.store.stein_has_minigun or (self.inventory[w_obj.category] and self.inventory[w_obj.category].name == "minigun")
+                        
+                        if not has_minigun:
+                            if self.is_arena_mode:
+                                self.equip_weapon("minigun")
+                            else:
+                                renpy.store.stein_has_minigun = True
+                            
+                            picked = True
+                            self.pickup_msg = "MINIGUN ACQUIRED"
+                            self.pickup_msg_timer = 3.0
                     if picked: self.sprite_positions.remove(sprite)
 
         def shoot_weapon(self):
