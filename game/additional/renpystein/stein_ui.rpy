@@ -176,6 +176,11 @@ screen sayoristein_settings_menu():
                             style "sayoristein_menu_button"
                             text_style "sayoristein_menu_button_text"
 
+                        textbutton ("Volumetric Clouds: " + ("ON" if persistent.stein_volumetric_clouds else "OFF")):
+                            action ToggleVariable("persistent.stein_volumetric_clouds")
+                            style "sayoristein_menu_button"
+                            text_style "sayoristein_menu_button_text"
+
                         if persistent.stein_lighting_quality == 0:
                             textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
                                 action [ToggleVariable("persistent.stein_enable_shadows"), Function(lambda: setattr(persistent, "stein_soft_shadows", False) if not persistent.stein_enable_shadows else None)]
@@ -351,6 +356,9 @@ screen sayoristein_arena_hub():
 init python:
     if getattr(persistent, "stein_lighting_quality", None) is None:
         persistent.stein_lighting_quality = 0 # 0=High, 1=Low
+
+    if getattr(persistent, "stein_volumetric_clouds", None) is None:
+        persistent.stein_volumetric_clouds = False
 
     if getattr(persistent, "stein_motion_blur_strength", None) is None:
         persistent.stein_motion_blur_strength = 0.3

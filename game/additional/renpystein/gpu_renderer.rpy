@@ -5,6 +5,8 @@ init 10 python:
     SLOT_SPECIAL = 3
 
     renpy.register_shader("stein.raycaster", variables="""
+        uniform float u_volumetric_clouds;
+        uniform float u_time_of_day;
         uniform float u_time;
         uniform vec2 u_resolution;
         uniform vec2 u_player_pos;
@@ -39,6 +41,34 @@ init 10 python:
         attribute vec2 a_tex_coord;
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
+    """, fragment_functions="""
+        float hash(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
+        }
+
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            float a = hash(i);
+            float b = hash(i + vec2(1.0, 0.0));
+            float c = hash(i + vec2(0.0, 1.0));
+            float d = hash(i + vec2(1.0, 1.0));
+            return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+
+        float fbm(vec2 p) {
+            float v = 0.0;
+            float a = 0.5;
+            for (int i = 0; i < 5; i++) {
+                v += a * noise(p);
+                p *= 2.0;
+                a *= 0.5;
+            }
+            return v;
+        }
     """, fragment_300="""
         const int MAX_STEPS = 128; 
         
@@ -309,12 +339,77 @@ init 10 python:
             color = finalColor * totalLight * faceShadow;
 
         } else {
-            // Skybox
-            vec2 skyUV = uv;
-            // Apply pitch to skyUV.y
-            skyUV.y -= u_pitch; 
-            skyUV.y = clamp(skyUV.y, 0.0, 1.0);
-            color = texture2D(u_sky_texture, skyUV).rgb;
+            if (u_volumetric_clouds > 0.5) {
+                vec3 skyColorTop;
+                vec3 skyColorBottom;
+                vec3 cloudColor;
+                
+                if (u_time_of_day < 0.5) { // Night
+                    skyColorTop = vec3(0.0, 0.0, 0.1);
+                    skyColorBottom = vec3(0.05, 0.05, 0.2);
+                    cloudColor = vec3(0.1, 0.1, 0.15);
+                } else if (u_time_of_day < 1.5) { // Day
+                    skyColorTop = vec3(0.0, 0.4, 0.8);
+                    skyColorBottom = vec3(0.6, 0.8, 1.0);
+                    cloudColor = vec3(1.0, 1.0, 1.0);
+                } else { // Afternoon
+                    skyColorTop = vec3(0.2, 0.1, 0.4);
+                    skyColorBottom = vec3(1.0, 0.4, 0.2);
+                    cloudColor = vec3(1.0, 0.6, 0.5);
+                }
+
+                float skyGradient = smoothstep(-0.5, 0.5, rayDir.z);
+                vec3 skyBase = mix(skyColorBottom, skyColorTop, skyGradient);
+                
+                color = skyBase;
+
+                if (rayDir.z > 0.01) {
+                    vec2 cloudUV = rayDir.xy / rayDir.z;
+                    cloudUV += u_time * 0.05;
+                    
+                    float n = fbm(cloudUV * 0.5);
+                    float c = smoothstep(0.4, 0.8, n);
+                    c *= smoothstep(0.0, 0.2, rayDir.z);
+                    
+                    color = mix(color, cloudColor, c);
+                }
+                
+                if (u_time_of_day < 0.5 && rayDir.z > 0.01) {
+                    vec2 starUV = rayDir.xy / (1.0 + rayDir.z);
+                    
+                    float scale = 300.0; 
+                    vec2 gridUV = starUV * scale;
+                    vec2 gridID = floor(gridUV);
+                    vec2 gridLocal = fract(gridUV) - 0.5;
+                    
+                    float h = hash(gridID);
+                    
+                    if (h > 0.97) {
+                        // Stable random position in cell
+                        float r1 = hash(gridID + vec2(12.34, 56.78));
+                        float r2 = hash(gridID + vec2(90.12, 34.56));
+                        vec2 pos = (vec2(r1, r2) - 0.5) * 0.7;
+                        
+                        float dist = length(gridLocal - pos);
+                        
+                        float brightness = smoothstep(0.4, 0.1, dist);
+                        
+                        float twinkle = 0.7 + 0.3 * sin(u_time * 2.0 + h * 50.0);
+                        
+                        // Horizon fade
+                        float fade = smoothstep(0.01, 0.1, rayDir.z);
+                        
+                        color += vec3(brightness * twinkle * fade);
+                    }
+                }
+            } else {
+                // Skybox
+                vec2 skyUV = uv;
+                // Apply pitch to skyUV.y
+                skyUV.y -= u_pitch; 
+                skyUV.y = clamp(skyUV.y, 0.0, 1.0);
+                color = texture2D(u_sky_texture, skyUV).rgb;
+            }
         }
 
         // SPRITE RENDERING (Adapted for 3D)
@@ -1463,6 +1558,8 @@ init 10 python:
             child_render.add_uniform('u_z_offset', c.player.z)
             child_render.add_uniform('u_vertical_scale', vertical_scale)
             child_render.add_uniform('u_sky_texture', c.sky_texture)
+            child_render.add_uniform('u_volumetric_clouds', 1.0 if persistent.stein_volumetric_clouds else 0.0)
+            child_render.add_uniform('u_time_of_day', float(c.lighting_preset.get('time_id', 0.0)))
 
             child_render.add_uniform('u_map_size', (float(c.map_w), float(c.map_h)))
             child_render.add_uniform('u_map_uv_scale', c.map_uv_scale)
@@ -1527,7 +1624,8 @@ init 10 python:
             self.lighting_preset = lighting_preset if lighting_preset else {
                 'ambient_base': (0.02, 0.02, 0.05),
                 'ambient_near': (0.05, 0.05, 0.08),
-                'sky_texture': "pics/background.webp"
+                'sky_texture': "pics/background.webp",
+                'time_id': 0.0
             }
 
             self.fps_frame_count = 0

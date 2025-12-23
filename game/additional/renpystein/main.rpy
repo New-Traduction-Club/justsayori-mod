@@ -48,17 +48,20 @@ init python:
         "night": {
             'ambient_base': (0.02, 0.02, 0.05),
             'ambient_near': (0.05, 0.05, 0.08),
-            'sky_texture': "pics/background.png"
+            'sky_texture': "pics/background.png",
+            'time_id': 0.0
         },
         "day": {
             'ambient_base': (1.0, 1.0, 1.0),
             'ambient_near': (0.0, 0.0, 0.0),
-            'sky_texture': "pics/backgroundbackground.png"
+            'sky_texture': "pics/backgroundbackground.png",
+            'time_id': 1.0
         },
         "afternoon": {
             'ambient_base': (0.6, 0.6, 0.7),
             'ambient_near': (0.1, 0.1, 0.1),
-            'sky_texture': "pics/background.png"
+            'sky_texture': "pics/background.png",
+            'time_id': 2.0
         }
     }
 
