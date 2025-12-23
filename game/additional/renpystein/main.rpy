@@ -35,6 +35,7 @@ default worldMap = []
 default exits = []
 
 default stein_current_fps = 60
+default stein_current_lighting = None
 
 default persistent.stein_mouse_sens = 1.0
 default persistent.stein_gamepad_sens_x = 1.0
@@ -43,8 +44,27 @@ default persistent.stein_show_fps = True
 default persistent.stein_enable_bloom = True
 
 init python:
+    stein_lighting_presets = {
+        "night": {
+            'ambient_base': (0.02, 0.02, 0.05),
+            'ambient_near': (0.05, 0.05, 0.08),
+            'sky_texture': "pics/background.png"
+        },
+        "day": {
+            'ambient_base': (1.0, 1.0, 1.0),
+            'ambient_near': (0.0, 0.0, 0.0),
+            'sky_texture': "pics/backgroundbackground.png"
+        },
+        "afternoon": {
+            'ambient_base': (0.6, 0.6, 0.7),
+            'ambient_near': (0.1, 0.1, 0.1),
+            'sky_texture': "pics/background.png"
+        }
+    }
+
     # --- Level 1 Data ---
     level1_data = {
+        "lighting": "day",
         "worldMap": [
             [8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4],
             [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
@@ -89,6 +109,7 @@ init python:
 
     # --- Level 2 Data ---
     level2_data = {
+        "lighting": "afternoon",
         "worldMap": [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -254,6 +275,10 @@ init python:
         renpy.store.stein_sniper_count = 0
         renpy.store.stein_yuritler_count = 0
         
+        # Set Lighting
+        lighting_key = level_data.get("lighting", "night")
+        renpy.store.stein_current_lighting = stein_lighting_presets.get(lighting_key, stein_lighting_presets["night"])
+
         # Initialize sprites list with defined sprites and add barrel for each exit
         temp_sprites = list(level_data["sprites"])
         for exit_coord in level_data["exits"]:
@@ -306,7 +331,8 @@ screen stein:
         worldMap=worldMap,
         exits=exits,
         internal_width=internal_width,
-        internal_height=internal_height
+        internal_height=internal_height,
+        lighting_preset=stein_current_lighting
     )
 
 label renpystein_game:

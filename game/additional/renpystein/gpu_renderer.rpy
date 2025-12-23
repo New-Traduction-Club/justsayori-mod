@@ -33,6 +33,8 @@ init 10 python:
         uniform float u_enable_shadows;
         uniform float u_max_dist;
         uniform float u_simple_floor;
+        uniform vec3 u_ambient_color;
+        uniform vec3 u_ambient_near_color;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
@@ -188,10 +190,10 @@ init 10 python:
             
             float fogDist = length(hitPos.xy - u_player_pos);
             
-            vec3 ambientLight = vec3(0.02, 0.02, 0.05); 
+            vec3 ambientLight = u_ambient_color; 
             
             float personalLight = max(0.0, 1.0 - (fogDist / 4.0)); 
-            ambientLight += vec3(0.05, 0.05, 0.08) * personalLight;
+            ambientLight += u_ambient_near_color * personalLight;
             
             vec3 totalLight = ambientLight;
 
@@ -391,9 +393,9 @@ init 10 python:
                         
                         float sprDist = length(vec2(spX, spY)); 
                         
-                        vec3 sprLight = vec3(0.02, 0.02, 0.05);
+                        vec3 sprLight = u_ambient_color;
                         float sprPersonal = max(0.0, 1.0 - (sprDist / 4.0));
-                        sprLight += vec3(0.05, 0.05, 0.08) * sprPersonal;
+                        sprLight += u_ambient_near_color * sprPersonal;
 
                         if (u_flashlight_active > 0.5) {
                             float dotProd = dot(rayDir, flashDir);
@@ -530,6 +532,7 @@ init 10 python:
         uniform float u_flash_angle;
         uniform vec3 u_flash_color;
         uniform float u_heat_distortion;
+        uniform float u_enable_smoke;
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
     """, fragment_200="""
@@ -562,7 +565,7 @@ init 10 python:
         // BARREL SMOKE
         // Simulates smoke emanating from the hot barrel and rising up
         float smoke_alpha = 0.0;
-        if (u_flash_progress > 0.02) {
+        if (u_enable_smoke > 0.5 && u_flash_progress > 0.02) {
             float smoke_p = (u_flash_progress - 0.02) / 0.98;
             
             // Use unrotated UV so smoke always rises UP relative to screen
@@ -1315,6 +1318,7 @@ init 10 python:
                             u_flash_color=self.flash_config['color'],
                             u_flash_angle=self.current_flash_rot,
                             u_heat_distortion=1.0 if getattr(persistent, "stein_heat_distortion", True) else 0.0,
+                            u_enable_smoke=1.0 if getattr(persistent, "stein_lighting_quality", 0) == 0 else 0.0,
                             zoom=self.flash_config['size'],
                             additive=1.0
                         )
@@ -1497,6 +1501,10 @@ init 10 python:
             child_render.add_uniform('u_enable_shadows', enable_shadows)
             child_render.add_uniform('u_max_dist', max_dist)
             child_render.add_uniform('u_simple_floor', simple_floor)
+            
+            # Lighting Uniforms
+            child_render.add_uniform('u_ambient_color', c.lighting_preset['ambient_base'])
+            child_render.add_uniform('u_ambient_near_color', c.lighting_preset['ambient_near'])
 
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), max_active_lights)))
@@ -1505,7 +1513,7 @@ init 10 python:
             return child_render
 
     class GPURenpystein(renpy.Displayable):
-        def __init__(self, width, height, worldMap, exits=[], internal_width=None, internal_height=None, **kwargs):
+        def __init__(self, width, height, worldMap, exits=[], internal_width=None, internal_height=None, lighting_preset=None, **kwargs):
             super(GPURenpystein, self).__init__(**kwargs)
             self.width = width
             self.height = height
@@ -1516,6 +1524,12 @@ init 10 python:
             self.map_w = self.mapWidth
             self.map_h = self.mapHeight
             
+            self.lighting_preset = lighting_preset if lighting_preset else {
+                'ambient_base': (0.02, 0.02, 0.05),
+                'ambient_near': (0.05, 0.05, 0.08),
+                'sky_texture': "pics/background.png"
+            }
+
             self.fps_frame_count = 0
             self.fps_timer_accum = 0.0
 
@@ -1539,8 +1553,15 @@ init 10 python:
             self.sprite_atlas, self.num_sprite_textures = self.create_sprite_atlas()
             self.solid_base = renpy.display.imagelike.Solid("#000", xsize=width, ysize=height)
             
-            with renpy.open_file("pics/background.png") as f:
-                bg_surf = pygame.image.load(f).convert_alpha()
+            sky_path = self.lighting_preset.get('sky_texture', "pics/background.png")
+            try:
+                with renpy.open_file(sky_path) as f:
+                    bg_surf = pygame.image.load(f).convert_alpha()
+            except:
+                # Fallback
+                with renpy.open_file("pics/background.png") as f:
+                    bg_surf = pygame.image.load(f).convert_alpha()
+            
             bg_surf = pygame.transform.scale(bg_surf, (width, height))
             self.sky_texture = renpy.display.draw.load_texture(bg_surf)
 
