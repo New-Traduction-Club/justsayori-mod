@@ -31,14 +31,15 @@ init 10 python:
         uniform vec2 u_flashlight_bob;
         uniform float u_soft_shadows;
         uniform float u_enable_shadows;
+        uniform float u_max_dist;
+        uniform float u_simple_floor;
         varying vec2 v_tex_coord;
         attribute vec2 a_tex_coord;
     """, vertex_200="""
         v_tex_coord = a_tex_coord;
     """, fragment_300="""
         const int MAX_STEPS = 128; 
-        const float MAX_DIST = 60.0;
-
+        
         vec2 uv = v_tex_coord;
 
         // RAY GENERATION (3D)
@@ -111,7 +112,7 @@ init 10 python:
                 }
             }
             
-            if (rayDist > MAX_DIST) { hit = 2; break; } // Too far
+            if (rayDist > u_max_dist) { hit = 2; break; } // Too far
             
             // Map Bounds Check
             if (mapPos.x < 0 || mapPos.x >= int(u_map_size.x) || mapPos.y < 0 || mapPos.y >= int(u_map_size.y)) {
@@ -143,9 +144,13 @@ init 10 python:
             vec3 hitPos = rayPos + rayDir * rayDist;
             
             if (side == 2 && mapPos.z == -1) {
-                vec2 floorUV = vec2(fract(hitPos.x), fract(hitPos.y));
-                color = texture2D(u_floor_texture, floorUV, -1.0).rgb;
-                color *= 0.6;
+                if (u_simple_floor > 0.5) {
+                    color = vec3(0.25, 0.25, 0.28);
+                } else {
+                    vec2 floorUV = vec2(fract(hitPos.x), fract(hitPos.y));
+                    color = texture2D(u_floor_texture, floorUV, -1.0).rgb;
+                    color *= 0.6;
+                }
             } else {
                 vec2 texUV;
                 if (side == 0) { // X-Side
@@ -1479,13 +1484,19 @@ init 10 python:
                 soft_shadows = 0.0
                 enable_shadows = 0.0
                 max_active_lights = 4
+                max_dist = 30.0
+                simple_floor = 1.0
             else: # High
                 soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
                 enable_shadows = 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0
                 max_active_lights = 16
+                max_dist = 60.0
+                simple_floor = 0.0
 
             child_render.add_uniform('u_soft_shadows', soft_shadows)
             child_render.add_uniform('u_enable_shadows', enable_shadows)
+            child_render.add_uniform('u_max_dist', max_dist)
+            child_render.add_uniform('u_simple_floor', simple_floor)
 
             child_render.add_uniform('u_light_positions', final_lights_data)
             child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), max_active_lights)))
