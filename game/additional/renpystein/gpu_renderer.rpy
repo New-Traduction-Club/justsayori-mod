@@ -1098,7 +1098,7 @@ init 10 python:
             self.aim_state = 'hip'
             self.anim_state = 'idle' # 'idle', 'playing'
             
-            self.flash_base = Transform(Image("pics/items/sight.png"), size=(512, 512))
+            self.flash_base = Transform(Image("pics/items/sight.webp"), size=(512, 512))
 
         def play(self):
             if self.anim_state != 'playing':
@@ -1333,7 +1333,7 @@ init 10 python:
             super(RaycastLayer, self).__init__(**kwargs)
             self.c = controller
             # We use an Image instead of Solid to ensure a_tex_coord attributes are generated for the shader
-            self.base_displayable = Transform(Image("pics/background.png"), size=(self.c.internal_width, self.c.internal_height))
+            self.base_displayable = Transform(Image("pics/background.webp"), size=(self.c.internal_width, self.c.internal_height))
 
         def render(self, width, height, st, at):
             c = self.c
@@ -1527,7 +1527,7 @@ init 10 python:
             self.lighting_preset = lighting_preset if lighting_preset else {
                 'ambient_base': (0.02, 0.02, 0.05),
                 'ambient_near': (0.05, 0.05, 0.08),
-                'sky_texture': "pics/background.png"
+                'sky_texture': "pics/background.webp"
             }
 
             self.fps_frame_count = 0
@@ -1553,13 +1553,13 @@ init 10 python:
             self.sprite_atlas, self.num_sprite_textures = self.create_sprite_atlas()
             self.solid_base = renpy.display.imagelike.Solid("#000", xsize=width, ysize=height)
             
-            sky_path = self.lighting_preset.get('sky_texture', "pics/background.png")
+            sky_path = self.lighting_preset.get('sky_texture', "pics/background.webp")
             try:
                 with renpy.open_file(sky_path) as f:
                     bg_surf = pygame.image.load(f).convert_alpha()
             except:
                 # Fallback
-                with renpy.open_file("pics/background.png") as f:
+                with renpy.open_file("pics/background.webp") as f:
                     bg_surf = pygame.image.load(f).convert_alpha()
             
             bg_surf = pygame.transform.scale(bg_surf, (width, height))
@@ -1700,10 +1700,10 @@ init 10 python:
             self.update_current_weapon_ref()
             
             self.bullet_texture_index = 6
-            self.sight_d = Image("pics/items/sight.png")
-            with renpy.open_file("pics/gui/damage_x.png") as f:
+            self.sight_d = Image("pics/items/sight.webp")
+            with renpy.open_file("pics/gui/damage_x.webp") as f:
                 self.hit_marker_img = pygame.image.load(f).convert_alpha()
-            with renpy.open_file("pics/gui/arrow_d.png") as f:
+            with renpy.open_file("pics/gui/arrow_d.webp") as f:
                 arrow_surf = pygame.image.load(f).convert_alpha()
             self.arrow_img = pygame.transform.scale(arrow_surf, (30, 30))
 
@@ -1839,11 +1839,11 @@ init 10 python:
 
         def create_wall_atlas(self):
             image_paths = [  
-                "pics/walls/eagle.png", "pics/walls/redbrick.png",
-                "pics/walls/purplestone.png", "pics/walls/greystone.png",
-                "pics/walls/bluestone.png", "pics/walls/mossy.png",
-                "pics/walls/wood.png", "pics/walls/colorstone.png",
-                "pics/walls/cement.png",
+                "pics/walls/eagle.webp", "pics/walls/redbrick.webp",
+                "pics/walls/purplestone.webp", "pics/walls/greystone.webp",
+                "pics/walls/bluestone.webp", "pics/walls/mossy.webp",
+                "pics/walls/wood.webp", "pics/walls/colorstone.webp",
+                "pics/walls/cement.webp",
             ]
             
             surfaces = []
@@ -1877,7 +1877,7 @@ init 10 python:
 
         def load_floor_texture(self):
             try:
-                with renpy.open_file("pics/walls/cement.png") as f:
+                with renpy.open_file("pics/walls/cement.webp") as f:
                     surf = pygame.image.load(f).convert_alpha()
                     surf = pygame.transform.scale(surf, (64, 64))
                     return renpy.display.draw.load_texture(surf)
@@ -1888,20 +1888,20 @@ init 10 python:
 
         def create_sprite_atlas(self):
             sprite_paths = [  
-                "pics/items/barrel.png", "pics/items/pillar.png",
-                "pics/items/greenlight.png", "pics/items/pillar_destroyed.png",
-                "pics/enemies/guard.png",
-                "pics/enemies/guard_d.png",
-                "pics/items/bullet.png",
-                "pics/items/medkit.png",
-                "pics/items/cookie.png",
-                "pics/enemies/yuritler.png",
-                "pics/enemies/yuritler_d.png",
-                "pics/items/coins.png",
-                "pics/items/coins.png", 
-                "pics/items/random_gun_i.png",
-                "pics/items/bullet_red.png",
-                "pics/items/minigun.png",
+                "pics/items/barrel.webp", "pics/items/pillar.webp",
+                "pics/items/greenlight.webp", "pics/items/pillar_destroyed.webp",
+                "pics/enemies/guard.webp",
+                "pics/enemies/guard_d.webp",
+                "pics/items/bullet.webp",
+                "pics/items/medkit.webp",
+                "pics/items/cookie.webp",
+                "pics/enemies/yuritler.webp",
+                "pics/enemies/yuritler_d.webp",
+                "pics/items/coins.webp",
+                "pics/items/coins.webp", 
+                "pics/items/random_gun_i.webp",
+                "pics/items/bullet_red.webp",
+                "pics/items/minigun.webp",
             ]
             
             surfaces = []
