@@ -1473,14 +1473,22 @@ init 10 python:
             
             child_render.add_uniform('u_flashlight_bob', (fl_bob_x, fl_bob_y))
             
-            soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
+            lighting_quality = getattr(persistent, "stein_lighting_quality", 0) # 0=High, 1=Low
+
+            if lighting_quality == 1: # Low
+                soft_shadows = 0.0
+                enable_shadows = 0.0
+                max_active_lights = 4
+            else: # High
+                soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
+                enable_shadows = 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0
+                max_active_lights = 16
+
             child_render.add_uniform('u_soft_shadows', soft_shadows)
-            
-            enable_shadows = 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0
             child_render.add_uniform('u_enable_shadows', enable_shadows)
 
             child_render.add_uniform('u_light_positions', final_lights_data)
-            child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), MAX_LIGHTS)))
+            child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), max_active_lights)))
 
             renpy.redraw(self, 0.01)
             return child_render

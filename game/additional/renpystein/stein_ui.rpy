@@ -156,6 +156,19 @@ screen sayoristein_settings_menu():
                     vbox:
                         spacing 10
                         xalign 0.5
+                        text _("Lighting") style "stein_settings_header"
+                        
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("High") action SetVariable("persistent.stein_lighting_quality", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_color ("#00FF00" if persistent.stein_lighting_quality == 0 else "#FFFFFF")
+                            textbutton _("Low") action SetVariable("persistent.stein_lighting_quality", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_color ("#00FF00" if persistent.stein_lighting_quality == 1 else "#FFFFFF")
+
+                    null height 10
+
+                    vbox:
+                        spacing 10
+                        xalign 0.5
                         text _("Post-Processing") style "stein_settings_header"
                         
                         textbutton ("Bloom Effect: " + ("ON" if persistent.stein_enable_bloom else "OFF")):
@@ -163,18 +176,31 @@ screen sayoristein_settings_menu():
                             style "sayoristein_menu_button"
                             text_style "sayoristein_menu_button_text"
 
-                        textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
-                            action [ToggleVariable("persistent.stein_enable_shadows"), Function(lambda: setattr(persistent, "stein_soft_shadows", False) if not persistent.stein_enable_shadows else None)]
-                            style "sayoristein_menu_button"
-                            text_style "sayoristein_menu_button_text"
-
-                        if persistent.stein_enable_shadows:
-                            textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
-                                action ToggleVariable("persistent.stein_soft_shadows")
+                        if persistent.stein_lighting_quality == 0:
+                            textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
+                                action [ToggleVariable("persistent.stein_enable_shadows"), Function(lambda: setattr(persistent, "stein_soft_shadows", False) if not persistent.stein_enable_shadows else None)]
                                 style "sayoristein_menu_button"
                                 text_style "sayoristein_menu_button_text"
+
+                            if persistent.stein_enable_shadows:
+                                textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
+                                    action ToggleVariable("persistent.stein_soft_shadows")
+                                    style "sayoristein_menu_button"
+                                    text_style "sayoristein_menu_button_text"
+                            else:
+                                textbutton _("Soft Shadows: LOCKED"):
+                                    action None
+                                    style "sayoristein_menu_button"
+                                    text_style "sayoristein_menu_button_text"
+                                    text_color "#888888"
                         else:
-                            textbutton _("Soft Shadows: LOCKED"):
+                            textbutton _("Shadows: DISABLED (Low)"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
+                            
+                            textbutton _("Soft Shadows: DISABLED"):
                                 action None
                                 style "sayoristein_menu_button"
                                 text_style "sayoristein_menu_button_text"
@@ -323,6 +349,9 @@ screen sayoristein_arena_hub():
         textbutton _("Back") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
 init python:
+    if getattr(persistent, "stein_lighting_quality", None) is None:
+        persistent.stein_lighting_quality = 0 # 0=High, 1=Low
+
     if getattr(persistent, "stein_motion_blur_strength", None) is None:
         persistent.stein_motion_blur_strength = 0.3
     
