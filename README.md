@@ -198,7 +198,7 @@ If so, then please consider joining us on [Discord](https://discord.gg/nUWzgVZ9W
 
 ---
 
-# New Credits
+# Another Credits
 
 - [Traduction Club!](https://traduction-club.live/)
   - Just: Programmer, translator for Spanish
