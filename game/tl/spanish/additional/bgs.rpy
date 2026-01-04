@@ -4,7 +4,7 @@ translate spanish strings:
 
     # game/additional/bgs.rpy:465
     old "Ready to change!"
-    new "¡Listo para cambiar!"
+    new "¡Listo para el cambio!"
 
     # game/additional/bgs.rpy:473
     old "Select a background"

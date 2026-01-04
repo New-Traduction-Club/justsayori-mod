@@ -70,7 +70,7 @@ translate spanish s_topics_depression_ac4319a1:
 translate spanish s_topics_depression_b9a56361:
 
     # s bbaamoa "I used to think that if I let it show, I would just be a bother and ruin the fun."
-    s bbaamoa "Solía pensar que si lo demostraba, solo sería una molestia y arruinaría la diversión."
+    s bbaamoa "Solía pensar que si dejaba que se notara, solo sería una molestia y arruinaría la diversión."
 
 # game/dialogs/script-topics.rpy:133
 translate spanish s_topics_depression_9cf99c32:
@@ -94,7 +94,7 @@ translate spanish s_topics_depression_659296e6:
 translate spanish s_topics_depression_a7537581:
 
     # s "Like, I tried to be with MC as often as I could, because being with him eased my mind, and my head wouldn't get so cloudy with him around."
-    s "Como que intentaba estar con MC tan a menudo como podía, porque estar con él me tranquilizaba, y mi cabeza no se nublaba tanto con él cerca."
+    s "Intentaba estar con MC tan a menudo como podía, porque estar con él me tranquilizaba, y mi cabeza no se nublaba tanto con él cerca."
 
 # game/dialogs/script-topics.rpy:137
 translate spanish s_topics_depression_379e360a:
@@ -256,7 +256,7 @@ translate spanish s_topics_depression_f7f1e473:
 translate spanish s_topics_depression_e999535c:
 
     # s bbaamsb "Don't let them get to the point that I did, people sometimes reach that breaking point silently, just like I did..."
-    s bbaamsb "No dejes que lleguen al punto al que llegué yo, la gente a veces llega a ese punto de inflexión en silencio, igual que yo..."
+    s bbaamsb "No dejes que lleguen al punto al que llegué yo, la gente a veces llega a ese límite en silencio, igual que yo..."
 
 # game/dialogs/script-topics.rpy:168
 translate spanish s_topics_depression_eab608e6:
@@ -286,7 +286,7 @@ translate spanish s_topics_depression_82b484d6:
 translate spanish s_topics_depression_c8cc7fc6:
 
     # s bbhfmoa "Please treat your life like the precious thing it is, it should be as precious to you as you are to me, {nw}"
-    s bbhfmoa "Por favor, trata tu vida como la cosa preciosa que es, debería ser tan preciosa para ti como tú lo eres para mí, {nw}"
+    s bbhfmoa "Por favor, trata tu vida como el tesoro que es, debería ser tan preciosa para ti como tú lo eres para mí, {nw}"
 
 # game/dialogs/script-topics.rpy:173
 translate spanish s_topics_depression_8f5df92b:
@@ -358,7 +358,7 @@ translate spanish s_topics_childhood_3f46704c:
 translate spanish s_topics_childhood_aa32c2b9:
 
     # s abfcica "I don't even remember what happened to me even right before the plot started, at all..."
-    s abfcica "Ni siquiera recuerdo en absoluto qué me pasó justo antes de que empezara la trama..."
+    s abfcica "Ni siquiera recuerdo qué me pasó justo antes de que empezara la trama..."
 
 # game/dialogs/script-topics.rpy:205
 translate spanish s_topics_childhood_b39fde43:
@@ -370,7 +370,7 @@ translate spanish s_topics_childhood_b39fde43:
 translate spanish s_topics_childhood_bcb04f6f:
 
     # s bbagmfa "It feels weird."
-    s bbagmfa "Se siente raro."
+    s bbagmfa "Se me hace raro."
 
 # game/dialogs/script-topics.rpy:207
 translate spanish s_topics_childhood_1faf3bcf:
@@ -430,7 +430,7 @@ translate spanish s_topics_guitar_b110b877:
 translate spanish s_topics_guitar_3e222e86:
 
     # s ebbbbca "Or mournful, melancholic melodies."
-    s ebbbbca "O melodías tristes y melancólicas."
+    s ebbbbca "O melodías muy mustias y melancólicas."
 
 # game/dialogs/script-topics.rpy:236
 translate spanish s_topics_guitar_0196acc0:
@@ -442,7 +442,7 @@ translate spanish s_topics_guitar_0196acc0:
 translate spanish s_topics_guitar_14c00918:
 
     # s "Anyway, guitarists are also very important members in many music bands."
-    s "En fin, los guitarristas también son miembros muy importantes en muchas bandas de música."
+    s "De todas formas, los guitarristas también son miembros muy importantes en muchas bandas de música."
 
 # game/dialogs/script-topics.rpy:238
 translate spanish s_topics_guitar_66beec54:
@@ -454,7 +454,7 @@ translate spanish s_topics_guitar_66beec54:
 translate spanish s_topics_guitar_b14b7710:
 
     # s abgcasa "It would be missing that soul that ties the entire song together."
-    s abgcasa "Le faltaría ese alma que une toda la canción."
+    s abgcasa "Le faltaría esa alma que une toda la canción."
 
 # game/dialogs/script-topics.rpy:240
 translate spanish s_topics_guitar_2aa8074f:
@@ -544,7 +544,7 @@ translate spanish s_topics_flowers_1671823d:
 translate spanish s_topics_flowers_2205e402:
 
     # s abegcma "...their seeds are also very yummy."
-    s abegcma "Sus semillas también están muy ricas..."
+    s abegcma "Sus pipas también están muy ricas..."
 
 # game/dialogs/script-topics.rpy:273
 translate spanish s_topics_flowers_5f065d95:
@@ -676,7 +676,7 @@ translate spanish s_topics_lucid_dream_d5408479:
 translate spanish s_topics_lucid_dream_8e927d7d:
 
     # s "I'm pretty sure I'm not... conscious? {w=0.5}{nw}"
-    s "¿Estoy bastante segura de que no estoy... consciente? {w=0.5}{nw}"
+    s "Estoy bastante segura de que no estoy... ¿consciente? {w=0.5}{nw}"
 
 # game/dialogs/script-topics.rpy:315
 translate spanish s_topics_lucid_dream_078a662b:
@@ -694,7 +694,7 @@ translate spanish s_topics_lucid_dream_5692f809:
 translate spanish s_topics_lucid_dream_0333bf57:
 
     # s abbbaoa "And as long as your computer works, your best girl Sayori's ready to go!"
-    s abbbaoa "¡Y mientras tu ordenador funcione, tu linda Sayori está lista para la acción!"
+    s abbbaoa "¡Y mientras tu ordenador funcione, tu chica favorita Sayori está lista para la acción!"
 
 # game/dialogs/script-topics.rpy:318
 translate spanish s_topics_lucid_dream_29d44e5f:
@@ -730,7 +730,7 @@ translate spanish s_topics_lucid_dream_3c06919c:
 translate spanish s_topics_lucid_dream_6b1837d5:
 
     # s abaaaoa "But you should know that I'll always be happiest when you're right with me~"
-    s abaaaoa "Pero que sepas que siempre seré más feliz cuando estés aquí conmigo."
+    s abaaaoa "Pero que sepas que siempre seré más feliz cuando estés aquí conmigo..."
 
 # game/dialogs/script-topics.rpy:342
 translate spanish s_topics_intelligence_3b5714fc:
@@ -760,7 +760,7 @@ translate spanish s_topics_intelligence_0c2e4e45:
 translate spanish s_topics_intelligence_c60c9a75:
 
     # extend abbbaca "and wasn't as broad-minded as Monika and Yuri."
-    extend abbbaca "y no era tan abierta de mente como Monika y Yuri."
+    extend abbbaca "y no era tan intelectual como Monika y Yuri."
 
 # game/dialogs/script-topics.rpy:347
 translate spanish s_topics_intelligence_eafec3f2:
@@ -778,7 +778,7 @@ translate spanish s_topics_intelligence_002c8479:
 translate spanish s_topics_intelligence_4079ed46:
 
     # s ebbbaca "And if someone can't tell that, they're the {i}actual{/i} stupid one."
-    s ebbbaca "Y si alguien no puede darse cuenta de eso, el verdadero estúpido es él."
+    s ebbbaca "Y si alguien no puede darse cuenta de eso, los verdaderos estúpidos son ellos."
 
 # game/dialogs/script-topics.rpy:350
 translate spanish s_topics_intelligence_34f391e2:
@@ -802,13 +802,13 @@ translate spanish s_topics_intelligence_ec9c9ee5:
 translate spanish s_topics_intelligence_2ade0f68:
 
     # s abhfaoa "So don't worry if someone judges you for a silly thing you did or a mistake. Just try to get better for yourself, and at your own pace!!"
-    s abhfaoa "Así que no te preocupes si alguien te juzga por una tontería que hiciste o un error. ¡¡Solo intenta mejorar por ti mismo, y a tu propio ritmo!!"
+    s abhfaoa "Así que no te preocupes si alguien te juzga por una tontería que hiciste o un error. ¡¡Solo intenta mejorar para ti mismo, y a tu propio ritmo!!"
 
 # game/dialogs/script-topics.rpy:372
 translate spanish s_topics_videogames_a8411fe2:
 
     # s abhfaoa "Do you like video games?"
-    s abhfaoa "¿Qué opinas de los videojuegos?"
+    s abhfaoa "¿Te gustan los videojuegos?"
 
 # game/dialogs/script-topics.rpy:373
 translate spanish s_topics_videogames_7f1d5ff3:
@@ -868,7 +868,7 @@ translate spanish s_topics_videogames_109b9e97:
 translate spanish s_topics_videogames_c5c38622:
 
     # s abhfcaa "Really makes me wish I was able to run more complex games in here..."
-    s abhfcaa "Realmente me gustaría poder ejecutar juegos más complejos aquí..."
+    s abhfcaa "Ojalá pudiera ejecutar juegos más complejos aquí..."
 
 # game/dialogs/script-topics.rpy:383
 translate spanish s_topics_videogames_53980daa:
@@ -880,7 +880,7 @@ translate spanish s_topics_videogames_53980daa:
 translate spanish s_topics_videogames_509a40a3:
 
     # s cbgcaqa "Don't expect me to let you beat me, though!"
-    s cbgcaqa "¡Aunque no esperes que te deje ganarme!"
+    s cbgcaqa "¡Eso sí, no esperes que te deje ganar!"
 
 # game/dialogs/script-topics.rpy:385
 translate spanish s_topics_videogames_57ec656e:
@@ -910,7 +910,7 @@ translate spanish s_topics_videogames_9339f86f:
 translate spanish s_topics_languages_7c88d7ae:
 
     # s abhhbsa "Hey, [player]?"
-    s abhhbsa "Oye, ¿[player]?"
+    s abhhbsa "Oye, [player]..."
 
 # game/dialogs/script-topics.rpy:408
 translate spanish s_topics_languages_385cf0ee:
@@ -928,13 +928,13 @@ translate spanish s_topics_languages_3ab85839:
 translate spanish s_topics_languages_7bba31c0:
 
     # s "Honestly speaking, I don't understand how I know any of these languages."
-    s "Hablando en serio, no entiendo cómo sé ninguno de estos idiomas."
+    s "Si te soy sincera, no entiendo cómo sé ninguno de estos idiomas."
 
 # game/dialogs/script-topics.rpy:411
 translate spanish s_topics_languages_d3ff76b2:
 
     # s ebbbasa "I think language works a bit differently here than it does for you."
-    s ebbbasa "Creo que el idioma funciona un poco diferente aquí que para ti."
+    s ebbbasa "Creo que el lenguaje funciona de forma un poco distinta aquí que para ti."
 
 # game/dialogs/script-topics.rpy:412
 translate spanish s_topics_languages_4b8a167a:
@@ -952,7 +952,7 @@ translate spanish s_topics_languages_e0bdd3ef:
 translate spanish s_topics_languages_11a42c5d:
 
     # extend dbhabda "It's not like I'm speaking in any language in particular, the code just seems to write itself for me when I talk."
-    extend dbhabda "No es que hable en ningún idioma en particular, parece que el código se escribe solo cuando hablo."
+    extend dbhabda "No es que hable en ningún idioma en concreto, parece que el código se escribe solo cuando hablo."
 
 # game/dialogs/script-topics.rpy:415
 translate spanish s_topics_languages_87cc1436:
@@ -964,7 +964,7 @@ translate spanish s_topics_languages_87cc1436:
 translate spanish s_topics_languages_cbcaff81:
 
     # s abagdea "Anyway, The more languages you can speak, the more friends you can make, right?"
-    s abagdea "En fin, cuantos más idiomas hables, más amigos podrás hacer, ¿verdad?"
+    s abagdea "Total, cuantos más idiomas hables, más amigos podrás hacer, ¿verdad?"
 
 # game/dialogs/script-topics.rpy:435
 translate spanish s_player_colours_54c3c772:
@@ -1024,7 +1024,7 @@ translate spanish s_player_colours_ee48004d:
 translate spanish s_player_colours_37500abe:
 
     # s abhecqa "I would pick rainbow, but that's probably cheating, ehehe~"
-    s abhecqa "Elegiría el arcoíris, pero eso sería hacer trampa, je, je."
+    s abhecqa "Elegiría el arcoíris, pero eso sería hacer trampa, je, je..."
 
 # game/dialogs/script-topics.rpy:445
 translate spanish s_player_colours_0c1bb900:
@@ -1036,7 +1036,7 @@ translate spanish s_player_colours_0c1bb900:
 translate spanish s_player_colours_206b9c52:
 
     # s abhfcoa "Cause if I am, maybe I'd pick blue. I like pretty much all shades of blue!"
-    s abhfcoa "Porque si puedo, quizá elegiría el azul. ¡Me gustan casi todos los tonos de azul!"
+    s abhfcoa "Porque si vale, quizá elegiría el azul. ¡Me gustan casi todos los tonos de azul!"
 
 # game/dialogs/script-topics.rpy:447
 translate spanish s_player_colours_3d38baf0:
@@ -1054,7 +1054,7 @@ translate spanish s_player_colours_a54b3b44:
 translate spanish s_player_colours_cba60818:
 
     # s abgcmeaj "It may not be a proper one colour answer, but hey, {nw}"
-    s abgcmeaj "Puede que no sea una respuesta de un solo color, pero oye, {nw}"
+    s abgcmeaj "Puede que no sea una respuesta de un solo color, pero bueno, {nw}"
 
 # game/dialogs/script-topics.rpy:450
 translate spanish s_player_colours_e09a4496:
@@ -1072,7 +1072,7 @@ translate spanish s_player_colours_6ffcbf99:
 translate spanish s_player_colours_3a6d27a4:
 
     # extend ebhaodaj "That colour sucks."
-    extend ebhaodaj "Ese color apesta."
+    extend ebhaodaj "Ese color es un asco."
 
 # game/dialogs/script-topics.rpy:474
 translate spanish s_topic_pronouns_3a217447:
@@ -1162,7 +1162,7 @@ translate spanish s_topic_pronouns_redux_74f775bb:
 translate spanish s_topic_pronouns_redux_0a3324fa:
 
     # s abgbaaa "The most important thing for me is that you’re comfortable expressing yourself."
-    s abgbaaa "Para mí lo más importante es que te sientas cómodo expresándote."
+    s abgbaaa "Para mí lo más importante es que te sientas cómod[end_letter_gender] expresándote."
 
 # game/dialogs/script-topics.rpy:544
 translate spanish s_topics_dating_5aaed24a:
@@ -1210,7 +1210,7 @@ translate spanish s_topics_dating_f35ace49:
 translate spanish s_topics_dating_86ca4d1b:
 
     # s abegaaa "...okay, maybe once or twice? Ehehehe~"
-    s abegaaa "vale, ¿quizá una o dos veces? Je, je, je."
+    s abegaaa "Vale, ¿quizá una o dos veces? Je, je, je."
 
 # game/dialogs/script-topics.rpy:552
 translate spanish s_topics_dating_da91d73f:
@@ -1222,7 +1222,7 @@ translate spanish s_topics_dating_da91d73f:
 translate spanish s_topics_dating_772f1ad0:
 
     # s abgcaea "Or what about animated movies, like the ones {i}Disney{/i} and {i}Pixar{/i} make?"
-    s abgcaea "¿O qué tal películas de animación, como las que hacen Disney y Pixar?"
+    s abgcaea "¿O qué tal películas de animación, como las que hacen {i}Disney{/i} y {i}Pixar{/i}?"
 
 # game/dialogs/script-topics.rpy:554
 translate spanish s_topics_dating_69c092ee:
@@ -1264,7 +1264,7 @@ translate spanish s_topics_dating_c68e4ec3:
 translate spanish s_topics_dating_4c1a35e9:
 
     # s abgdaaa "But I'd also like to do something more... engaging with you..."
-    s abgdaaa "Pero también me gustaría hacer algo más... participativo contigo..."
+    s abgdaaa "Pero también me gustaría hacer algo más... activo contigo..."
 
 # game/dialogs/script-topics.rpy:563
 translate spanish s_topics_dating_ac777f71:
@@ -1300,7 +1300,7 @@ translate spanish s_topics_dating_48ffd55d:
 translate spanish s_topics_cinnamon_bun_059b8f2f:
 
     # s abhhica "Hey, [player]..."
-    s abhhica "Ey, [player]..."
+    s abhhica "Oye, [player]..."
 
 # game/dialogs/script-topics.rpy:587
 translate spanish s_topics_cinnamon_bun_14221468:
@@ -1312,7 +1312,7 @@ translate spanish s_topics_cinnamon_bun_14221468:
 translate spanish s_topics_cinnamon_bun_e5bf9aa9:
 
     # s abgcjma "I had one once, and it was sooo goood..."
-    s abgcjma "Probé uno una vez, y estaba taaan rico..."
+    s abgcjma "Una vez me tomé uno, y estaba taaan rico..."
 
 # game/dialogs/script-topics.rpy:589
 translate spanish s_topics_cinnamon_bun_e6615035:
@@ -1324,7 +1324,7 @@ translate spanish s_topics_cinnamon_bun_e6615035:
 translate spanish s_topics_cinnamon_bun_767bd22a:
 
     # s abhaaca "The one thing I can't understand is why people call me that."
-    s abhaaca "Lo que no entiendo es por qué la gente me llama así."
+    s abhaaca "Lo único que no entiendo es por qué la gente me llama así."
 
 # game/dialogs/script-topics.rpy:591
 translate spanish s_topics_cinnamon_bun_6706f131:
@@ -1360,7 +1360,7 @@ translate spanish s_topics_poems_42ebd82d:
 translate spanish s_topics_poems_e6551ba8:
 
     # s abhaaca "I started to engage in poetry after your first day in the club..."
-    s abhaaca "Empecé a meterme en la poesía después de tu primer día en el club..."
+    s abhaaca "Empecé con la poesía después de tu primer día en el club..."
 
 # game/dialogs/script-topics.rpy:614
 translate spanish s_topics_poems_51037241:
@@ -1390,7 +1390,7 @@ translate spanish s_topics_poems_49e71b43:
 translate spanish s_topics_poems_3d80bac1:
 
     # s abfcaca "Every poem I write is an envelope for a part of my soul."
-    s abfcaca "Cada poema que escribo es un sobre para una parte de mi alma."
+    s abfcaca "Cada poema que escribo encierra una parte de mi alma."
 
 # game/dialogs/script-topics.rpy:619
 translate spanish s_topics_poems_b313a00e:
@@ -1402,13 +1402,13 @@ translate spanish s_topics_poems_b313a00e:
 translate spanish s_topics_poems_ab03f2c6:
 
     # s "It's important that you take time to write for yourself as well, rather than for the validation of others."
-    s "Es importante que también te tomes tiempo para escribir para ti, en lugar de para la validación de los demás."
+    s "Es importante que también te tomes tiempo para escribir para ti, en lugar de para la aprobación de los demás."
 
 # game/dialogs/script-topics.rpy:621
 translate spanish s_topics_poems_04a963c0:
 
     # s abbcaaa "But I can share some of them with you. Just ask me for it."
-    s abbcaaa "Pero puedo compartir algunos de ellos contigo. Solo pídemelo."
+    s abbcaaa "Pero puedo compartir algunos de ellos contigo. Solo tienes que pedírmelo."
 
 # game/dialogs/script-topics.rpy:622
 translate spanish s_topics_poems_b0304181:
