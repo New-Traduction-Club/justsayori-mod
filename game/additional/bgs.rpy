@@ -394,12 +394,6 @@ init -1 python:
         return sorted(store.fae_rooms.ROOM_DEFS.values(), key=lambda r: r.id)
 
     def _bg_apply(room_obj):
-        """
-        Safe apply from a screen action:
-        - No with_statement / transition (evita 'Cannot start an interaction...')
-        - Actualiza room y lo muestra directamente.
-        - Guarda selección en persistent.
-        """
         import store
         store.main_background.room_switcher(room_obj)
         store.main_background.save()
@@ -410,6 +404,8 @@ screen bg_hub():
     zorder 100
     tag menu
     modal True
+
+    default bg_has_changed = False
 
     add Solid("#000000cc")
 
@@ -471,13 +467,62 @@ screen bg_hub():
                     
                     textbutton _("Change") style "big_play_button" text_style "big_play_button_text" action [
                         Function(_bg_apply, _current),
-                        Return(True)
-                    ]
+                        Return(True),
+                        SetScreenVariable("bg_has_changed", True)
+                    ] sensitive (_current.id != persistent._present_room)
                 else:
                     frame style "song_image_placeholder" xsize DETAIL_W ysize DETAIL_H
                     text _("Select a background") style "mg_detail_title"
 
                 textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [
                     Hide("bg_hub"),
-                    Return(False)
+                    If(bg_has_changed, Return(True), Jump("bg_hub_no_change"))
                 ]
+
+label bg_hub_no_change:
+
+    if Affection.isLove(higher=True):
+        $ chosen_line = renpy.random.choice([
+            "any place is perfect as long as I'm with you.",
+            "I honestly love this spot when I'm with you.",
+            "it doesn't matter where we are, as long as we're together.",
+            "I'm happy just being here, right by your side."
+        ])
+        s abfccaa "Oh, decided to keep it as is? That's fine, "
+        extend abfcaaa "[chosen_line]"
+
+    elif Affection.isEnamoured(higher=True):
+        $ chosen_line = renpy.random.choice([
+            "I was actually getting really comfortable in this room.",
+            "so I don't have to get used to a new environment all of a sudden.",
+            "this room has its own charm, doesn't it?",
+            "I've grown quite fond of being here, to be honest."
+        ])
+        s abgbcaa "Changed your mind? Ehehe. I don't blame you, "
+        extend abgbaaa "[chosen_line]"
+
+    elif Affection.isAffectionate(higher=True):
+        $ chosen_line = renpy.random.choice([
+            "this place already feels like our little corner!",
+            "I like staying in this room a little longer.",
+            "we can just keep chatting right here.",
+            "it's actually pretty cozy in here."
+        ])
+        s abhfaoa "Not feeling it? Well, no problem, "
+        extend abbcaoa "[chosen_line]"
+
+    elif Affection.isHappy(higher=True):
+        $ chosen_line = renpy.random.choice([
+            "the important thing is that we keep talking!",
+            "we'll just stay put then.",
+            "let's just enjoy the atmosphere here!",
+            "let's just get back to our topic!"
+        ])
+        s abgbaoa "Did you change your mind? No worries! "
+        extend abbbaoa "[chosen_line]"
+
+    else:
+        s abgbaoa "Oh, decided not to go anywhere?"
+        s abagaoa "That's okay, we are fine here for now."
+
+    return

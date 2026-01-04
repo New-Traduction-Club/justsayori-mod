@@ -3416,13 +3416,13 @@ label s_answer_opinion_player:
         s abaaaoa "You're kind, and you're always here for me. It makes me feel really safe and happy."
         s abgccaa "I really cherish the time we spend together. It's always so much fun!"
     elif Affection.isHappy(higher=True):
-        s abhfaoa "I think you're a great friend, [player]!"
+        s abhfaoa "I think you're a great person, [player]!"
         s abaaaoa "You're really easy to talk to, and you always listen."
         s abgccaa "I'm really glad we get to spend so much time together. It makes me happy!"
     else:
         s abhaaca "You're a really nice person, [player]."
         s abaaaoa "It's been nice having you around. It's... less lonely."
-        s abhfcaa "I hope we can keep being friends."
+        s abhfcaa "I hope we can keep it."
     return
 
 init python:
