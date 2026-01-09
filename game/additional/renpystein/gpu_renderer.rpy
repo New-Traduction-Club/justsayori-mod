@@ -1,4 +1,321 @@
-init 10 python:
+# TODO:
+######## Android
+
+# if a xbox gamepad is connected in android, the Axis are mapped like Xbox PC, but
+# the other buttons are normally Android gamepad, not like PC.
+
+# Other Android gamepad are mapped like:
+
+### Joysticks
+
+# LeftUp=A4 0 to minus 1
+# LeftDown=A4 0 to 1
+# LeftLeft=A0 0 to minus 1
+# LeftRight=A0 0 to 1
+
+# RightUp=A3 0 to minus 1
+# RightDown=A3 0 to 1
+# RightLeft=A2 0 to minus 1
+# RightRight=A2 0 to 1
+
+### Buttons
+
+# L3=B7
+# R3=B8
+# Select=B4
+# Start=B6
+# A=B0
+# B=B1
+# X=B2
+# Y=B3
+# L1=B9
+# L2=B15
+# R1=B10
+# R2=B16
+
+### D-Pad
+# Up=B11
+# Down=B12
+# Left=B13
+# Right=B14
+
+init -50 python:
+    import ctypes
+    import sys
+    import os
+
+    class RayResult(ctypes.Structure):
+        _fields_ = [
+            ("hit", ctypes.c_int),
+            ("map_x", ctypes.c_int), ("map_y", ctypes.c_int), ("map_z", ctypes.c_int),
+            ("side", ctypes.c_int),
+            ("step_x", ctypes.c_int), ("step_y", ctypes.c_int), ("step_z", ctypes.c_int)
+        ]
+
+    class EnemyData(ctypes.Structure):
+        _fields_ = [
+            ("x", ctypes.c_double),
+            ("y", ctypes.c_double),
+            ("z", ctypes.c_double),
+            ("dir_x", ctypes.c_double),
+            ("dir_y", ctypes.c_double),
+            ("hp", ctypes.c_double),
+            ("state", ctypes.c_int),
+            ("texture_idx", ctypes.c_int),
+            ("timer", ctypes.c_double),
+            ("move_speed", ctypes.c_double),
+            ("enemy_type", ctypes.c_int)
+        ]
+
+    class PlayerData(ctypes.Structure):
+        _fields_ = [
+            ("x", ctypes.c_double),
+            ("y", ctypes.c_double),
+            ("z", ctypes.c_double),
+            ("vel_z", ctypes.c_double),
+            ("rot", ctypes.c_double),
+            ("is_grounded", ctypes.c_int),
+            ("is_crouching", ctypes.c_int)
+        ]
+
+    class MoveResult(ctypes.Structure):
+        _fields_ = [("x", ctypes.c_double), ("y", ctypes.c_double)]
+
+    class ProjectileData(ctypes.Structure):
+        _fields_ = [
+            ("x", ctypes.c_double), ("y", ctypes.c_double), ("z", ctypes.c_double),
+            ("dir_x", ctypes.c_double), ("dir_y", ctypes.c_double), ("dir_z", ctypes.c_double),
+            ("speed", ctypes.c_double),
+            ("active", ctypes.c_int),      # 1/0
+            ("texture_idx", ctypes.c_int),
+            ("pitch", ctypes.c_double),
+            ("damage", ctypes.c_int),
+            ("from_player", ctypes.c_int)  # 1/0
+        ]
+
+    class SteinWrapper:
+        ray_out_array = (ctypes.c_int * 8)()
+        ray_out_ptr = ctypes.addressof(ray_out_array)
+        
+        move_out_array = (ctypes.c_double * 2)()
+        move_out_ptr = ctypes.addressof(move_out_array)
+
+        @staticmethod
+        def update_projectiles_native(proj_addr, count, dt, map_addr, w, h, layers, min_layer):
+            stein_lib.update_projectiles_c(
+                proj_addr, count, dt, 
+                map_addr, w, h, layers, min_layer
+            )
+
+        @staticmethod
+        def prepare_scene_sprites(px, py, proj_ptr, max_projs, enemy_ptr, num_enemies, static_ptr, num_statics, out_ptr, max_sprites):
+            return stein_lib.prepare_scene_sprites_c(
+                px, py,
+                proj_ptr, max_projs,
+                enemy_ptr, num_enemies,
+                static_ptr, num_statics,
+                out_ptr, max_sprites
+            )
+
+        @staticmethod
+        def check_line_of_sight(sx, sy, z, tx, ty, map_addr, w, h, layers, min_layer):
+            result = stein_lib.check_line_of_sight_c(
+                sx, sy, z, tx, ty,
+                map_addr, w, h, layers, min_layer
+            )
+            return result == 1
+
+        @staticmethod
+        def get_map_height(x, y, check_z, map_addr, w, h, layers, min_layer):
+            return stein_lib.get_map_height_c(
+                x, y, check_z, 
+                map_addr, w, h, layers, min_layer
+            )
+
+        @staticmethod
+        def cast_ray_fast(*args):
+            stein_lib.cast_ray_c(*args, SteinWrapper.ray_out_ptr)
+            if SteinWrapper.ray_out_array[0]:
+                return (True, *SteinWrapper.ray_out_array[1:])
+            return (False, 0, 0, 0, 0, 0, 0, 0)
+
+        @staticmethod
+        def resolve_movement(*args):
+            stein_lib.resolve_movement_c(*args, SteinWrapper.move_out_ptr)
+            return (SteinWrapper.move_out_array[0], SteinWrapper.move_out_array[1])
+
+        @staticmethod
+        def update_player_complete(player_addr, dt, speed, strafe, turn, move_speed, rot_speed, map_addr, w, h, layers, min_layer):
+            stein_lib.update_player_complete_c(
+                player_addr, dt, 
+                speed, strafe, turn, 
+                move_speed, rot_speed,
+                map_addr, w, h, layers, min_layer
+            )
+
+    stein_lib = None
+    library_path = None
+    USING_CYTHON = False
+
+    try:
+        if renpy.android:
+            library_path = "libstein_core.so"
+        
+        elif renpy.windows:
+            library_path = os.path.join(config.gamedir, "additional", "renpystein" , "stein_core.dll")
+            if not os.path.exists(library_path):
+                library_path = os.path.join(config.gamedir, "stein_core.dll")
+
+        # elif renpy.linux:
+        #     library_path = os.path.join(config.gamedir, "core", "stein_core.so")
+
+        if library_path:
+            stein_lib = ctypes.CDLL(library_path)
+            
+            stein_lib.cast_ray_c.argtypes = [
+                ctypes.c_double, ctypes.c_double, ctypes.c_double,
+                ctypes.c_double, ctypes.c_double, ctypes.c_double,
+                ctypes.c_void_p,
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_double,
+                ctypes.c_void_p
+            ]
+            stein_lib.cast_ray_c.restype = None
+
+            stein_lib.resolve_movement_c.argtypes = [
+                ctypes.c_double, ctypes.c_double, ctypes.c_double,
+                ctypes.c_double, ctypes.c_double, ctypes.c_double,
+                ctypes.c_void_p,
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_void_p
+            ]
+            stein_lib.resolve_movement_c.restype = None
+
+            stein_lib.check_line_of_sight_c.argtypes = [
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # Start X, Y, Z
+                ctypes.c_double, ctypes.c_double,                  # Target X, Y
+                ctypes.c_void_p,                                   # Map Pointer
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int # Map Data
+            ]
+            stein_lib.check_line_of_sight_c.restype = ctypes.c_int
+
+            stein_lib.get_map_height_c.argtypes = [
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # x, y, check_z
+                ctypes.c_void_p,                                   # map_ptr
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int # w, h, layers, min
+            ]
+            stein_lib.get_map_height_c.restype = ctypes.c_double
+
+            stein_lib.update_projectiles_c.argtypes = [
+                ctypes.c_void_p, ctypes.c_int, ctypes.c_double, # array, count, dt
+                ctypes.c_void_p,                                # map_ptr
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int
+            ]
+            stein_lib.update_projectiles_c.restype = None
+
+            stein_lib.prepare_scene_sprites_c.argtypes = [
+                ctypes.c_double, ctypes.c_double,
+                ctypes.c_void_p, ctypes.c_int,
+                ctypes.c_void_p, ctypes.c_int,
+                ctypes.c_void_p, ctypes.c_int,
+                ctypes.c_void_p, ctypes.c_int
+            ]
+            stein_lib.prepare_scene_sprites_c.restype = ctypes.c_int
+
+            stein_lib.update_enemies_c.argtypes = [
+                ctypes.c_void_p,    # enemies_addr (pointer to array)
+                ctypes.c_int,       # count
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # player x, y, z
+                ctypes.c_double,    # dt
+                ctypes.c_void_p,    # flat_map_addr
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int # map dimensions
+            ]
+            stein_lib.update_enemies_c.restype = None
+
+            stein_lib.check_hitscan_c.argtypes = [
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # ray origin
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # ray dir
+                ctypes.c_void_p,    # enemies_addr
+                ctypes.c_int,       # count
+                ctypes.c_double,    # max_dist
+                ctypes.c_double     # damage
+            ]
+            stein_lib.check_hitscan_c.restype = ctypes.c_int # Returns index of hit enemy (-1 if none)
+
+            stein_lib.update_player_physics_c.argtypes = [
+                ctypes.c_void_p,    # player_addr (pointer to PlayerData struct)
+                ctypes.c_double,    # dt
+                ctypes.c_void_p,    # flat_map_addr
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int # map dimensions
+            ]
+            stein_lib.update_player_physics_c.restype = None
+
+            stein_lib.update_player_complete_c.argtypes = [
+                ctypes.c_void_p,    # player_addr
+                ctypes.c_double,    # dt
+                ctypes.c_double, ctypes.c_double, ctypes.c_double, # inputs: speed, strafe, turn
+                ctypes.c_double, ctypes.c_double, # stats: move_speed, rot_speed
+                ctypes.c_void_p,    # map_addr
+                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int
+            ]
+            stein_lib.update_player_complete_c.restype = None
+
+            SteinWrapper.stein_lib = stein_lib
+
+            sys.modules["stein_core"] = SteinWrapper
+            print(f"Sayoristein: Native motor loaded in {library_path}")
+            USING_CYTHON = True
+
+    except Exception as e:
+        print(f"Sayoristein Error Loading Library: {e}")
+
+init -10 python:
+    import sys
+    import os
+    import ctypes
+    import array
+
+    core_path = os.path.join(config.gamedir, "core")
+    if core_path not in sys.path:
+        sys.path.append(core_path)
+
+    try:
+        import stein_core
+    except ImportError:
+        if not USING_CYTHON:
+            raise ImportError("ERROR: stein_core lib is not loaded.")
+
+
+    def flatten_world_map(world_map, width, height, min_layer, max_layer):
+        num_layers = max_layer - min_layer + 1
+        total_size = width * height * num_layers
+        
+        flat = array.array('i', [0] * total_size)
+        
+        if isinstance(world_map, dict):
+            for z, grid in world_map.items():
+                layer_idx = z - min_layer
+                if layer_idx < 0 or layer_idx >= num_layers: continue
+                
+                base_idx = layer_idx * width * height
+                for x in range(min(len(grid), width)):
+                    row = grid[x]
+                    for y in range(min(len(row), height)):
+                        if row[y] > 0:
+                            flat[base_idx + (x * height) + y] = row[y]
+                            
+        elif isinstance(world_map, list):
+            layer_idx = 0 - min_layer
+            if 0 <= layer_idx < num_layers:
+                base_idx = layer_idx * width * height
+                for x in range(min(len(world_map), width)):
+                    row = world_map[x]
+                    for y in range(min(len(row), height)):
+                        if row[y] > 0:
+                            flat[base_idx + (x * height) + y] = row[y]
+
+        return flat
+
     SLOT_MELEE   = 0
     SLOT_HANDGUN = 1
     SLOT_LONG    = 2
@@ -6,6 +323,9 @@ init 10 python:
 
     renpy.register_shader("stein.raycaster", variables="""
         uniform float u_volumetric_clouds;
+        uniform float u_rain_intensity;
+        uniform float u_snow_intensity;
+        uniform float u_wetness;
         uniform float u_time_of_day;
         uniform float u_time;
         uniform vec2 u_resolution;
@@ -19,6 +339,10 @@ init 10 python:
         uniform sampler2D u_map_texture;
         uniform vec2 u_map_size;
         uniform vec2 u_map_uv_scale; 
+        uniform float u_map_layer_norm_height;
+        uniform float u_map_layer_base_y;
+        uniform float u_map_layer_count;
+        uniform vec2 u_map_tex_pixel_size;
         uniform sampler2D u_wall_atlas; 
         uniform sampler2D u_floor_texture;
         uniform float u_num_textures;
@@ -69,32 +393,110 @@ init 10 python:
             }
             return v;
         }
+
+        float ripple_layer(vec2 uv, float t) {
+            vec2 p = uv * 5.0;
+            vec2 g = floor(p);
+            vec2 f = fract(p) - 0.5;
+            
+            vec2 rand_offset = (vec2(hash(g), hash(g + 11.5)) - 0.5) * 0.8;
+            f -= rand_offset;
+            
+            float h = hash(g + vec2(3.0, 7.0));
+            float t_local = fract(t * 1.2 + h * 10.0);
+            
+            float d = length(f);
+            float r = 0.5 * t_local;
+            
+            float circle = smoothstep(0.05, 0.0, abs(d - r));
+            float fade = 1.0 - t_local;
+            
+            return circle * fade;
+        }
+
+        float rain_layer(vec2 uv, float t) {
+            vec2 st = uv;
+            st.x *= 20.0; 
+            st.y *= 0.5;  
+            
+            vec2 g = floor(st);
+            
+            float col_offset = hash(vec2(g.x, 0.0)); 
+            float y_move = st.y + t + col_offset * 10.0;
+            
+            float cell_y = floor(y_move);
+            float cell_fract = fract(y_move);
+            
+            float h = hash(vec2(g.x, cell_y));
+            
+            if (h < 0.85) return 0.0;
+            
+            float drop = 1.0 - cell_fract; 
+            float beam = smoothstep(0.4, 0.5, fract(st.x)) * smoothstep(0.6, 0.5, fract(st.x));
+            
+            return drop * beam;
+        }
+
+        float intersectPyramid(vec3 ro, vec3 rd, out vec3 outNormal) {
+            float tMin = 10000.0;
+            bool hit = false;
+            
+            vec3 N[4]; float D[4];
+            N[0] = vec3(1.0, 0.0, 1.0); D[0] = -1.0;
+            N[1] = vec3(-1.0, 0.0, 1.0); D[1] = 0.0;
+            N[2] = vec3(0.0, 1.0, 1.0); D[2] = -1.0;
+            N[3] = vec3(0.0, -1.0, 1.0); D[3] = 0.0;
+            
+            for(int i=0; i<4; i++) {
+                float denom = dot(rd, N[i]);
+                if (denom < -0.0001) {
+                    float t = -(dot(ro, N[i]) + D[i]) / denom;
+                    if (t > 0.0) {
+                        vec3 p = ro + rd * t;
+                        if (p.z >= 0.0 && p.z <= 0.5) {
+                            float h = 0.5 - p.z;
+                            if (p.x >= 0.5 - h - 0.01 && p.x <= 0.5 + h + 0.01 &&
+                                p.y >= 0.5 - h - 0.01 && p.y <= 0.5 + h + 0.01) {
+                                if (t < tMin) {
+                                    tMin = t;
+                                    outNormal = normalize(N[i]);
+                                    hit = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (hit) return tMin;
+            return -1.0;
+        }
     """, fragment_300="""
         const int MAX_STEPS = 128; 
         
-        vec2 uv = v_tex_coord;
+        vec2 stein_uv = v_tex_coord;
 
         // RAY GENERATION (3D)
         // Player Position (Camera Origin). Z=0.5 is eye level + offsets
         vec3 rayPos = vec3(u_player_pos.x, u_player_pos.y, 0.5 + u_z_offset);
         
-        // Ray Direction
-        float cameraX = 2.0 * uv.x - 1.0; 
-        vec2 rayDirXY = u_player_dir + u_player_plane * cameraX;
-        
-        // Map screen Y (0..1) to vertical view angle (slope)
-        // Center (0.5) is straight ahead (slope 0)
-        // 0.5 - uv.y gives range [0.5, -0.5]
-        // Scale by vertical FOV (u_vertical_scale) and add pitch (look up/down)
-        float screenY = (0.5 - uv.y) * 2.0; 
-        float rayDirZ = (screenY / u_vertical_scale) + u_pitch;
-        
-        vec3 rayDir = normalize(vec3(rayDirXY, rayDirZ));
+        // Pitch Angle
+        float pitchAngle = atan(u_pitch);
+        float cp = cos(pitchAngle);
+        float sp = sin(pitchAngle);
+        vec3 rightAxis = normalize(vec3(u_player_plane, 0.0));
 
-        vec2 flashDirXY = u_player_dir + (u_player_plane * u_flashlight_bob.x);
-        float flashDirZ = u_pitch + u_flashlight_bob.y;
+        // Ray Direction
+        float cameraX = 2.0 * stein_uv.x - 1.0; 
+        float screenY = (0.5 - stein_uv.y) * 2.0; 
         
-        vec3 flashDir = normalize(vec3(flashDirXY, flashDirZ));
+        vec3 baseDir = vec3(u_player_dir, 0.0) + vec3(u_player_plane, 0.0) * cameraX + vec3(0.0, 0.0, 1.0) * (screenY / u_vertical_scale);
+        
+        vec3 rayDir = baseDir * cp + cross(rightAxis, baseDir) * sp + rightAxis * dot(rightAxis, baseDir) * (1.0 - cp);
+        rayDir = normalize(rayDir);
+
+        vec3 flashBase = vec3(u_player_dir, 0.0) + vec3(u_player_plane, 0.0) * u_flashlight_bob.x + vec3(0.0, 0.0, 1.0) * u_flashlight_bob.y;
+        vec3 flashDir = flashBase * cp + cross(rightAxis, flashBase) * sp + rightAxis * dot(rightAxis, flashBase) * (1.0 - cp);
+        flashDir = normalize(flashDir);
         
         // DDA SETUP
         ivec3 mapPos = ivec3(floor(rayPos));
@@ -116,6 +518,7 @@ init 10 python:
         int side = 0; // 0=X, 1=Y, 2=Z
         int wallID = 0;
         float rayDist = 0.0;
+        vec3 hitNormal = vec3(0.0);
 
         for (int i = 0; i < MAX_STEPS; i++) {
             if (sideDist.x < sideDist.y) {
@@ -147,25 +550,38 @@ init 10 python:
             if (rayDist > u_max_dist) { hit = 2; break; } // Too far
             
             // Map Bounds Check
-            if (mapPos.x < 0 || mapPos.x >= int(u_map_size.x) || mapPos.y < 0 || mapPos.y >= int(u_map_size.y)) {
-                hit = 2; break; // Hit Sky
-            }
+            bool inside = (mapPos.x >= 0 && mapPos.x < int(u_map_size.x) && mapPos.y >= 0 && mapPos.y < int(u_map_size.y));
             
-            // Voxel Check (Only Z=0 has blocks yet)
-            if (mapPos.z == 0) {
-                vec2 mapUV = (vec2(mapPos.x, mapPos.y) + 0.5) / u_map_size;
-                mapUV = mapUV * u_map_uv_scale;
-                vec4 mapPixel = texture2D(u_map_texture, mapUV);
-                if (mapPixel.r > 0.5) {
-                    wallID = int(mapPixel.g * 255.0 + 0.5);
-                    hit = 1;
-                    break;
-                }
-            } else if (mapPos.z < 0) {
-                if (mapPos.z == -1) {
-                    wallID = 9;
-                    hit = 1;
-                    break;
+            // Voxel Check
+            if (inside) {
+                int layer = int(mapPos.z);
+                int layer_idx = layer - int(u_map_layer_base_y);
+                
+                if (layer_idx >= 0 && layer_idx < int(u_map_layer_count)) {
+                    float u = (float(mapPos.x) + 0.5) * u_map_tex_pixel_size.x;
+                    float v_base = float(layer_idx) * u_map_layer_norm_height;
+                    float v_local = (float(mapPos.y) + 0.5) * u_map_tex_pixel_size.y;
+                    
+                    vec2 mapUV = vec2(u, v_base + v_local);
+                    vec4 mapPixel = texture2D(u_map_texture, mapUV);
+                    if (mapPixel.r > 0.5) {
+                        int id = int(mapPixel.g * 255.0 + 0.5);
+                        if (id == 20) {
+                            vec3 norm;
+                            float t = intersectPyramid(rayPos - vec3(mapPos), rayDir, norm);
+                            if (t > 0.0 && t >= rayDist - 0.01) {
+                                rayDist = t;
+                                wallID = id;
+                                hit = 1;
+                                hitNormal = norm;
+                                break;
+                            }
+                        } else {
+                            wallID = id;
+                            hit = 1;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -175,16 +591,14 @@ init 10 python:
         if (hit == 1) {
             vec3 hitPos = rayPos + rayDir * rayDist;
             
-            if (side == 2 && mapPos.z == -1) {
-                if (u_simple_floor > 0.5) {
-                    color = vec3(0.25, 0.25, 0.28);
+            vec2 texUV;
+            if (wallID == 20) {
+                if (abs(hitNormal.x) > 0.5) {
+                    texUV = vec2(fract(hitPos.y), fract(hitPos.z * 2.0));
                 } else {
-                    vec2 floorUV = vec2(fract(hitPos.x), fract(hitPos.y));
-                    color = texture2D(u_floor_texture, floorUV, -1.0).rgb;
-                    color *= 0.6;
+                    texUV = vec2(fract(hitPos.x), fract(hitPos.z * 2.0));
                 }
             } else {
-                vec2 texUV;
                 if (side == 0) { // X-Side
                     float wallX = hitPos.y; 
                     if (rayDir.x > 0.0) wallX = 1.0 - wallX;
@@ -198,22 +612,22 @@ init 10 python:
                 else { // Side 2 (Wall Top/Bottom)
                     texUV = vec2(fract(hitPos.x), fract(hitPos.y));
                 }
-                
-                float texRes = 64.0;
-                texUV = (floor(texUV * texRes) + 0.5) / texRes;
-                
-                float singleTexWidth = 1.0 / u_num_textures;
-                float texOffset = float(wallID - 1) * singleTexWidth;
-                
-                float clampedU = texUV.x * (1.0 - 0.002) + 0.001;
-                float finalU = texOffset + (clampedU * singleTexWidth);
-                float finalV = texUV.y;
-                
-                if (finalV < 0.0 || finalV > 1.0) {
-                    color = vec3(0.0);
-                } else {
-                    color = texture2D(u_wall_atlas, vec2(finalU, finalV), -4.0).rgb;
-                }
+            }
+            
+            float texRes = 64.0;
+            texUV = (floor(texUV * texRes) + 0.5) / texRes;
+            
+            float singleTexWidth = 1.0 / u_num_textures;
+            float texOffset = float(wallID - 1) * singleTexWidth;
+            
+            float clampedU = texUV.x * (1.0 - 0.002) + 0.001;
+            float finalU = texOffset + (clampedU * singleTexWidth);
+            float finalV = texUV.y;
+            
+            if (finalV < 0.0 || finalV > 1.0) {
+                color = vec3(0.0);
+            } else {
+                color = texture2D(u_wall_atlas, vec2(finalU, finalV), 0.0).rgb;
             }
             
             vec3 finalColor = color;
@@ -222,8 +636,8 @@ init 10 python:
             
             vec3 ambientLight = u_ambient_color; 
             
-            float personalLight = max(0.0, 1.0 - (fogDist / 4.0)); 
-            ambientLight += u_ambient_near_color * personalLight;
+            // float personalLight = max(0.0, 1.0 - (fogDist / 4.0)); 
+            // ambientLight += u_ambient_near_color * personalLight;
             
             vec3 totalLight = ambientLight;
 
@@ -310,9 +724,14 @@ init 10 python:
 
                                 vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
                                 mapUV *= u_map_uv_scale;
-                                if (texture2D(u_map_texture, mapUV).r > 0.5) {
-                                    hitWall = true;
-                                    break;
+                                vec4 shadowMapPixel = texture2D(u_map_texture, mapUV);
+                                if (shadowMapPixel.r > 0.5) {
+                                    // Check id to avoid pyramid casting cube shadows
+                                    int sID = int(shadowMapPixel.g * 255.0 + 0.5);
+                                    if (sID != 20) {
+                                        hitWall = true;
+                                        break;
+                                    }
                                 }
                             }
                             
@@ -333,8 +752,12 @@ init 10 python:
             }
 
             float faceShadow = 1.0;
-            if (side == 1) faceShadow = 0.7; 
-            if (side == 2) faceShadow = 1.0; 
+            if (wallID == 20) {
+                faceShadow = 0.6 + 0.4 * hitNormal.z;
+            } else {
+                if (side == 1) faceShadow = 0.7; 
+                if (side == 2) faceShadow = 1.0; 
+            }
             
             color = finalColor * totalLight * faceShadow;
 
@@ -344,18 +767,43 @@ init 10 python:
                 vec3 skyColorBottom;
                 vec3 cloudColor;
                 
-                if (u_time_of_day < 0.5) { // Night
-                    skyColorTop = vec3(0.0, 0.0, 0.1);
-                    skyColorBottom = vec3(0.05, 0.05, 0.2);
-                    cloudColor = vec3(0.1, 0.1, 0.15);
-                } else if (u_time_of_day < 1.5) { // Day
-                    skyColorTop = vec3(0.0, 0.4, 0.8);
-                    skyColorBottom = vec3(0.6, 0.8, 1.0);
-                    cloudColor = vec3(1.0, 1.0, 1.0);
-                } else { // Afternoon
-                    skyColorTop = vec3(0.2, 0.1, 0.4);
-                    skyColorBottom = vec3(1.0, 0.4, 0.2);
-                    cloudColor = vec3(1.0, 0.6, 0.5);
+                // Day Cycle Colors
+                vec3 nightTop = vec3(0.0, 0.0, 0.1);
+                vec3 nightBot = vec3(0.05, 0.05, 0.2);
+                vec3 nightCloud = vec3(0.1, 0.1, 0.15);
+
+                vec3 dayTop = vec3(0.0, 0.4, 0.8);
+                vec3 dayBot = vec3(0.6, 0.8, 1.0);
+                vec3 dayCloud = vec3(1.0, 1.0, 1.0);
+
+                vec3 sunsetTop = vec3(0.2, 0.1, 0.4);
+                vec3 sunsetBot = vec3(1.0, 0.4, 0.2);
+                vec3 sunsetCloud = vec3(1.0, 0.6, 0.5);
+
+                float t = mod(u_time_of_day, 24.0); // Ensure 0-24 range
+
+                
+                if (t < 5.0) {
+                    skyColorTop = nightTop; skyColorBottom = nightBot; cloudColor = nightCloud;
+                } else if (t < 8.0) {
+                    float p = (t - 5.0) / 3.0;
+                    skyColorTop = mix(nightTop, dayTop, p);
+                    skyColorBottom = mix(nightBot, dayBot, p);
+                    cloudColor = mix(nightCloud, dayCloud, p);
+                } else if (t < 16.0) {
+                    skyColorTop = dayTop; skyColorBottom = dayBot; cloudColor = dayCloud;
+                } else if (t < 19.0) {
+                    float p = (t - 16.0) / 3.0;
+                    skyColorTop = mix(dayTop, sunsetTop, p);
+                    skyColorBottom = mix(dayBot, sunsetBot, p);
+                    cloudColor = mix(dayCloud, sunsetCloud, p);
+                } else if (t < 21.0) {
+                    float p = (t - 19.0) / 2.0;
+                    skyColorTop = mix(sunsetTop, nightTop, p);
+                    skyColorBottom = mix(sunsetBot, nightBot, p);
+                    cloudColor = mix(sunsetCloud, nightCloud, p);
+                } else {
+                    skyColorTop = nightTop; skyColorBottom = nightBot; cloudColor = nightCloud;
                 }
 
                 float skyGradient = smoothstep(-0.5, 0.5, rayDir.z);
@@ -371,10 +819,21 @@ init 10 python:
                     float c = smoothstep(0.4, 0.8, n);
                     c *= smoothstep(0.0, 0.2, rayDir.z);
                     
-                    color = mix(color, cloudColor, c);
+                    float brightness = 1.0;
+                    if (t < 6.0 || t > 20.0) brightness = 0.3;
+                    else if (t < 8.0) brightness = mix(0.3, 1.0, (t - 6.0) / 2.0);
+                    else if (t > 18.0) brightness = mix(1.0, 0.3, (t - 18.0) / 2.0);
+                    
+                    color = mix(color, cloudColor * brightness, c);
                 }
                 
-                if (u_time_of_day < 0.5 && rayDir.z > 0.01) {
+                float starVisibility = 0.0;
+                if (t < 6.0) starVisibility = 1.0;
+                else if (t < 7.0) starVisibility = 1.0 - (t - 6.0);
+                else if (t > 20.0) starVisibility = (t - 20.0) / 1.0;
+                if (t > 21.0) starVisibility = 1.0;
+
+                if (starVisibility > 0.01 && rayDir.z > 0.01) {
                     vec2 starUV = rayDir.xy / (1.0 + rayDir.z);
                     
                     float scale = 300.0; 
@@ -399,12 +858,12 @@ init 10 python:
                         // Horizon fade
                         float fade = smoothstep(0.01, 0.1, rayDir.z);
                         
-                        color += vec3(brightness * twinkle * fade);
+                        color += vec3(brightness * twinkle * fade * starVisibility);
                     }
                 }
             } else {
                 // Skybox
-                vec2 skyUV = uv;
+                vec2 skyUV = stein_uv;
                 // Apply pitch to skyUV.y
                 skyUV.y -= u_pitch; 
                 skyUV.y = clamp(skyUV.y, 0.0, 1.0);
@@ -414,9 +873,12 @@ init 10 python:
 
         // SPRITE RENDERING (Adapted for 3D)
         // We approximate 2D billboard logic using the 3D ray distance
-        // Project rayDist onto the XY plane
-        // Using length() is safer, technically less accurate for planar depth...
-        float perpWallDist = rayDist * length(rayDir.xy); 
+        
+        // Calculate Camera Forward Vector (Rotated)
+        vec3 forwardUnrot = vec3(u_player_dir, 0.0);
+        vec3 forwardRot = forwardUnrot * cp + cross(rightAxis, forwardUnrot) * sp + rightAxis * dot(rightAxis, forwardUnrot) * (1.0 - cp);
+        
+        float perpWallDist = dot(rayDir * rayDist, forwardRot);
         
         // If we didnt hit a wall (Sky/Void), the depth is infinite
         if (hit != 1) perpWallDist = 10000.0;
@@ -424,7 +886,7 @@ init 10 python:
         float currentDepth = perpWallDist;
         
         // Precalculate pitch shift in pixels for sprites
-        float pitchPixeLCTRL = u_pitch * u_vertical_scale * (u_resolution.y / 2.0);
+        // float pitchPixeLCTRL = u_pitch * u_vertical_scale * (u_resolution.y / 2.0);
 
         float invDet = 1.0 / (u_player_plane.x * u_player_dir.y - u_player_dir.x * u_player_plane.y);
 
@@ -441,36 +903,40 @@ init 10 python:
 
             float transformX = invDet * (u_player_dir.y * spX - u_player_dir.x * spY);
             float transformY = invDet * (-u_player_plane.y * spX + u_player_plane.x * spY); 
+            
+            // Apply Pitch Rotation to Sprite Position
+            float camHeight = 0.5 + u_z_offset;
+            float spriteZ = -camHeight;
+            
+            float rotY = transformY * cp + spriteZ * sp;
+            float rotZ = -transformY * sp + spriteZ * cp;
 
-            if (transformY <= 0.1) continue;
+            if (rotY <= 0.1) continue;
             // Robust depth check
-            if (transformY >= currentDepth) continue; 
+            if (rotY >= currentDepth) continue; 
 
-            float spriteScreenX = (u_resolution.x / 2.0) * (1.0 + transformX / transformY);
+            float spriteScreenX = (u_resolution.x / 2.0) * (1.0 + transformX / rotY);
             
             // Scale sprites down
             float spriteScale = 0.55; 
-            float spriteHeight = abs(u_resolution.y / transformY) * u_vertical_scale * spriteScale; 
+            float spriteHeight = abs(u_resolution.y / rotY) * u_vertical_scale * spriteScale; 
             float spriteWidth = spriteHeight; 
 
             // Sprite Anchoring Logic (Floor Alignment)
-            // Calculate where the floor (Z=0) is on screen at the sprite's depth
-            // Camera Height = 0.5 + u_z_offset
-            float camHeight = 0.5 + u_z_offset;
-            
-            // Projection of floor: Center + (CamHeight / Depth * Scale * Res/2) + Pitch
-            float floorPixelOffset = (camHeight / transformY) * u_vertical_scale * (u_resolution.y / 2.0);
+            // Calculate Screen Y of the floor (rotZ)
+            float screenY_floor = (rotZ / rotY) * u_vertical_scale;
+            float pixelY_floor = (0.5 - screenY_floor / 2.0) * u_resolution.y;
             
             float spritePixeLCTRL = spritePitch * u_vertical_scale * (u_resolution.y / 2.0);
             
-            float drawEndY = (u_resolution.y / 2.0) + floorPixelOffset + pitchPixeLCTRL - spritePixeLCTRL;
+            float drawEndY = pixelY_floor - spritePixeLCTRL;
             float drawStartY = drawEndY - spriteHeight;
             
             float drawStartX = spriteScreenX - spriteWidth / 2.0;
             float drawEndX = spriteScreenX + spriteWidth / 2.0;
 
-            float currentPixelX = uv.x * u_resolution.x; 
-            float currentPixelY = uv.y * u_resolution.y;
+            float currentPixelX = stein_uv.x * u_resolution.x; 
+            float currentPixelY = stein_uv.y * u_resolution.y;
 
             if (currentPixelX >= drawStartX && currentPixelX <= drawEndX) {
                 float texX = (currentPixelX - drawStartX) / spriteWidth;
@@ -489,8 +955,8 @@ init 10 python:
                         float sprDist = length(vec2(spX, spY)); 
                         
                         vec3 sprLight = u_ambient_color;
-                        float sprPersonal = max(0.0, 1.0 - (sprDist / 4.0));
-                        sprLight += u_ambient_near_color * sprPersonal;
+                        // float sprPersonal = max(0.0, 1.0 - (sprDist / 4.0));
+                        // sprLight += u_ambient_near_color * sprPersonal;
 
                         if (u_flashlight_active > 0.5) {
                             float dotProd = dot(rayDir, flashDir);
@@ -564,9 +1030,13 @@ init 10 python:
                                             
                                             vec2 mapUV = (floor(checkPos) + 0.5) / u_map_size;
                                             mapUV *= u_map_uv_scale;
-                                            if (texture2D(u_map_texture, mapUV).r > 0.5) {
-                                                hitWall = true;
-                                                break;
+                                            vec4 smp = texture2D(u_map_texture, mapUV);
+                                            if (smp.r > 0.5) {
+                                                int sid = int(smp.g * 255.0 + 0.5);
+                                                if (sid != 20) {
+                                                    hitWall = true;
+                                                    break;
+                                                }
                                             }
                                         }
                                         
@@ -592,6 +1062,67 @@ init 10 python:
             }
         }
 
+        if (u_rain_intensity > 0.0) {
+            float rainVal = 0.0;
+            for (int i=1; i<=4; i++) {
+                float dist = float(i) * 2.5; 
+                if (dist > currentDepth) break;
+                
+                vec3 p = rayPos + rayDir * dist;
+                
+                vec2 uv1 = vec2(p.y, p.z) * vec2(1.0, 2.0); // YZ Plane
+                vec2 uv2 = vec2(p.x, p.z) * vec2(1.0, 2.0); // XZ Plane
+                
+                float t = u_time * 15.0;
+                float n1 = rain_layer(uv1, t);
+                float n2 = rain_layer(uv2, t);
+                
+                float blend = abs(rayDir.x);
+                float n = mix(n2, n1, blend);
+                
+                // Distance Fade
+                float fade = 1.0 - (dist / 12.0);
+                if (fade < 0.0) fade = 0.0;
+                
+                rainVal += n * fade;
+            }
+            color = mix(color, vec3(0.7, 0.8, 0.9), rainVal * u_rain_intensity * 0.4);
+        }
+
+        if (u_snow_intensity > 0.0) {
+            float snowVal = 0.0;
+            for (int i=1; i<=4; i++) {
+                float dist = float(i) * 2.0; 
+                if (dist > currentDepth) break;
+                
+                vec3 p = rayPos + rayDir * dist;
+                
+                vec2 uv1 = vec2(p.y, p.z) * 0.8; 
+                vec2 uv2 = vec2(p.x, p.z) * 0.8;
+                
+                float t = u_time * 2.0;
+                uv1.y += t;
+                uv2.y += t;
+                
+                uv1.x += sin(u_time + p.z) * 0.2;
+                uv2.x += cos(u_time + p.z) * 0.2;
+                
+                float n1 = noise(uv1);
+                float n2 = noise(uv2);
+                
+                float blend = abs(rayDir.x);
+                float n = mix(n2, n1, blend);
+                
+                float s = smoothstep(0.95, 1.0, n);
+                
+                float fade = 1.0 - (dist / 10.0);
+                if (fade < 0.0) fade = 0.0;
+                
+                snowVal += s * fade;
+            }
+            color = mix(color, vec3(1.0), snowVal * u_snow_intensity * 0.8);
+        }
+
         gl_FragColor = vec4(color, 1.0);
     """)
 
@@ -600,19 +1131,19 @@ init 10 python:
         uniform float u_blur_amount;
         varying vec2 v_tex_coord;
     """, fragment_200="""
-        vec2 mb_uv = v_tex_coord;
-        vec4 mb_color = texture2D(tex0, mb_uv);
+        vec2 stein_mb_uv = v_tex_coord;
+        vec4 mb_color = texture2D(tex0, stein_mb_uv);
         
         if (abs(u_blur_amount) > 0.001) {
             float blur = u_blur_amount * 0.02;
             vec4 sum = vec4(0.0);
             
             // 5-tap optimization
-            sum += texture2D(tex0, vec2(mb_uv.x - blur * 2.0, mb_uv.y)) * 0.1;
-            sum += texture2D(tex0, vec2(mb_uv.x - blur * 1.0, mb_uv.y)) * 0.25;
-            sum += texture2D(tex0, vec2(mb_uv.x, mb_uv.y)) * 0.3;
-            sum += texture2D(tex0, vec2(mb_uv.x + blur * 1.0, mb_uv.y)) * 0.25;
-            sum += texture2D(tex0, vec2(mb_uv.x + blur * 2.0, mb_uv.y)) * 0.1;
+            sum += texture2D(tex0, vec2(stein_mb_uv.x - blur * 2.0, stein_mb_uv.y)) * 0.1;
+            sum += texture2D(tex0, vec2(stein_mb_uv.x - blur * 1.0, stein_mb_uv.y)) * 0.25;
+            sum += texture2D(tex0, vec2(stein_mb_uv.x, stein_mb_uv.y)) * 0.3;
+            sum += texture2D(tex0, vec2(stein_mb_uv.x + blur * 1.0, stein_mb_uv.y)) * 0.25;
+            sum += texture2D(tex0, vec2(stein_mb_uv.x + blur * 2.0, stein_mb_uv.y)) * 0.1;
             
             gl_FragColor = sum;
         } else {
@@ -632,12 +1163,12 @@ init 10 python:
         v_tex_coord = a_tex_coord;
     """, fragment_200="""
         // Center UVs to [-1, 1] range
-        vec2 uv = (v_tex_coord - 0.5) * 2.0; 
+        vec2 stein_w_uv = (v_tex_coord - 0.5) * 2.0; 
         
         // Internal rotation
         float s = sin(u_flash_angle);
         float c = cos(u_flash_angle);
-        vec2 rotated_uv = mat2(c, -s, s, c) * uv;
+        vec2 rotated_uv = mat2(c, -s, s, c) * stein_w_uv;
         
         float dist = length(rotated_uv);
         float angle = atan(rotated_uv.y, rotated_uv.x);
@@ -664,7 +1195,7 @@ init 10 python:
             float smoke_p = (u_flash_progress - 0.02) / 0.98;
             
             // Use unrotated UV so smoke always rises UP relative to screen
-            vec2 stream_uv = uv;
+            vec2 stream_uv = stein_w_uv;
             
             // Detach from bottom logic (Smoke moves up/away from barrel)
             // We mask out the bottom part, and this mask moves up over time
@@ -687,8 +1218,8 @@ init 10 python:
             float height_mask = smoothstep(-0.95, -0.2, stream_uv.y); 
             
             // Scroll noise up through the stream
-            float noise_y = uv.y + u_flash_progress * 3.0;
-            float noise = sin(uv.x * 40.0) * sin(noise_y * 12.0);
+            float noise_y = stein_w_uv.y + u_flash_progress * 3.0;
+            float noise = sin(stein_w_uv.x * 40.0) * sin(noise_y * 12.0);
             
             // Overall fade out over time
             float fade_out = 1.0 - smoothstep(0.2, 0.9, smoke_p);
@@ -737,8 +1268,8 @@ init 10 python:
         uniform vec2 u_resolution;
         varying vec2 v_tex_coord;
     """, fragment_200="""
-        vec2 uv = v_tex_coord;
-        vec4 source = texture2D(tex0, uv);
+        vec2 stein_bloom_uv = v_tex_coord;
+        vec4 source = texture2D(tex0, stein_bloom_uv);
         
         float bloomSpread = 4.0;
         float threshold = 0.8;
@@ -750,7 +1281,7 @@ init 10 python:
         for (float i = -1.0; i <= 1.0; i++) {
             for (float j = -1.0; j <= 1.0; j++) {
                 vec2 offset = vec2(i, j) * bloomSpread * size;
-                vec4 col = texture2D(tex0, uv + offset);
+                vec4 col = texture2D(tex0, stein_bloom_uv + offset);
                 
                 float brightness = dot(col.rgb, vec3(0.2126, 0.7152, 0.0722));
                 if (brightness > threshold) {
@@ -810,41 +1341,123 @@ init 10 python:
             self.GRAVITY = 35.0; self.JUMP_FORCE = 8.5; self.CROUCH_DEPTH = -0.4
             self.is_grounded = True; self.is_crouching = False
             self.crouch_timer = 0.0; self.crouch_duration = 0.06
+            self.fly_mode = False
 
-        def get_ground_height_at(self, x, y): return 0.0
+        def get_ground_height_at(self, x, y, check_z=None):
+            if check_z is None: check_z = self.z
+            
+            map_address, _ = self.wm.flat_map_buffer.buffer_info()
+            
+            return stein_core.get_map_height(
+                x, y, check_z,
+                map_address,
+                self.wm.mapWidth, self.wm.mapHeight,
+                self.wm.num_layers, self.wm.min_layer
+            )
 
         def trigger_jump(self):
             if self.is_grounded and not self.is_crouching:
                 self.is_crouching = True; self.crouch_timer = self.crouch_duration
 
         def update_physics(self, dt):
+            if self.fly_mode:
+                self.is_grounded = False
+                self.velocity_z = 0.0
+                
+                fly_speed = 5.0
+                if self.wm.kb_running: fly_speed = 10.0
+                
+                if self.wm.kb_fly_up:
+                    self.z += fly_speed * dt
+                if self.wm.kb_fly_down:
+                    self.z -= fly_speed * dt
+                return
+
+            floor_h = self.get_ground_height_at(self.x, self.y)
+            
             if self.is_crouching:
                 self.crouch_timer -= dt
                 progress = 1.0 - (self.crouch_timer / self.crouch_duration)
-                self.z = self.get_ground_height_at(self.x, self.y) + (self.CROUCH_DEPTH * math.sin(progress * math.pi))
+                target_z = floor_h + (self.CROUCH_DEPTH * math.sin(progress * math.pi))
+                self.z = target_z 
+                
                 if self.crouch_timer <= 0:
                     self.is_crouching = False; self.is_grounded = False; self.velocity_z = self.JUMP_FORCE
-            if not self.is_grounded:
-                self.velocity_z -= self.GRAVITY * dt
-                self.z += self.velocity_z * dt
-                floor_h = self.get_ground_height_at(self.x, self.y)
-                if self.z <= floor_h:
-                    self.z = floor_h; self.velocity_z = 0.0; self.is_grounded = True
+                    self.z = max(self.z, floor_h)
+            
+            p_data = self.wm.player_data
+            p_data.x = self.x
+            p_data.y = self.y
+            p_data.z = self.z
+            p_data.vel_z = self.velocity_z
+            p_data.rot = self.rot
+            p_data.is_grounded = 1 if self.is_grounded else 0
+            p_data.is_crouching = 1 if self.is_crouching else 0
+
+        def resolve_wall_collision(self, radius):
+            if self.fly_mode: return
+
+            # Right
+            if self.wm.isBlocking(math.floor(self.x + radius), math.floor(self.y), self.z):
+                self.x = math.floor(self.x + radius) - radius - 0.001
+            # Left
+            elif self.wm.isBlocking(math.floor(self.x - radius), math.floor(self.y), self.z):
+                self.x = math.floor(self.x - radius) + 1.0 + radius + 0.001
+            
+            # Down
+            if self.wm.isBlocking(math.floor(self.x), math.floor(self.y + radius), self.z):
+                self.y = math.floor(self.y + radius) - radius - 0.001
+            # Up
+            elif self.wm.isBlocking(math.floor(self.x), math.floor(self.y - radius), self.z):
+                self.y = math.floor(self.y - radius) + 1.0 + radius + 0.001
 
         def move(self, dt):
             self.update_physics(dt)
-            moveStep = self.speed * self.moveSpeed * dt
-            strafeStep = self.strafe_speed * self.moveSpeed * dt
-            self.rot += self.dir * self.rotSpeed * dt
-            self.rot %= twoPI
-            self.planerot += self.dir * self.rotSpeed * dt
-            self.planerot %= twoPI
-            newX = self.x + math.cos(self.rot) * moveStep + math.cos(self.planerot) * strafeStep
-            newY = self.y + math.sin(self.rot) * moveStep + math.sin(self.planerot) * strafeStep
-            self.dirx = math.cos(self.rot); self.diry = math.sin(self.rot)
-            self.planex = math.cos(self.planerot); self.planey = math.sin(self.planerot)
-            position = self.wm.checkCollision(self.x, self.y, newX, newY, 0.45)
-            self.x = position[0]; self.y = position[1]
+
+            if self.fly_mode:
+                moveStep = self.speed * self.moveSpeed * dt
+                strafeStep = self.strafe_speed * self.moveSpeed * dt
+                self.rot += self.dir * self.rotSpeed * dt
+                self.rot %= twoPI
+                
+                vx = math.cos(self.rot) * moveStep + math.sin(self.rot) * strafeStep
+                vy = math.sin(self.rot) * moveStep - math.cos(self.rot) * strafeStep
+                
+                self.x += vx
+                self.y += vy
+            else:
+                # Use the new C implementation
+                map_address, _ = self.wm.flat_map_buffer.buffer_info()
+                
+                SteinWrapper.update_player_complete(
+                    self.wm.player_ptr,
+                    dt,
+                    float(self.speed),        # input_speed
+                    float(self.strafe_speed), # input_strafe
+                    float(self.dir),          # input_turn
+                    float(self.moveSpeed),
+                    float(self.rotSpeed),
+                    map_address,
+                    self.wm.mapWidth, self.wm.mapHeight,
+                    self.wm.num_layers, self.wm.min_layer
+                )
+                
+                p_data = self.wm.player_data
+                self.x = p_data.x
+                self.y = p_data.y
+                self.z = p_data.z
+                self.velocity_z = p_data.vel_z
+                self.rot = p_data.rot
+                self.is_grounded = (p_data.is_grounded == 1)
+                
+                if self.z < -25.0:
+                    self.z = 10.0; self.velocity_z = 0.0
+
+            self.dirx = math.cos(self.rot)
+            self.diry = math.sin(self.rot)
+            
+            self.planex = math.cos(self.rot - 1.5708) * 0.66 
+            self.planey = math.sin(self.rot - 1.5708) * 0.66
 
     class Projectile(object):
         def __init__(self, wm, x, y, dir_x, dir_y, texture_index, damage, fired_by_player=False, is_invisible=False, pitch=0.0):
@@ -861,8 +1474,22 @@ init 10 python:
             
             if self.fired_by_player:
                 self.speed = 100.0 
+                self.z = self.wm.player.z + 0.5
+                self.dir_z = (pitch / float(self.wm.height))
             else:
                 self.speed = 12.0
+                ground_h = self.wm.player.get_ground_height_at(x, y, check_z=self.wm.player.z)
+                self.z = ground_h + 0.5
+                
+                p_x = self.wm.player.x
+                p_y = self.wm.player.y
+                p_z = self.wm.player.z + 0.3
+                
+                dist_2d = math.sqrt((p_x - x)**2 + (p_y - y)**2)
+                if dist_2d > 0:
+                    self.dir_z = (p_z - self.z) / dist_2d
+                else:
+                    self.dir_z = 0.0
 
         def update(self, dt):
             distance_to_travel = self.speed * dt
@@ -875,59 +1502,66 @@ init 10 python:
                 
                 self.x += self.dir_x * step
                 self.y += self.dir_y * step
+                self.z += self.dir_z * step
                 dist_traveled += step
 
-                if self.wm.isBlocking(self.x, self.y): 
+                if self.wm.isBlocking(math.floor(self.x), math.floor(self.y), self.z): 
+                    return False
+                
+                ground_h = self.wm.player.get_ground_height_at(self.x, self.y, check_z=self.z)
+                if self.z < ground_h:
                     return False
 
                 if not self.fired_by_player:
                     player = self.wm.player
                     if math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2) < 0.5:
-                        player.health -= self.damage
-                        self.wm.add_damage_indicator(-self.dir_x, -self.dir_y)
-                        self.wm.damage_flash_timer = 0.2
-                        renpy.sound.play("sounds/ow.ogg", channel="audio")
-                        return False
+                        if self.z >= player.z and self.z <= player.z + 0.9:
+                            if not self.wm.builder_mode:
+                                player.health -= self.damage
+                                self.wm.add_damage_indicator(-self.dir_x, -self.dir_y)
+                                self.wm.damage_flash_timer = 0.2
+                                self.wm.time_since_last_damage = 0.0
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                            return False
                 else:
                     for enemy in list(self.wm.enemies):
                         if math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2) < 0.5:
-                            if hasattr(self, 'pitch'):
-                                safe_dist = max(0.1, math.sqrt((enemy.x - self.x)**2 + (enemy.y - self.y)**2))
-                                enemy_vis_height = self.wm.height / safe_dist
-                                calc_height = min(enemy_vis_height, self.wm.height * 1.2)
-                                if abs(self.pitch) > (calc_height / 2.0) * 0.2: 
-                                    continue
-
-                            taken = True
-                            if hasattr(enemy, 'take_damage'): 
-                                taken = enemy.take_damage(self.damage)
-                            else:
-                                enemy.health -= self.damage
+                            e_ground = self.wm.player.get_ground_height_at(enemy.x, enemy.y, check_z=enemy.y) # Enemy doesnt have Z, assume ground
+                            e_ground = self.wm.player.get_ground_height_at(enemy.x, enemy.y, check_z=self.z) 
                             
-                            if taken:
-                                self.wm.hit_marker_timer = 0.15
-                                renpy.sound.play("sounds/ow.ogg", channel="audio")
-                                if enemy.health <= 0:
-                                    if self.wm.is_arena_mode: persistent.stein_kills += 1
-                                    if enemy in self.wm.enemies: self.wm.enemies.remove(enemy)
-                                    self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
-                                    if renpy.random.random() < 0.40:
-                                        self.wm.sprite_positions.append((enemy.x, enemy.y, 7)) # Medkit
-                                    
-                                    if self.wm.is_arena_mode:
-                                        drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
-                                        if renpy.random.random() < drop_prob:
-                                            self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index)) # Coins
+                            if self.z >= e_ground and self.z <= e_ground + 0.9:
+                                if hasattr(self, 'pitch'):
+                                    pass
 
-                                        if not renpy.store.stein_has_shotgun:
-                                            if renpy.random.random() < (0.25 if enemy.coin_index == 12 else 0.10):
-                                                self.wm.sprite_positions.append((enemy.x, enemy.y, 13)) # Shotgun
+                                taken = True
+                                if hasattr(enemy, 'take_damage'): 
+                                    taken = enemy.take_damage(self.damage)
+                                else:
+                                    enemy.health -= self.damage
+                                
+                                if taken:
+                                    self.wm.hit_marker_timer = 0.15
+                                    renpy.sound.play("sounds/ow.ogg", channel="audio")
+                                    if enemy.health <= 0:
+                                        if self.wm.is_arena_mode: persistent.stein_kills += 1
+                                        if enemy in self.wm.enemies: self.wm.enemies.remove(enemy)
+                                        self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.destroyed_texture_index))
                                         
-                                        if not renpy.store.stein_has_minigun:
-                                            if renpy.random.random() < 0.10:
-                                                self.wm.sprite_positions.append((enemy.x, enemy.y, 15)) # Minigun
+                                        if self.wm.is_arena_mode:
+                                            drop_prob = 1.0 if enemy.coin_index == 12 else 0.35
+                                            if renpy.random.random() < drop_prob:
+                                                self.wm.sprite_positions.append((enemy.x, enemy.y, enemy.coin_index)) # Coins
 
-                                return False
+                                        # Weapon drops removed as per request (by Fran)
+                                        # if not renpy.store.stein_has_shotgun:
+                                        #     if renpy.random.random() < (0.25 if enemy.coin_index == 12 else 0.10):
+                                        #         self.wm.sprite_positions.append((enemy.x, enemy.y, 13)) # Shotgun
+                                        
+                                        # if not renpy.store.stein_has_minigun:
+                                        #     if renpy.random.random() < 0.10:
+                                        #         self.wm.sprite_positions.append((enemy.x, enemy.y, 15)) # Minigun
+
+                                    return False
             return True
 
     class BaseEnemy(object):
@@ -1005,26 +1639,18 @@ init 10 python:
             if not self.check_wall_collision(self.x, self.y + vy, radius): self.y += vy
 
         def has_line_of_sight(self, target_x, target_y):
-            ray_start_x, ray_start_y = self.x, self.y
-            ray_dir_x = target_x - ray_start_x; ray_dir_y = target_y - ray_start_y
-            ray_len = math.sqrt(ray_dir_x**2 + ray_dir_y**2)
-            if ray_len == 0: return True
-            ray_dir_x /= ray_len; ray_dir_y /= ray_len
-            if ray_dir_x == 0: ray_dir_x = 1e-9
-            if ray_dir_y == 0: ray_dir_y = 1e-9
-            delta_dist_x = abs(1 / ray_dir_x); delta_dist_y = abs(1 / ray_dir_y)
-            map_x, map_y = int(ray_start_x), int(ray_start_y)
-            if ray_dir_x < 0: step_x = -1; side_dist_x = (ray_start_x - map_x) * delta_dist_x
-            else: step_x = 1; side_dist_x = (map_x + 1.0 - ray_start_x) * delta_dist_x
-            if ray_dir_y < 0: step_y = -1; side_dist_y = (ray_start_y - map_y) * delta_dist_y
-            else: step_y = 1; side_dist_y = (map_y + 1.0 - ray_start_y) * delta_dist_y
+            map_address, _ = self.wm.flat_map_buffer.buffer_info()
             
-            current_dist = 0
-            while current_dist < ray_len:
-                if side_dist_x < side_dist_y: side_dist_x += delta_dist_x; map_x += step_x; current_dist = side_dist_x
-                else: side_dist_y += delta_dist_y; map_y += step_y; current_dist = side_dist_y
-                if self.wm.isBlocking(map_x, map_y): return False
-            return True
+            
+            check_z = self.wm.player.z + 0.5
+            
+            return stein_core.check_line_of_sight(
+                self.x, self.y, check_z,
+                target_x, target_y,
+                map_address,
+                self.wm.mapWidth, self.wm.mapHeight, 
+                self.wm.num_layers, self.wm.min_layer
+            )
 
     class Guard(BaseEnemy):
         def __init__(self, wm, x, y, texture_index, destroyed_texture_index, health=100):
@@ -1034,10 +1660,24 @@ init 10 python:
 
         def attack(self, player):
             super(Guard, self).attack(player)
-            dir_x = player.x - self.x; dir_y = player.y - self.y
+            
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
             dist = math.sqrt(dir_x**2 + dir_y**2)
-            if dist > 0: dir_x /= dist; dir_y /= dist
-            self.wm.projectiles.append(Projectile(self.wm, self.x, self.y, dir_x, dir_y, self.bullet_texture_index, self.damage, fired_by_player=False))
+            
+            if dist > 0:
+                dir_x /= dist
+                dir_y /= dist
+            
+            self.wm.spawn_projectile(
+                self.x, self.y, self.wm.player.z + 0.5, 
+                dir_x, dir_y, 0.0,
+                12.0, 
+                self.bullet_texture_index, 
+                self.damage, 
+                False
+            )
+            
             renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
 
     class Yuritler(Guard):
@@ -1047,14 +1687,26 @@ init 10 python:
         
         def attack(self, player):
             self.attack_timer = self.attack_cooldown
-            dir_x = player.x - self.x; dir_y = player.y - self.y
+            dir_x = player.x - self.x
+            dir_y = player.y - self.y
             dist = math.sqrt(dir_x**2 + dir_y**2)
+            
             if dist > 0:
                 base_angle = math.atan2(dir_y, dir_x)
                 for i in range(4):
                     offset = (i / 3.0 - 0.5) * 0.2
-                    p_dirx = math.cos(base_angle + offset); p_diry = math.sin(base_angle + offset)
-                    self.wm.projectiles.append(Projectile(self.wm, self.x, self.y, p_dirx, p_diry, self.bullet_texture_index, self.damage, fired_by_player=False))
+                    p_dirx = math.cos(base_angle + offset)
+                    p_diry = math.sin(base_angle + offset)
+                    
+                    self.wm.spawn_projectile(
+                        self.x, self.y, self.wm.player.z + 0.5,
+                        p_dirx, p_diry, 0.0,
+                        12.0,
+                        self.bullet_texture_index, 
+                        self.damage, 
+                        False
+                    )
+            
             renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
 
     class EliteGuard(Guard):
@@ -1076,7 +1728,9 @@ init 10 python:
             dir_x = player.x - self.x; dir_y = player.y - self.y
             dist = math.sqrt(dir_x**2 + dir_y**2)
             if dist > 0: dir_x /= dist; dir_y /= dist
-            self.wm.projectiles.append(Projectile(self.wm, self.x, self.y, dir_x, dir_y, self.bullet_texture_index, self.damage, fired_by_player=False))
+            
+            self.wm.spawn_projectile(self.x, self.y, self.wm.player.z + 0.5, dir_x, dir_y, 0.0, 12.0, self.bullet_texture_index, self.damage, False)
+            
             renpy.sound.play("sounds/e-gunshot.ogg", channel="audio")
             self.shots_fired_in_burst += 1
             if self.shots_fired_in_burst >= self.burst_limit: self.is_reloading = True; self.reload_timer = self.reload_time
@@ -1461,153 +2115,140 @@ init 10 python:
                 fl_bob_x = math.sin(st * bob_speed) * fl_amp_x
                 fl_bob_y = abs(math.cos(st * bob_speed)) * fl_amp_y
 
-            sprite_data = []
-            if hasattr(c, 'sprite_positions') and c.sprite_positions:
-                for spr in c.sprite_positions:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 0.0))
-            elif hasattr(renpy.store, 'stein_sprites'):
-                for spr in renpy.store.stein_sprites:
-                    sprite_data.append((spr[0], spr[1], float(spr[2]), 0.0))
+            renderer = renpy.render(self.base_displayable, width, height, st, at)
+            renderer.add_shader("stein.raycaster")
 
-            if hasattr(c, 'enemies'):
-                for enemy in c.enemies:
-                    sprite_data.append((enemy.x, enemy.y, float(enemy.texture_index), 0.0))
             
-            if hasattr(c, 'projectiles'):
-                for p in c.projectiles:
-                    if getattr(p, 'is_invisible', False): continue
-                    # Normalize pitch to match camera pitch logic (slope)
-                    pitch = getattr(p, 'pitch', 0.0) / float(height)
-                    sprite_data.append((p.x, p.y, float(p.texture_index), pitch))
-            
-            flash_intensity = 0.0
-            
-            import time 
-            current_sys_time = time.time()
-            
-            current_weapon = c.weapons[c.player.current_weapon_name]
-            
-            time_since_shot = current_sys_time - current_weapon.last_fired
-            
-            if current_weapon.projectile_type and time_since_shot < 0.1:
-                flash_intensity = 1.0 - (time_since_shot / 0.1)
-                flash_intensity = max(0.0, min(1.0, flash_intensity))
-            
-            MAX_LIGHTS = 16
-            lamp_id = 2.0 
-            
-            potential_lights = []
-            if hasattr(c, 'sprite_positions'):
-                for spr in c.sprite_positions:
-                    if spr[2] == lamp_id: 
-                        potential_lights.append((spr[0], spr[1]))
-            
-            def dist_sq_lights(pos): return (pos[0] - c.player.x)**2 + (pos[1] - c.player.y)**2
-            potential_lights.sort(key=dist_sq_lights)
-            
-            final_lights_data = []
-            for i in range(MAX_LIGHTS):
-                if i < len(potential_lights):
-                    lx, ly = potential_lights[i]
-                    final_lights_data.append((lx, ly, 6.5, 1.8)) 
-                else:
-                    final_lights_data.append((0.0, 0.0, 0.0, 0.0))
+            static_count = 0
+            for i, sp in enumerate(c.sprite_positions):
+                if i >= 50: break
+                idx = i * 4
+                c.static_data_buffer[idx] = sp[0]
+                c.static_data_buffer[idx+1] = sp[1]
+                c.static_data_buffer[idx+2] = float(sp[2])
+                c.static_data_buffer[idx+3] = 0.0
+                static_count += 1
 
-            def get_dist_sq(s):
-                return (s[0] - c.player.x)**2 + (s[1] - c.player.y)**2
-            sprite_data.sort(key=get_dist_sq, reverse=True)
+            active_sprites = SteinWrapper.prepare_scene_sprites(
+                c.player.x, c.player.y,
+                c.proj_ptr, c.MAX_PROJECTILES,
+                c.enemy_ptr, len(c.enemies), # Use the main EnemyData* array
+                c.static_data_ptr, static_count,
+                c.shader_sprite_ptr, 64
+            )
 
-            MAX_SPRITES = 64
-            num_active = len(sprite_data)
-            if num_active > MAX_SPRITES:
-                sprite_data = sprite_data[:MAX_SPRITES]
-                num_active = MAX_SPRITES
-            
-            while len(sprite_data) < MAX_SPRITES:
-                sprite_data.append((0.0, 0.0, 0.0, 0.0))
+            renderer.add_uniform("u_num_active_sprites", active_sprites)
+            renderer.add_uniform("u_sprites", c.shader_sprite_buffer)
 
-            child_render = renpy.render(self.base_displayable, width, height, st, at)
-            child_render.add_shader("stein.raycaster")
-            
             # ADS Zoom Logic
             is_aiming = c.is_aiming or c.gp_aiming
             zoom_factor = 0.6 if is_aiming else 1.0
             
-            # Aspect Ratio Correction for 3D
-            # Ensure square voxels by matching Vertical FOV to Horizontal FOV
             aspect_ratio = float(width) / float(height)
             plane_len = math.sqrt(c.player.planex**2 + c.player.planey**2)
-            if plane_len == 0: plane_len = 0.66 # Fallback
-            
-            # vertical_scale = (Aspect / Plane) * (1 / Zoom)
-            # Higher scale = Narrower Vertical FOV
+            if plane_len == 0: plane_len = 0.66
             vertical_scale = (aspect_ratio / plane_len) / zoom_factor
             
-            # Apply zoom to plane
             plane_x = c.player.planex * zoom_factor
             plane_y = c.player.planey * zoom_factor
 
-            child_render.add_uniform('u_resolution', (float(width), float(height)))
-            child_render.add_uniform('u_time', st)
-            child_render.add_uniform('u_player_pos', (c.player.x, c.player.y))
-            child_render.add_uniform('u_player_dir', (c.player.dirx, c.player.diry))
-            child_render.add_uniform('u_player_plane', (plane_x, plane_y))
+            renderer.add_uniform('u_resolution', (float(width), float(height)))
+            renderer.add_uniform('u_time', st)
+            renderer.add_uniform('u_player_pos', (c.player.x, c.player.y))
+            renderer.add_uniform('u_player_dir', (c.player.dirx, c.player.diry))
+            renderer.add_uniform('u_player_plane', (plane_x, plane_y))
+            renderer.add_uniform('u_pitch', (c.player.pitch / float(height)) + bob_offset)
+            renderer.add_uniform('u_z_offset', c.player.z)
+            renderer.add_uniform('u_vertical_scale', vertical_scale)
+            renderer.add_uniform('u_sky_texture', c.sky_texture)
+            renderer.add_uniform('u_volumetric_clouds', 1.0 if persistent.stein_volumetric_clouds else 0.0)
             
-            # Head Bobbing applied to pitch
-            child_render.add_uniform('u_pitch', (c.player.pitch / float(height)) + bob_offset)
-            child_render.add_uniform('u_z_offset', c.player.z)
-            child_render.add_uniform('u_vertical_scale', vertical_scale)
-            child_render.add_uniform('u_sky_texture', c.sky_texture)
-            child_render.add_uniform('u_volumetric_clouds', 1.0 if persistent.stein_volumetric_clouds else 0.0)
-            child_render.add_uniform('u_time_of_day', float(c.lighting_preset.get('time_id', 0.0)))
-
-            child_render.add_uniform('u_map_size', (float(c.map_w), float(c.map_h)))
-            child_render.add_uniform('u_map_uv_scale', c.map_uv_scale)
-            child_render.add_uniform('u_map_texture', c.map_texture)
+            rain_int = 0.0; snow_int = 0.0
+            if hasattr(c, 'weather_state'):
+                if c.weather_state == "rain": rain_int = 1.0
+                elif c.weather_state == "snow": snow_int = 1.0
+            renderer.add_uniform('u_rain_intensity', rain_int)
+            renderer.add_uniform('u_snow_intensity', snow_int)
+            renderer.add_uniform('u_wetness', getattr(c, 'wetness', 0.0))
             
-            child_render.add_uniform('u_wall_atlas', c.wall_atlas)
-            child_render.add_uniform('u_floor_texture', c.floor_texture)
-            child_render.add_uniform('u_num_textures', c.num_textures)
+            current_hour = 0.0
+            current_ambient = c.lighting_preset['ambient_base']
+            current_ambient_near = c.lighting_preset['ambient_near']
+
+            if c.is_arena_mode:
+                elapsed_hours = st * 0.04
+                current_hour = (c.arena_start_hour + elapsed_hours) % 24.0
+                
+                def lerp_col(c1, c2, t):
+                    return (
+                        c1[0] + (c2[0] - c1[0]) * t,
+                        c1[1] + (c2[1] - c1[1]) * t,
+                        c1[2] + (c2[2] - c1[2]) * t
+                    )
+
+                night_amb = (0.05, 0.05, 0.1)
+                day_amb = (1.0, 1.0, 1.0)
+                sunset_amb = (0.7, 0.6, 0.5)
+
+                if current_hour < 5.0:
+                    current_ambient = night_amb
+                elif current_hour < 8.0:
+                    p = (current_hour - 5.0) / 3.0
+                    current_ambient = lerp_col(night_amb, day_amb, p)
+                elif current_hour < 16.0:
+                    current_ambient = day_amb
+                elif current_hour < 19.0:
+                    p = (current_hour - 16.0) / 3.0
+                    current_ambient = lerp_col(day_amb, sunset_amb, p)
+                elif current_hour < 21.0:
+                    p = (current_hour - 19.0) / 2.0
+                    current_ambient = lerp_col(sunset_amb, night_amb, p)
+                else:
+                    current_ambient = night_amb
+                
+                current_ambient_near = (0.0, 0.0, 0.0)
+            else:
+                current_hour = float(c.lighting_preset.get('time_id', 0.0))
+            renderer.add_uniform('u_time_of_day', current_hour)
+
+            renderer.add_uniform('u_ambient_color', current_ambient)
+            renderer.add_uniform('u_ambient_near_color', current_ambient_near)
+
+            renderer.add_uniform('u_map_size', (float(c.map_w), float(c.map_h)))
+            renderer.add_uniform('u_map_uv_scale', c.map_uv_scale)
+            renderer.add_uniform('u_map_texture', c.map_texture)
+            renderer.add_uniform('u_map_layer_norm_height', c.map_layer_norm_height)
+            renderer.add_uniform('u_map_layer_base_y', float(c.min_layer))
+            renderer.add_uniform('u_map_layer_count', float(c.num_layers))
+            renderer.add_uniform('u_map_tex_pixel_size', c.map_tex_pixel_size)
+            renderer.add_uniform('u_wall_atlas', c.wall_atlas)
+            renderer.add_uniform('u_floor_texture', c.floor_texture)
+            renderer.add_uniform('u_num_textures', float(c.num_textures))
+            renderer.add_uniform('u_sprite_atlas', c.sprite_atlas)
+            renderer.add_uniform('u_num_sprite_textures', float(c.num_sprite_textures))
+
+            renderer.add_uniform('u_flashlight_active', 1.0 if c.flashlight_on else 0.0)
+            renderer.add_uniform('u_flashlight_bob', (fl_bob_x, fl_bob_y))
             
-            child_render.add_uniform('u_sprite_atlas', c.sprite_atlas)
-            child_render.add_uniform('u_num_sprite_textures', c.num_sprite_textures)
-            child_render.add_uniform('u_sprites', sprite_data)
-            child_render.add_uniform('u_num_active_sprites', num_active)
-
-            child_render.add_uniform('u_flash_intensity', flash_intensity)
-            child_render.add_uniform('u_flashlight_active', 1.0 if c.flashlight_on else 0.0)
+            renderer.add_uniform('u_soft_shadows', 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0)
+            renderer.add_uniform('u_enable_shadows', 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0)
+            renderer.add_uniform('u_max_dist', 500.0 if c.builder_mode else 60.0)
+            renderer.add_uniform('u_simple_floor', 1.0 if getattr(persistent, "stein_simple_floor", False) else 0.0)
             
-            child_render.add_uniform('u_flashlight_bob', (fl_bob_x, fl_bob_y))
-            
-            lighting_quality = getattr(persistent, "stein_lighting_quality", 0) # 0=High, 1=Low
+            # Flash
+            import time
+            current_weapon = c.weapons[c.player.current_weapon_name]
+            flash_intensity = 0.0
+            if current_weapon.projectile_type and (time.time() - current_weapon.last_fired) < 0.1:
+                flash_intensity = 1.0 - ((time.time() - current_weapon.last_fired) / 0.1)
+            renderer.add_uniform('u_flash_intensity', flash_intensity)
+            renderer.add_uniform('u_flash_color', (1.0, 0.8, 0.4))
 
-            if lighting_quality == 1: # Low
-                soft_shadows = 0.0
-                enable_shadows = 0.0
-                max_active_lights = 4
-                max_dist = 30.0
-                simple_floor = 1.0
-            else: # High
-                soft_shadows = 1.0 if getattr(persistent, "stein_soft_shadows", True) else 0.0
-                enable_shadows = 1.0 if getattr(persistent, "stein_enable_shadows", True) else 0.0
-                max_active_lights = 16
-                max_dist = 60.0
-                simple_floor = 0.0
+            renderer.add_uniform('u_light_positions', [0.0] * 64)
+            renderer.add_uniform('u_num_active_lights', 0.0)
 
-            child_render.add_uniform('u_soft_shadows', soft_shadows)
-            child_render.add_uniform('u_enable_shadows', enable_shadows)
-            child_render.add_uniform('u_max_dist', max_dist)
-            child_render.add_uniform('u_simple_floor', simple_floor)
-            
-            # Lighting Uniforms
-            child_render.add_uniform('u_ambient_color', c.lighting_preset['ambient_base'])
-            child_render.add_uniform('u_ambient_near_color', c.lighting_preset['ambient_near'])
-
-            child_render.add_uniform('u_light_positions', final_lights_data)
-            child_render.add_uniform('u_num_active_lights', float(min(len(potential_lights), max_active_lights)))
-
-            renpy.redraw(self, 0.01)
-            return child_render
+            renpy.redraw(self, 0.000001)
+            return renderer
 
     class GPURenpystein(renpy.Displayable):
         def __init__(self, width, height, worldMap, exits=[], internal_width=None, internal_height=None, lighting_preset=None, **kwargs):
@@ -1616,8 +2257,19 @@ init 10 python:
             self.height = height
             self.map_data = worldMap
             self.worldMap = worldMap 
-            self.mapWidth = len(worldMap)
-            self.mapHeight = len(worldMap[0]) if self.mapWidth > 0 else 0
+            
+            if isinstance(worldMap, dict):
+                max_x = 0
+                max_y = 0
+                for grid in worldMap.values():
+                    if len(grid) > max_x: max_x = len(grid)
+                    if len(grid) > 0 and len(grid[0]) > max_y: max_y = len(grid[0])
+                self.mapWidth = max_x
+                self.mapHeight = max_y
+            else:
+                self.mapWidth = len(worldMap)
+                self.mapHeight = len(worldMap[0]) if self.mapWidth > 0 else 0
+            
             self.map_w = self.mapWidth
             self.map_h = self.mapHeight
             
@@ -1628,12 +2280,28 @@ init 10 python:
                 'time_id': 0.0
             }
 
+            self.is_arena_mode = getattr(renpy.store, 'is_arena_mode', False)
+
+            self.arena_start_hour = 12.0
+            if self.is_arena_mode:
+                roll = renpy.random.random()
+                if roll < 0.33:
+                    self.arena_start_hour = 12.0 # Day
+                elif roll < 0.66:
+                    self.arena_start_hour = 18.0 # Sunset
+                else:
+                    self.arena_start_hour = 2.0 # Night
+
+            self.weather_state = "none"
+            self.weather_timer = 0.0
+            self.next_weather_check = 5.0
+            self.wetness = 0.0
+
             self.fps_frame_count = 0
             self.fps_timer_accum = 0.0
 
             self.exits = exits
             
-            self.is_arena_mode = getattr(renpy.store, 'is_arena_mode', False)
             self.internal_width = internal_width if internal_width is not None else width
             self.internal_height = internal_height if internal_height is not None else height
             self.damage_flash_timer = 0.0
@@ -1641,6 +2309,7 @@ init 10 python:
             self.heal_flash_timer = 0.0
             self.hit_marker_timer = 0.0
             self.damage_indicators = []
+            self.time_since_last_damage = 0.0
             
             self.pickup_msg = ""
             self.pickup_msg_timer = 0.0
@@ -1674,6 +2343,17 @@ init 10 python:
             self.kb_speed = 0.0
             self.kb_strafe = 0.0
             self.kb_dir = 0.0
+            self.kb_fly_up = False
+            self.kb_fly_down = False
+            self.builder_mode = False
+            self.selected_voxel = 1
+            
+            if config.developer:
+                self.builder_mode = True
+                self.player.fly_mode = True
+                self.pickup_msg = "BUILDER MODE ON (DEV)"
+                self.pickup_msg_timer = 3.0
+            
             self.gp_speed = 0.0
             self.gp_strafe = 0.0
             self.gp_dir = 0.0
@@ -1699,10 +2379,11 @@ init 10 python:
                 joy.init()
 
             self.gun_dmg = 50; self.shotgun_dmg = 35; self.minigun_dmg = 40
-            if self.is_arena_mode:
-                self.gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
-                self.shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
-                self.minigun_dmg += 3 * (persistent.stein_minigun_level * 0.10)
+            # Damage upgrades removed as per request
+            # if self.is_arena_mode:
+            #     self.gun_dmg += 50 * (persistent.stein_pistol_level * 0.01)
+            #     self.shotgun_dmg += 35 * (persistent.stein_shotgun_level * 0.01)
+            #     self.minigun_dmg += 3 * (persistent.stein_minigun_level * 0.10)
 
             self.weapon_library = {}
             
@@ -1805,6 +2486,40 @@ init 10 python:
                 arrow_surf = pygame.image.load(f).convert_alpha()
             self.arrow_img = pygame.transform.scale(arrow_surf, (30, 30))
 
+            self.max_entities = 1024
+            
+            self.max_enemies = 1024
+            self.enemy_array = (EnemyData * self.max_enemies)()
+            self.enemy_ptr = ctypes.addressof(self.enemy_array)
+            ctypes.memset(self.enemy_ptr, 0, ctypes.sizeof(self.enemy_array))
+
+            self.player_data = PlayerData()
+            self.player_ptr = ctypes.addressof(self.player_data)
+
+            self.sort_buffer = (ctypes.c_int * self.max_entities)()
+            
+            self.shader_sprite_buffer = (ctypes.c_float * 256)()
+            
+            self.entities_buffer = (ctypes.c_double * (self.max_entities * 4))()
+            self.entities_ptr = ctypes.addressof(self.entities_buffer)
+            
+            self.shader_sprite_ptr = ctypes.addressof(self.shader_sprite_buffer)
+
+            self.sort_ptr = ctypes.addressof(self.sort_buffer)
+
+            self.MAX_PROJECTILES = 256
+            self.proj_array = (ProjectileData * self.MAX_PROJECTILES)()
+            self.proj_ptr = ctypes.addressof(self.proj_array)
+
+            self.enemy_data_buffer = (ctypes.c_double * (50 * 4))() 
+            self.enemy_data_ptr = ctypes.addressof(self.enemy_data_buffer)
+            
+            self.static_data_buffer = (ctypes.c_double * (50 * 4))()
+            self.static_data_ptr = ctypes.addressof(self.static_data_buffer)
+            
+            for i in range(self.MAX_PROJECTILES):
+                self.proj_array[i].active = 0
+
             self.projectiles = []
             self.enemies = []
             self.sprite_positions = renpy.store.stein_sprites
@@ -1830,6 +2545,20 @@ init 10 python:
 
             if self.is_arena_mode and self.current_round == 0:
                 self.start_next_round()
+
+        def spawn_projectile(self, x, y, z, dx, dy, dz, speed, tex_id, damage, is_player, pitch=0.0):
+            for i in range(self.MAX_PROJECTILES):
+                if self.proj_array[i].active == 0:
+                    p = self.proj_array[i]
+                    p.x = x; p.y = y; p.z = z
+                    p.dir_x = dx; p.dir_y = dy; p.dir_z = dz
+                    p.speed = speed
+                    p.texture_idx = tex_id
+                    p.damage = damage
+                    p.from_player = 1 if is_player else 0
+                    p.pitch = pitch
+                    p.active = 1
+                    return
 
         def equip_weapon(self, weapon_name):
             if weapon_name in self.weapon_library:
@@ -1937,11 +2666,11 @@ init 10 python:
 
         def create_wall_atlas(self):
             image_paths = [  
-                "pics/walls/eagle.webp", "pics/walls/redbrick.webp",
-                "pics/walls/purplestone.webp", "pics/walls/greystone.webp",
-                "pics/walls/bluestone.webp", "pics/walls/mossy.webp",
-                "pics/walls/wood.webp", "pics/walls/colorstone.webp",
-                "pics/walls/cement.webp",
+                "pics/walls/eagle.png", "pics/walls/redbrick.png",
+                "pics/walls/purplestone.png", "pics/walls/greystone.png",
+                "pics/walls/bluestone.png", "pics/walls/mossy.png",
+                "pics/walls/wood.png", "pics/walls/colorstone.png",
+                "pics/walls/cement.png",
             ]
             
             surfaces = []
@@ -1975,7 +2704,7 @@ init 10 python:
 
         def load_floor_texture(self):
             try:
-                with renpy.open_file("pics/walls/cement.webp") as f:
+                with renpy.open_file("pics/walls/cement.png") as f:
                     surf = pygame.image.load(f).convert_alpha()
                     surf = pygame.transform.scale(surf, (64, 64))
                     return renpy.display.draw.load_texture(surf)
@@ -2032,23 +2761,59 @@ init 10 python:
                 if n == 0: return 1
                 return 2**math.ceil(math.log(n, 2))
             
-            x_len = len(self.map_data)
-            y_len = len(self.map_data[0]) if x_len > 0 else 0
-            w_pot = max(64, next_power_of_two(x_len))
-            h_pot = max(64, next_power_of_two(y_len))
+            if isinstance(self.map_data, list):
+                layers = {0: self.map_data}
+            else:
+                layers = self.map_data
+
+            # Find max dimensions
+            max_x = 0
+            max_y = 0
+            min_z = 0
+            max_z = 0
+            
+            if layers:
+                min_z = min(layers.keys())
+                max_z = max(layers.keys())
+                for z, grid in layers.items():
+                    if len(grid) > max_x: max_x = len(grid)
+                    if len(grid) > 0 and len(grid[0]) > max_y: max_y = len(grid[0])
+            
+            self.map_w = max_x
+            self.map_h = max_y
+            self.min_layer = min_z
+            self.max_layer = max_z
+            self.num_layers = max_z - min_z + 1
+
+            self.flat_map_buffer = flatten_world_map(
+                self.worldMap, self.mapWidth, self.mapHeight, 
+                self.min_layer, self.max_layer
+            )
+            
+            layer_h_pixels = next_power_of_two(max_y)
+            w_pot = max(64, next_power_of_two(max_x))
+            h_pot = max(64, next_power_of_two(layer_h_pixels * self.num_layers))
 
             surf = pygame.Surface((w_pot, h_pot), flags=pygame.SRCALPHA, depth=32)
             surf.fill((0,0,0,255))
             
-            for map_x, row in enumerate(self.map_data):
-                for map_y, tile in enumerate(row):
-                    if tile > 0:
-                        surf.set_at((map_x, map_y), (255, tile, 0, 255))
-                    else:
-                        surf.set_at((map_x, map_y), (0, 0, 0, 255))
+            for z, grid in layers.items():
+                layer_idx = z - min_z
+                base_y = layer_idx * layer_h_pixels
+                
+                for map_x, row in enumerate(grid):
+                    for map_y, tile in enumerate(row):
+                        if tile > 0:
+                            surf.set_at((map_x, base_y + map_y), (255, tile, 0, 255))
             
             tex = renpy.display.draw.load_texture(surf)
-            self.map_uv_scale = (float(x_len) / float(w_pot), float(y_len) / float(h_pot))
+            
+            # Calculate uniforms
+            self.map_layer_norm_height = float(layer_h_pixels) / float(h_pot)
+            self.map_tex_pixel_size = (1.0 / float(w_pot), 1.0 / float(h_pot))
+            
+            self.map_uv_scale = (float(max_x) / float(w_pot), float(max_y) / float(layer_h_pixels)) 
+            
             return tex
 
         def render(self, width, height, st, at):
@@ -2264,18 +3029,160 @@ init 10 python:
                     tw, th = timer_r.get_size()
                     r.blit(timer_r, (width/2 - tw/2, 100))
             
+            if self.builder_mode:
+                info_str = f"BUILDER MODE ON [[VOXEL: {self.selected_voxel}]]\COORDS: {self.player.x:.2f}, {self.player.y:.2f}, {self.player.z:.2f}"
+                b_text = Text(info_str, size=30, color="#00FF00", outlines=[(2, "#000", 0, 0)])
+                b_r = renpy.render(b_text, width, height, st, at)
+                r.blit(b_r, (20, 20))
+
             if self.return_value:
                 renpy.timeout(0)
 
             renpy.redraw(self, 0.01) 
             return r
 
+        def update_weather(self, dt):
+            if not hasattr(self, 'weather_state'):
+                self.weather_state = "none"
+                self.weather_timer = 0.0
+                self.next_weather_check = 5.0
+                self.wetness = 0.0
+
+            if not self.is_arena_mode: return
+            
+            if not persistent.stein_volumetric_clouds or not getattr(persistent, "stein_enable_weather", True):
+                self.weather_state = "none"
+                self.wetness = max(0.0, self.wetness - dt * 0.1)
+                return
+
+            game_hours_passed = dt * 0.04
+            
+            if self.weather_state != "none":
+                self.weather_timer -= game_hours_passed
+                self.wetness = min(1.0, self.wetness + dt * 0.2)
+                
+                if self.weather_timer <= 0:
+                    self.weather_state = "none"
+            else:
+                self.wetness = max(0.0, self.wetness - dt * 0.05)
+            
+            self.next_weather_check -= game_hours_passed
+            if self.next_weather_check <= 0:
+                if config.developer:
+                    self.next_weather_check = 1.0
+                else:
+                    self.next_weather_check = 5.0 
+                
+                if self.weather_state == "none":
+                    prob = 0.10
+                    if config.developer: prob = 1.0
+                    
+                    if renpy.random.random() < prob:
+                        if renpy.random.random() < 0.5:
+                            self.weather_state = "rain"
+                        else:
+                            self.weather_state = "snow"
+                        
+                        self.weather_timer = 6.0
+
         def update_logic(self, dt):
+            self.time_since_last_damage += dt
+            if self.time_since_last_damage > 2.5 and self.player.health < 100 and self.player.health > 0:
+                # Regenerate 95 HP in 3 seconds, like 31.67 hp/sec
+                heal_rate = 31.67
+                self.player.health = min(100, self.player.health + heal_rate * dt)
+
+            self.update_weather(dt)
             self.hit_marker_timer = max(0, self.hit_marker_timer - dt)
             self.check_item_pickup()
-            for enemy in self.enemies: enemy.update(dt, self.player)
-            for p in list(self.projectiles):
-                if not p.update(dt): self.projectiles.remove(p)
+            
+            c_enemies = self.enemy_array
+            active_count = 0
+            state_map = {'idle': 0, 'chasing': 1, 'attacking': 2, 'dying': 3, 'dead': 4}
+
+            for i, e in enumerate(self.enemies):
+                if i >= self.max_enemies: break
+                c_enemies[i].x = e.x
+                c_enemies[i].y = e.y
+                c_enemies[i].z = getattr(e, 'z', 0.0) 
+                c_enemies[i].hp = e.health
+                c_enemies[i].state = state_map.get(e.state, 0)
+                c_enemies[i].texture_idx = e.texture_index
+                c_enemies[i].move_speed = e.moveSpeed
+                c_enemies[i].enemy_type = 0 
+                active_count += 1
+
+            map_addr, _ = self.flat_map_buffer.buffer_info()
+            SteinWrapper.stein_lib.update_enemies_c(
+                self.enemy_ptr,
+                active_count,
+                self.player.x, self.player.y, self.player.z,
+                dt,
+                map_addr,
+                self.mapWidth, self.mapHeight, self.num_layers, self.min_layer
+            )
+
+            state_map_inv = {0: 'idle', 1: 'chasing', 2: 'attacking', 3: 'dying', 4: 'dead'}
+            
+            for i in range(active_count):
+                e = self.enemies[i]
+                c_e = c_enemies[i]
+                
+                e.x = c_e.x
+                e.y = c_e.y
+                e.health = c_e.hp
+                e.state = state_map_inv.get(c_e.state, 'idle')
+                
+                if c_e.state == 2 and e.attack_timer <= 0:
+                    pass
+
+                if e.state == 'attacking':
+                    if e.attack_timer <= 0:
+                        e.attack(self.player)
+
+            for e in self.enemies:
+                if e.attack_timer > 0:
+                    e.attack_timer -= dt
+            
+            SteinWrapper.update_projectiles_native(
+                self.proj_ptr, self.MAX_PROJECTILES, dt,
+                map_addr, self.mapWidth, self.mapHeight, 
+                self.num_layers, self.min_layer
+            )
+
+            for i in range(self.MAX_PROJECTILES):
+                p = self.proj_array[i]
+                if p.active == 0: continue
+                
+                if p.from_player == 1:
+                    for e in list(self.enemies):
+                        dist_sq = (e.x - p.x)**2 + (e.y - p.y)**2
+                        if dist_sq < 0.25:
+                            e.health -= p.damage
+                            self.hit_marker_timer = 0.15
+                            renpy.sound.play("sounds/ow.ogg", channel="audio")
+                            p.active = 0 
+                            
+                            if e.health <= 0:
+                                if e in self.enemies: self.enemies.remove(e)
+                                self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                            break 
+                else:
+                    dx = self.player.x - p.x
+                    dy = self.player.y - p.y
+                    dist_sq = dx*dx + dy*dy
+                    
+                    if dist_sq < 0.25:
+                        # Check Z height
+                        if p.z >= self.player.z and p.z <= self.player.z + 1.0:
+                            if not self.builder_mode:
+                                self.player.health -= p.damage
+                                self.add_damage_indicator(-p.dir_x, -p.dir_y)
+                                self.damage_flash_timer = 0.2
+                                self.time_since_last_damage = 0.0
+                                renpy.sound.play("sounds/ow.ogg", channel="audio")
+                            p.active = 0
+
             if self.mouse_firing or self.gp_firing: self.shoot_weapon()
 
             if self.is_arena_mode:
@@ -2342,7 +3249,9 @@ init 10 python:
             pitch = self.player.pitch
             is_ads = self.is_aiming or self.gp_aiming
             
-            bullet_invisible = True 
+            speed = 100.0
+            dz = pitch / float(self.height)
+            z_start = self.player.z + 0.5
 
             if weapon.projectile_type == 'shotgun':
                 import random
@@ -2352,78 +3261,318 @@ init 10 python:
                     angle = self.player.rot + spread
                     pdx = math.cos(angle)
                     pdy = math.sin(angle)
-                    self.projectiles.append(Projectile(self, self.player.x, self.player.y, pdx, pdy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=bullet_invisible))
+                    self.spawn_projectile(self.player.x, self.player.y, z_start, pdx, pdy, dz, speed, self.bullet_texture_index, weapon.damage, True, pitch=pitch)
                 renpy.sound.play("sounds/shotgun.ogg", channel="audio")
             elif weapon.projectile_type == 'bullet':
-                self.projectiles.append(Projectile(self, self.player.x, self.player.y, dx, dy, self.bullet_texture_index, weapon.damage, fired_by_player=True, pitch=pitch, is_invisible=bullet_invisible))
+                self.spawn_projectile(self.player.x, self.player.y, z_start, dx, dy, dz, speed, self.bullet_texture_index, weapon.damage, True, pitch=pitch)
                 renpy.sound.play("sounds/gunshot.ogg", channel="audio")
             else:
-                hit = False
-                # Sort enemies to hit the closest one first
-                self.enemies.sort(key=lambda e: (e.x - self.player.x)**2 + (e.y - self.player.y)**2)
-                
-                for e in list(self.enemies):
-                    dist = math.sqrt((e.x - self.player.x)**2 + (e.y - self.player.y)**2)
-                    if dist < 1.5: 
-                        taken = True
-                        if hasattr(e, 'take_damage'):
-                            taken = e.take_damage(weapon.damage)
-                        else:
-                            e.health -= weapon.damage
+                dir_z = -math.sin(self.player.pitch / float(self.height)) # Approximation
+                dir_z = (self.player.pitch / float(self.height)) 
 
-                        if taken:
-                            hit = True
-                            self.hit_marker_timer = 0.15
-                            
-                            if e.health <= 0:
-                                renpy.sound.play("sounds/ow.ogg", channel="audio")
-                                if self.is_arena_mode:
-                                    persistent.stein_kills += 1
-                                
-                                if e in self.enemies:
-                                    self.enemies.remove(e)
-                                
-                                self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
-                                
-                                # Drop Medkit (40%)
-                                if renpy.random.random() < 0.40:
-                                    self.sprite_positions.append((e.x, e.y, 7))
-                                
-                                # Arena Mode Drops
-                                if self.is_arena_mode:
-                                    drop_prob = 1.0 if e.coin_index == 12 else 0.35
-                                    if renpy.random.random() < drop_prob:
-                                        self.sprite_positions.append((e.x, e.y, e.coin_index))
+                hit_index = SteinWrapper.stein_lib.check_hitscan_c(
+                    self.player.x, self.player.y, self.player.z + 0.5,
+                    dx, dy, dir_z,
+                    self.enemy_ptr,
+                    len(self.enemies),
+                    100.0,
+                    float(weapon.damage)
+                )
+
+                if hit_index != -1:
+                    e = self.enemies[hit_index]
+                    
+                    c_enemies = self.enemy_array
+                    e.health = c_enemies[hit_index].hp
+                    
+                    self.hit_marker_timer = 0.15
+                    
+                    if e.health <= 0:
+                        renpy.sound.play("sounds/ow.ogg", channel="audio")
+                        if self.is_arena_mode:
+                            persistent.stein_kills += 1
+                        
+                        if e in self.enemies:
+                            self.enemies.remove(e)
+                        
+                        self.sprite_positions.append((e.x, e.y, e.destroyed_texture_index))
+                        
                                     
-                                    if not renpy.store.stein_has_shotgun:
-                                        shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
-                                        if renpy.random.random() < shotgun_prob:
-                                            self.sprite_positions.append((e.x, e.y, 13))
-                                            
-                                    if not renpy.store.stein_has_minigun:
-                                        if renpy.random.random() < 0.10:
-                                            self.sprite_positions.append((e.x, e.y, 15))
+                        # Arena Mode Drops
+                        if self.is_arena_mode:
+                            drop_prob = 1.0 if e.coin_index == 12 else 0.35
+                            if renpy.random.random() < drop_prob:
+                                self.sprite_positions.append((e.x, e.y, e.coin_index))
                             
-                            break
-
-                if hit and not any(e.health <= 0 for e in self.enemies): 
-                    pass
+                            if not renpy.store.stein_has_shotgun:
+                                shotgun_prob = 0.25 if e.coin_index == 12 else 0.10
+                                if renpy.random.random() < shotgun_prob:
+                                    self.sprite_positions.append((e.x, e.y, 13))
+                                    
+                            if not renpy.store.stein_has_minigun:
+                                if renpy.random.random() < 0.10:
+                                    self.sprite_positions.append((e.x, e.y, 15))
 
         def add_damage_indicator(self, source_dir_x, source_dir_y):
             angle = math.atan2(source_dir_y, source_dir_x)
             self.damage_indicators.append(DamageIndicator(angle))
 
-        def isBlocking(self, x, y):
+        def isBlocking(self, x, y, z=0.0):
             if x < 0 or x >= self.mapWidth or y < 0 or y >= self.mapHeight: return True
-            return self.worldMap[int(x)][int(y)] != 0
+            
+            layer = int(math.floor(z))
+            tile = 0
+            
+            if isinstance(self.worldMap, dict):
+                if layer in self.worldMap:
+                    grid = self.worldMap[layer]
+                    if int(x) < len(grid) and int(y) < len(grid[int(x)]):
+                        tile = grid[int(x)][int(y)]
+            else:
+                if layer == 0:
+                    tile = self.worldMap[int(x)][int(y)]
+            
+            if tile == 0: return False
+            
+            h = 1.0
+            if tile == 20: h = 0.5
+            
+            local_z = z - float(layer)
+            if local_z >= h: return False
+            
+            return True
 
-        def checkCollision(self, fromX, fromY, toX, toY, radius):
-            pos = [fromX, fromY]
-            if toY < 0 or toY >= self.mapHeight or toX < 0 or toX >= self.mapWidth: return pos
-            blockX = math.floor(toX); blockY = math.floor(toY)
-            if self.isBlocking(blockX, blockY): return pos
-            pos[0] = toX; pos[1] = toY
-            return pos
+        def checkCollision(self, fromX, fromY, toX, toY, radius, z=0.0):
+            # Check center
+            if self.isBlocking(math.floor(toX), math.floor(toY), z):
+                return [fromX, fromY]
+            
+            # Check radius
+            points = [
+                (toX + radius, toY), (toX - radius, toY),
+                (toX, toY + radius), (toX, toY - radius)
+            ]
+            
+            for px, py in points:
+                if self.isBlocking(math.floor(px), math.floor(py), z):
+                    return [fromX, fromY]
+            
+            return [toX, toY]
+
+        def isVoxel(self, x, y, z):
+            if x < 0 or x >= self.mapWidth or y < 0 or y >= self.mapHeight: return False
+            
+            layer = int(math.floor(z))
+            tile = 0
+            
+            if isinstance(self.worldMap, dict):
+                if layer in self.worldMap:
+                    grid = self.worldMap[layer]
+                    if int(x) < len(grid) and int(y) < len(grid[int(x)]):
+                        tile = grid[int(x)][int(y)]
+            else:
+                if layer == 0:
+                    tile = self.worldMap[int(x)][int(y)]
+            
+            return tile > 0
+
+        def cast_ray(self, start_x, start_y, start_z, dir_x, dir_y, dir_z, max_dist=10.0):
+            map_address, _ = self.flat_map_buffer.buffer_info()
+            
+            # Call to cpp
+            return stein_core.cast_ray_fast(
+                start_x, start_y, start_z, 
+                dir_x, dir_y, dir_z, 
+                map_address, 
+                self.mapWidth, self.mapHeight, self.num_layers, self.min_layer,
+                max_dist
+            )
+
+        def handle_builder_action(self, action):
+            u_pitch = self.player.pitch / float(self.height)
+            pitch_angle = math.atan(u_pitch)
+            
+            cp = math.cos(pitch_angle)
+            sp = math.sin(pitch_angle)
+            
+            px = self.player.planex
+            py = self.player.planey
+            plen = math.sqrt(px*px + py*py)
+            if plen == 0: plen = 1.0
+            rx = px / plen
+            ry = py / plen
+            
+            bx = self.player.dirx
+            by = self.player.diry
+            
+            cz = rx*by - ry*bx
+            dot_rb = rx*bx + ry*by
+            
+            rdx = bx * cp + 0.0 * sp + rx * dot_rb * (1.0 - cp)
+            rdy = by * cp + 0.0 * sp + ry * dot_rb * (1.0 - cp)
+            rdz = 0.0 * cp + cz * sp + 0.0 * dot_rb * (1.0 - cp)
+            
+            rdx = bx * cp + 0.0 + rx * dot_rb * (1.0 - cp)
+            rdy = by * cp + 0.0 + ry * dot_rb * (1.0 - cp)
+            rdz = 0.0 + cz * sp + 0.0
+            
+            # Normalize
+            rlen = math.sqrt(rdx*rdx + rdy*rdy + rdz*rdz)
+            if rlen > 0:
+                rdx /= rlen
+                rdy /= rlen
+                rdz /= rlen
+            
+            res = self.cast_ray(self.player.x, self.player.y, self.player.z + 0.5, rdx, rdy, rdz, max_dist=100.0)
+            
+            if res[0]: 
+                mx, my, mz, side, sx, sy, sz = res[1:]
+                
+                if action == 'remove':
+                    self.set_voxel(mx, my, mz, 0)
+                elif action == 'place':
+                    nx, ny, nz = mx, my, mz
+                    if side == 0: nx -= sx
+                    elif side == 1: ny -= sy
+                    elif side == 2: nz -= sz
+                    
+                    if math.floor(self.player.x) == nx and math.floor(self.player.y) == ny and math.floor(self.player.z) == nz:
+                        return
+                    
+                    self.set_voxel(nx, ny, nz, self.selected_voxel)
+            else:
+                if action == 'place':
+                    nx = int(math.floor(self.player.x))
+                    ny = int(math.floor(self.player.y))
+                    nz = int(math.floor(self.player.z))
+                    self.set_voxel(nx, ny, nz, self.selected_voxel)
+
+        def shift_map(self, off_x, off_y):
+            self.mapWidth += off_x
+            self.mapHeight += off_y
+            self.map_w = self.mapWidth
+            self.map_h = self.mapHeight
+            
+            for z, grid in self.worldMap.items():
+                curr_w = len(grid)
+                curr_h = len(grid[0]) if curr_w > 0 else 0
+                
+                if off_x > 0:
+                    new_cols = [[0] * curr_h for _ in range(off_x)]
+                    for col in reversed(new_cols):
+                        grid.insert(0, col)
+                
+                if off_y > 0:
+                    for col in grid:
+                        for _ in range(off_y):
+                            col.insert(0, 0)
+            
+            self.player.x += off_x
+            self.player.y += off_y
+            
+            for e in self.enemies:
+                e.x += off_x
+                e.y += off_y
+                if hasattr(e, 'last_known_x') and e.last_known_x is not None: e.last_known_x += off_x
+                if hasattr(e, 'last_known_y') and e.last_known_y is not None: e.last_known_y += off_y
+            
+            for p in self.projectiles:
+                p.x += off_x
+                p.y += off_y
+            
+            new_sprites = []
+            for s in self.sprite_positions:
+                l = list(s)
+                l[0] += off_x
+                l[1] += off_y
+                new_sprites.append(tuple(l))
+            self.sprite_positions = new_sprites
+            
+            new_spawns = []
+            for s in self.spawn_points:
+                new_spawns.append((s[0] + off_x, s[1] + off_y))
+            self.spawn_points = new_spawns
+            
+            new_exits = []
+            for e in self.exits:
+                l = list(e)
+                l[0] += off_x
+                l[1] += off_y
+                new_exits.append(tuple(l))
+            self.exits = new_exits
+            
+            self.pickup_msg = f"MAP SHIFTED BY {off_x}, {off_y}"
+            self.pickup_msg_timer = 2.0
+
+        def set_voxel(self, x, y, z, val):
+            map_changed = False
+            if not isinstance(self.worldMap, dict):
+                new_map = {0: [row[:] for row in self.worldMap]}
+                self.worldMap = new_map
+                self.map_data = new_map
+            
+            off_x = 0
+            off_y = 0
+            if x < 0:
+                off_x = abs(x)
+                x = 0
+            if y < 0:
+                off_y = abs(y)
+                y = 0
+            
+            if off_x > 0 or off_y > 0:
+                self.shift_map(off_x, off_y)
+                map_changed = True
+            
+            # Check for expansion
+            if x >= self.mapWidth or y >= self.mapHeight:
+                new_w = max(self.mapWidth, x + 1)
+                new_h = max(self.mapHeight, y + 1)
+                self.expand_map(new_w, new_h)
+                map_changed = True
+
+            if z not in self.worldMap:
+                if val == 0: 
+                    if map_changed: self.map_texture = self.create_map_texture()
+                    return 
+                self.worldMap[z] = [[0 for _ in range(self.mapHeight)] for _ in range(self.mapWidth)]
+            
+            grid = self.worldMap[z]
+            if 0 <= x < len(grid) and 0 <= y < len(grid[0]):
+                grid[x][y] = val
+                map_changed = True
+
+                if 0 <= x < self.mapWidth and 0 <= y < self.mapHeight:
+                    layer_idx = z - self.min_layer
+                    if 0 <= layer_idx < self.num_layers:
+                        idx = (layer_idx * self.mapWidth * self.mapHeight) + (x * self.mapHeight) + y
+                        self.flat_map_buffer[idx] = val
+                
+            if map_changed:
+                self.map_texture = self.create_map_texture()
+
+        def expand_map(self, new_w, new_h):
+            self.mapWidth = new_w
+            self.mapHeight = new_h
+            self.map_w = new_w
+            self.map_h = new_h
+            
+            for z, grid in self.worldMap.items():
+                current_w = len(grid)
+                current_h = len(grid[0]) if current_w > 0 else 0
+                
+                # Resize width
+                if new_w > current_w:
+                    for _ in range(new_w - current_w):
+                        grid.append([0] * current_h)
+                
+                # Resize height
+                for row in grid:
+                    if new_h > len(row):
+                        row.extend([0] * (new_h - len(row)))
+            
+            self.pickup_msg = f"MAP EXPANDED TO {new_w}x{new_h}"
+            self.pickup_msg_timer = 2.0
 
         # EVENT HANDLING
         def event(self, ev, x, y, st):
@@ -2506,6 +3655,36 @@ init 10 python:
                 self.player.pitch = max(-1000.0, min(1000.0, self.player.pitch))
 
             if ev.type == pygame.KEYDOWN:
+                if config.developer:
+                    if ev.key == pygame.K_o:
+                        self.builder_mode = not self.builder_mode
+                        self.player.fly_mode = self.builder_mode
+                        if self.builder_mode:
+                            self.pickup_msg = "BUILDER MODE ON"
+                            self.pickup_msg_timer = 2.0
+                        else:
+                            self.pickup_msg = "BUILDER MODE OFF"
+                            self.pickup_msg_timer = 2.0
+
+                    if ev.key == pygame.K_p:
+                        print("--- LEVEL DATA START ---")
+                        if isinstance(self.worldMap, dict):
+                            print("{")
+                            for z in sorted(self.worldMap.keys()):
+                                print(f"    {z}: [")
+                                for row in self.worldMap[z]:
+                                    print(f"        {repr(row)},")
+                                print("    ],")
+                            print("}")
+                        else:
+                            print("[")
+                            for row in self.worldMap:
+                                print(f"    {repr(row)},")
+                            print("]")
+                        print("--- LEVEL DATA END ---")
+                        self.pickup_msg = "LEVEL DATA PRINTED"
+                        self.pickup_msg_timer = 2.0
+
                 if ev.key == pygame.K_ESCAPE:
                     pygame.mouse.set_visible(True)
                     pygame.event.set_grab(False)
@@ -2531,12 +3710,33 @@ init 10 python:
                 if ev.key == pygame.K_LEFT: self.kb_dir = 1.0
                 if ev.key == pygame.K_RIGHT: self.kb_dir = -1.0
                 
-                if ev.key == pygame.K_SPACE: self.player.trigger_jump()
+                if ev.key == pygame.K_SPACE: 
+                    if self.player.fly_mode: self.kb_fly_up = True
+                    else: self.player.trigger_jump()
                 
                 if ev.key == pygame.K_LCTRL or ev.key == pygame.K_RCTRL:
                     self.kb_running = True
 
+                if ev.key == pygame.K_n:
+                    if self.player.fly_mode: self.kb_fly_down = True
+
             if ev.type == pygame.MOUSEBUTTONDOWN:
+                if self.builder_mode:
+                    if ev.button == 1: # Left Click - Place
+                        self.handle_builder_action('place')
+                    elif ev.button == 3: # Right Click - Remove
+                        self.handle_builder_action('remove')
+                    elif ev.button == 4: # Wheel Up
+                        self.selected_voxel = (self.selected_voxel % 9) + 1
+                        self.pickup_msg = f"VOXEL: {self.selected_voxel}"
+                        self.pickup_msg_timer = 1.0
+                    elif ev.button == 5: # Wheel Down
+                        self.selected_voxel = ((self.selected_voxel - 2) % 9) + 1
+                        self.pickup_msg = f"VOXEL: {self.selected_voxel}"
+                        self.pickup_msg_timer = 1.0
+                    
+                    return 
+
                 if ev.button == 1: # Left mouse button
                     self.mouse_firing = True
                 elif ev.button == 3: # Right mouse button (Aim)
@@ -2549,10 +3749,15 @@ init 10 python:
                     self.is_aiming = False
 
             if ev.type == pygame.KEYUP:
+                if ev.key == pygame.K_SPACE: self.kb_fly_up = False
                 if ev.key in (pygame.K_w, pygame.K_s, pygame.K_UP, pygame.K_DOWN): self.kb_speed = 0.0
                 if ev.key in (pygame.K_a, pygame.K_d): self.kb_strafe = 0.0
                 if ev.key in (pygame.K_LEFT, pygame.K_RIGHT): self.kb_dir = 0.0
-                if ev.key in (pygame.K_LCTRL, pygame.K_RCTRL): self.kb_running = False
+                if ev.key in (pygame.K_LCTRL, pygame.K_RCTRL): 
+                    self.kb_running = False
+                
+                if ev.key == pygame.K_n:
+                    self.kb_fly_down = False
 
         def poll_gamepad(self):
             self.gp_speed = 0.0; self.gp_strafe = 0.0; self.gp_dir = 0.0
@@ -2567,7 +3772,10 @@ init 10 python:
                     if "accelerometer" in name or "gyro" in name: continue
                     
                     if joy.get_numaxes() > 4 and joy.get_axis(4) > TRIGGER_THRESHOLD: self.gp_aiming = True
-                    if joy.get_numbuttons() > 4 and joy.get_button(4): self.gp_running = True
+                    if renpy.android:
+                        if joy.get_numbuttons() > 9 and joy.get_button(9): self.gp_running = True
+                    else:
+                        if joy.get_numbuttons() > 4 and joy.get_button(4): self.gp_running = True
 
                     if joy.get_numaxes() > 0:
                         x = joy.get_axis(0)
@@ -2596,7 +3804,10 @@ init 10 python:
 
                     btn_flashlight_held = False
 
-                    if joy.get_numhats() > 0:
+                    if renpy.android:
+                        if joy.get_numbuttons() > 11 and joy.get_button(11):
+                            btn_flashlight_held = True
+                    elif joy.get_numhats() > 0:
                         hat_x, hat_y = joy.get_hat(0)
                         if hat_y == 1: 
                             btn_flashlight_held = True

@@ -14,16 +14,21 @@ screen stein_controls_overlay():
 
         # Button to switch to Keyboard mode.
         if not renpy.android:
-            textbutton _("Keyboard & Gamepad") action SetVariable("simulate_touch", False)
+            text _("Keyboard & Gamepad")
         
         # Button to switch to Touch/Mouse mode.
         if renpy.android:
-            textbutton _("Touch & Gamepad") action SetVariable("simulate_touch", True)
+            text _("Touch & Gamepad")
 
     if persistent.stein_show_fps:
         add DynamicDisplayable(stein_fps_displayable):
             xalign 0.98
             yalign 0.02
+
+    # Temporary Debug Display
+    # add DynamicDisplayable(gamepad_debug_displayable):
+    #     xalign 0.99
+    #     yalign 0.5
 
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
@@ -180,6 +185,18 @@ screen sayoristein_settings_menu():
                             action ToggleVariable("persistent.stein_volumetric_clouds")
                             style "sayoristein_menu_button"
                             text_style "sayoristein_menu_button_text"
+
+                        if persistent.stein_volumetric_clouds:
+                            textbutton ("Weather Effects: " + ("ON" if persistent.stein_enable_weather else "OFF")):
+                                action ToggleVariable("persistent.stein_enable_weather")
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                        else:
+                            textbutton _("Weather Effects: LOCKED"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
 
                         if persistent.stein_lighting_quality == 0:
                             textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
@@ -350,7 +367,7 @@ screen sayoristein_arena_hub():
             xalign 0.5
 
         textbutton _("Start Arena") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
-        textbutton _("Upgrades") action ShowMenu("sayoristein_upgrades") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        # textbutton _("Upgrades") action ShowMenu("sayoristein_upgrades") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
         textbutton _("Back") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
 
 init python:
@@ -359,6 +376,9 @@ init python:
 
     if getattr(persistent, "stein_volumetric_clouds", None) is None:
         persistent.stein_volumetric_clouds = False
+
+    if getattr(persistent, "stein_enable_weather", None) is None:
+        persistent.stein_enable_weather = True
 
     if getattr(persistent, "stein_motion_blur_strength", None) is None:
         persistent.stein_motion_blur_strength = 0.3
@@ -379,51 +399,57 @@ init python:
         fps = getattr(renpy.store, 'stein_current_fps', 0)
         return Text(f"FPS: {fps}", size=30, color="#607567", outlines=[(2, "#000000", 0, 0)], font="mod_assets/fonts/BebasNeue-Regular.ttf"), 0.01
 
-    def buy_stein_upgrade(upgrade_type):
-        if upgrade_type == "pistol":
-            cost = 1000 + (persistent.stein_pistol_level * 100)
-            if persistent.tradu_coins >= cost:
-                persistent.tradu_coins -= cost
-                persistent.stein_pistol_level += 1
-                renpy.restart_interaction()
-            else:
-                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
-
-        elif upgrade_type == "shotgun":
-            cost = 1000 + (persistent.stein_shotgun_level * 100)
-            if persistent.tradu_coins >= cost:
-                persistent.tradu_coins -= cost
-                persistent.stein_shotgun_level += 1
-                renpy.restart_interaction()
-            else:
-                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+    def gamepad_debug_displayable(st, at):
+        import pygame
+        debug_info = ["--- GAMEPAD DEBUG ---"]
         
-        elif upgrade_type == "unlock_shotgun":
-            cost = 25000
-            if persistent.tradu_coins >= cost:
-                persistent.tradu_coins -= cost
-                persistent.stein_shotgun_unlocked = True
-                renpy.restart_interaction()
-            else:
-                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+        count = pygame.joystick.get_count()
+        if count == 0:
+            debug_info.append("No Gamepads Detected")
+        else:
+            for i in range(count):
+                try:
+                    joy = pygame.joystick.Joystick(i)
+                    if not joy.get_init():
+                        joy.init()
+                    
+                    debug_info.append(f"ID {i}: {joy.get_name()}")
+                    
+                    # Axes
+                    axes_str = []
+                    for a in range(joy.get_numaxes()):
+                        val = joy.get_axis(a)
+                        if abs(val) > 0.01: 
+                            axes_str.append(f"A{a}: {val:.2f}")
+                    if axes_str:
+                        debug_info.append("  Axes: " + ", ".join(axes_str))
+                    
+                    # Buttons
+                    btns_str = []
+                    for b in range(joy.get_numbuttons()):
+                        if joy.get_button(b):
+                            btns_str.append(f"B{b}")
+                    if btns_str:
+                        debug_info.append("  Btns: " + ", ".join(btns_str))
+                    
+                    # Hats
+                    hats_str = []
+                    for h in range(joy.get_numhats()):
+                        val = joy.get_hat(h)
+                        if val != (0,0):
+                            hats_str.append(f"H{h}: {val}")
+                    if hats_str:
+                        debug_info.append("  Hats: " + ", ".join(hats_str))
+                        
+                    debug_info.append("")
+                except Exception as e:
+                    debug_info.append(f"Err: {e}")
 
-        elif upgrade_type == "minigun":
-            cost = 50 + (persistent.stein_minigun_level * 15)
-            if persistent.tradu_coins >= cost:
-                persistent.tradu_coins -= cost
-                persistent.stein_minigun_level += 1
-                renpy.restart_interaction()
-            else:
-                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+        return Text("\n".join(debug_info), size=22, color="#00FF00", outlines=[(2, "#000000", 0, 0)], font="mod_assets/fonts/BebasNeue-Regular.ttf"), 0.05
 
-        elif upgrade_type == "unlock_minigun":
-            cost = 50000
-            if persistent.tradu_coins >= cost:
-                persistent.tradu_coins -= cost
-                persistent.stein_minigun_unlocked = True
-                renpy.restart_interaction()
-            else:
-                renpy.show_screen("stein_locked_message", msg=__("Not enough Tradu-Coins!"))
+    def buy_stein_upgrade(upgrade_type):
+        pass
+
 
 screen sayoristein_upgrades():
     tag menu
@@ -456,9 +482,7 @@ screen sayoristein_upgrades():
                 xalign 0.5
                 xsize 365
                 
-                add "pics/items/bullet.png":
-                    xalign 0.5
-                    zoom 2.0
+                
                 
                 text _("Pistol") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
                 
@@ -474,9 +498,7 @@ screen sayoristein_upgrades():
                 xalign 0.5
                 xsize 365
                 
-                add "pics/items/bullet.png":
-                    xalign 0.5
-                    zoom 2.0
+                
                 
                 text _("Shotgun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
                 
@@ -496,9 +518,7 @@ screen sayoristein_upgrades():
                 xalign 0.5
                 xsize 365
                 
-                add "pics/items/bullet.png":
-                    xalign 0.5
-                    zoom 2.0
+                
                 
                 text _("Minigun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
                 
