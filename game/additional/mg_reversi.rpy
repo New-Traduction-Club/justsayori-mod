@@ -429,6 +429,7 @@ screen mg_reversi_scr():
 
 label mg_reversi(mg_obj=None):
     # $justIsSitting = False
+    $ js_update_rpc(state="Playing Reversi")
     show sayori abhfaaa at t11
     call screen mg_reversi_scr() nopredict
     return
@@ -505,6 +506,7 @@ label mg_reversi_ai_turn:
     return
     
 label mg_reversi_quit:
+    $ js_update_rpc(state="In the spaceroom")
     hide screen mg_reversi_scr
     
     with dissolve
