@@ -265,7 +265,7 @@ init 10 python:
 
     
     def reversi_best_move(party, depth = None, alpha = -64, beta = 64):
-        moves = filter(lambda x: x is not None, reversi.selectable)
+        moves = list(filter(lambda x: x is not None, reversi.selectable))
         if len(moves) == 0 or depth == 0 or sum(reversi.occupied_cells) >= 64:
             alpha = reversi.occupied_cells[party] - reversi.occupied_cells[0 if party else 1]
             return alpha, ()
@@ -308,6 +308,15 @@ init 10 python:
         scheme = renpy.invoke_in_new_context(renpy.input, _("Input the scheme ID"), allow = "0123456789-")
         scheme = int(scheme)
         reversi(True, scheme = scheme)
+
+init 11 python:
+    class ReversiWrapper(object):
+        def __call__(self, restart=False, *args, **kwargs):
+            reversi_prep(self, restart, *args, **kwargs)
+
+    if "reversi" not in globals() or not isinstance(reversi, ReversiWrapper):
+        reversi = ReversiWrapper()
+        reversi()
 
     
     
@@ -408,17 +417,17 @@ screen mg_reversi_scr():
         
         textbutton _("Restart (R)") xpadding 0 xsize 200 keysym 'r' action [SetField(reversi, 'state', -2), Function(renpy.call, "mg_reversi_s_comment", -2)]
         textbutton _("Quit (Q)") xpadding 0 xsize 200 keysym 'q' action Jump("mg_reversi_quit")
-        if config.developer:
-            textbutton _("Restart without AI (Shift+R)") xpadding 0 xsize 200 keysym 'shift_R' action Function(reversi, True, ai = False)
-            textbutton _("Restart with a debug scheme (Alt+R)") xpadding 0 xsize 200 keysym 'alt_R' action Function(reversi_debug_restartScheme)
-            textbutton _("Set state") xpadding 0 xsize 200 action Function(reversi_debug_setState)
-            if reversi.last_move:
-                if reversi.last_move.undone:
-                    textbutton _("Redo (Z)") xpadding 0 xsize 200 keysym 'z' action Function(reversi.last_move.perform)
-                else:
-                    textbutton _("Undo (Z)") xpadding 0 xsize 200 keysym 'z' action Function(reversi.last_move.undo)
+        # if config.developer:
+        #     textbutton _("Restart without AI (Shift+R)") xpadding 0 xsize 200 keysym 'shift_R' action Function(reversi, True, ai = False)
+        #     textbutton _("Restart with a debug scheme (Alt+R)") xpadding 0 xsize 200 keysym 'alt_R' action Function(reversi_debug_restartScheme)
+        #     textbutton _("Set state") xpadding 0 xsize 200 action Function(reversi_debug_setState)
+        #     if reversi.last_move:
+        #         if reversi.last_move.undone:
+        #             textbutton _("Redo (Z)") xpadding 0 xsize 200 keysym 'z' action Function(reversi.last_move.perform)
+        #         else:
+        #             textbutton _("Undo (Z)") xpadding 0 xsize 200 keysym 'z' action Function(reversi.last_move.undo)
 
-label mg_reversi:
+label mg_reversi(mg_obj=None):
     # $justIsSitting = False
     show sayori abhfaaa at t11
     call screen mg_reversi_scr() nopredict

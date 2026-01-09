@@ -103,7 +103,10 @@ init -2 python:
 # styles
 
 style mg_hub_frame is music_player_frame
-style mg_cards_viewport is music_list_viewport
+style mg_cards_viewport:
+    xsize 680
+    ysize 550
+
 style mg_cards_grid:
     spacing 18
 
@@ -255,11 +258,20 @@ init 10 python:
             prep=bnc_prep,
             description=_("Guess the secret number!")
         )
+
+    if not any(g.label == "mg_reversi" for g in _MG_OBJECTS):
+        register_minigame(
+            label="mg_reversi",
+            name=_("Reversi"),
+            image="mod_assets/images/minigames/covers/reversi_cover.png",
+            unlocked=lambda: getattr(persistent, 'fae_reversi_unlocked_redux', False),
+        )
     
     if not any(g.label == "sayoristein_main_menu" for g in _MG_OBJECTS):
         register_minigame(
             label="sayoristein_main_menu",
             name=_("Sayoristein 3D"),
             image="mod_assets/images/minigames/covers/sayoristein.png",
-            unlocked=True
+            unlocked=True,
+            description=_("Now in 3D!")
         )

@@ -2452,8 +2452,6 @@ label s_topic_reversi_redux:
     s abhhdaa "And [player], I’ve been practicing~"
     s abfccea "You can start a round in the {i}Play{/i} menu, good luck [player]!"
 
-    # TODO: Fix reversi minigame and add it to the mg_hub with conditionals
-
     $ persistent.fae_reversi_unlocked_redux = True
 
     # $ reversi = minigame(__("Reversi"), 'mg_reversi', reversi_prep)
