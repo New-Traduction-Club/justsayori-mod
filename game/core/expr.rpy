@@ -241,9 +241,14 @@ init -50 python in fae_sprites:
                 (0, 0), "mod_assets/images/acs/chibi.png"
             ])
         
-        return renpy.display.layout.LiveComposite(
+        disp = renpy.display.layout.LiveComposite(
             *ad_hoc
             )
+
+        return store.ConditionSwitch(
+            "getattr(store, 'main_background', None) and not store.main_background.is_daytime()", store.Transform(disp, matrixcolor=store.TintMatrix("#bdbdbd")),
+            "True", disp
+        )
 
 
 
