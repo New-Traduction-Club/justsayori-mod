@@ -272,6 +272,6 @@ init 10 python:
             label="sayoristein_main_menu",
             name=_("Sayoristein 3D"),
             image="mod_assets/images/minigames/covers/sayoristein.png",
-            unlocked=True,
+            unlocked=lambda: getattr(store, "stein_native_available", False),
             description=_("Now in 3D!")
         )

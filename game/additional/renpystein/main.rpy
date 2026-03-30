@@ -49,6 +49,12 @@ init python:
     if 'alt_s' in config.keymap['screenshot']:
         config.keymap['screenshot'].remove('alt_s')
 
+    def stein_require_native():
+        if getattr(store, "stein_native_available", False):
+            return True
+        renpy.notify(_("Sayoristein 3D is unavailable in this build."))
+        return False
+
     stein_lighting_presets = {
         "night": {
             'ambient_base': (0.02, 0.02, 0.05),
@@ -498,6 +504,9 @@ screen stein:
     )
 
 label renpystein_game:
+    if not stein_require_native():
+        return
+
     hide black
     show screen stein_controls_overlay
     call screen stein
@@ -530,36 +539,50 @@ label renpystein_game:
     return
 
 label start_level_1:
+    if not stein_require_native():
+        return
     $ js_stein_audio.play("level_1")
     $ reset_stein_state(level=1)
     jump renpystein_game
 
 label start_level_2:
+    if not stein_require_native():
+        return
     $ js_stein_audio.play("level_2")
     $ reset_stein_state(level=2)
     jump renpystein_game
 
 label start_level_3:
+    if not stein_require_native():
+        return
     $ js_stein_audio.play("level_3")
     $ reset_stein_state(level=3)
     jump renpystein_game
 
 label start_level_4_arena:
+    if not stein_require_native():
+        return
     call screen shader_warmup
     $ js_stein_audio.play("arena")
     $ reset_stein_state(level=4, arena=True)
     jump renpystein_game
 
 label start_level_5:
+    if not stein_require_native():
+        return
     call screen shader_warmup
     $ reset_stein_state(level=5)
     jump renpystein_game
 
 # This is for backwards compatibility / direct calls
 label renpystein_demo:
+    if not stein_require_native():
+        return
     jump start_level_1
 
 label sayoristein_main_menu(mg_obj=None):
+    if not stein_require_native():
+        return
     $ preferences.gl_powersave = False
     $ preferences.gl_framerate = 120
     $ js_stein_audio.enter_minigame()
@@ -580,6 +603,8 @@ label sayoristein_main_menu(mg_obj=None):
     return
 
 label test_gpu:
+    if not stein_require_native():
+        return
     $ reset_stein_state(level=1)
     call screen gpu_stein_test
     return

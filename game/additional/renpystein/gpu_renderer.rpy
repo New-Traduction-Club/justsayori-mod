@@ -156,6 +156,8 @@ init -50 python:
     stein_lib = None
     library_path = None
     USING_CYTHON = False
+    STEIN_NATIVE_AVAILABLE = False
+    STEIN_NATIVE_ERROR = None
 
     try:
         if renpy.android:
@@ -265,9 +267,14 @@ init -50 python:
             sys.modules["stein_core"] = SteinWrapper
             print(f"Sayoristein: Native motor loaded in {library_path}")
             USING_CYTHON = True
+            STEIN_NATIVE_AVAILABLE = True
 
     except Exception as e:
+        STEIN_NATIVE_ERROR = str(e)
         print(f"Sayoristein Error Loading Library: {e}")
+
+    stein_native_available = STEIN_NATIVE_AVAILABLE
+    stein_native_error = STEIN_NATIVE_ERROR
 
 init -10 python:
     import sys
@@ -281,9 +288,14 @@ init -10 python:
 
     try:
         import stein_core
-    except ImportError:
-        if not USING_CYTHON:
-            raise ImportError("ERROR: stein_core lib is not loaded.")
+        stein_native_available = True
+        stein_native_error = None
+    except ImportError as e:
+        stein_core = None
+        stein_native_available = False
+        if not stein_native_error:
+            stein_native_error = str(e)
+        print("Sayoristein disabled: native stein_core library is not available.")
 
 
     def flatten_world_map(world_map, width, height, min_layer, max_layer):

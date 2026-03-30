@@ -93,6 +93,10 @@ init -2 python:
         renpy.hide_screen('hidden1')
         renpy.jump('talk_menu_wip')
 
+    def mg():
+        renpy.hide_screen('hidden1')
+        renpy.jump('mg_hub')
+
     def music_init():
         renpy.hide_screen('hidden1')
         renpy.jump('music_menu')
