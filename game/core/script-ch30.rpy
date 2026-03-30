@@ -187,7 +187,7 @@ label ch30_setup:
     show black zorder 99
     show chibi_dvd zorder 100 at t_chibi_dvd
     with dissolve
-    pause 5.0
+    $ renpy.pause(5.0, hard=True)
     hide chibi_dvd with dissolve
 
     python:
