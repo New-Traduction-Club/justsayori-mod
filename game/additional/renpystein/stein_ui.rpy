@@ -2,6 +2,7 @@
 
 # This screen displays on top of the main game screen (stein).
 screen stein_controls_overlay():
+    style_prefix "stein_controls_overlay"
     # zorder 100 ensures this UI is always drawn on top of the 3D game world.
     zorder 100
 
@@ -12,21 +13,543 @@ screen stein_controls_overlay():
         spacing 10   # Space between buttons
 
         # Button to switch to Keyboard mode.
-        textbutton "Keyboard" action SetVariable("simulate_touch", False)
+        if not renpy.android:
+            text _("Keyboard & Gamepad")
         
         # Button to switch to Touch/Mouse mode.
-        textbutton "Touch" action SetVariable("simulate_touch", True)
-        
-        # This button toggles the performance mode and updates its own text.
-        if persistent.performance_mode:
-            # If in low quality mode, show a button to switch to High.
-            textbutton "Quality: Low" action SetVariable("persistent.performance_mode", False)
-        else:
-            # If in high quality mode, show a button to switch to Low.
-            textbutton "Quality: High" action SetVariable("persistent.performance_mode", True)
+        if renpy.android:
+            text _("Touch & Gamepad")
+
+    if persistent.stein_show_fps:
+        add DynamicDisplayable(stein_fps_displayable):
+            xalign 0.98
+            yalign 0.02
+
+    # Temporary Debug Display
+    # add DynamicDisplayable(gamepad_debug_displayable):
+    #     xalign 0.99
+    #     yalign 0.5
 
 # Style for the text inside the buttons on this screen.
 style stein_controls_overlay_textbutton_text:
     size 20
     idle_color "#ffffff"  # White text
     hover_color "#00ff00" # Green text on hover
+
+style sayoristein_menu_button_text is button_text:
+    xalign 0.5
+    yalign 0.5
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
+
+style sayoristein_menu_button is default:
+    background Frame("pics/gui/button_bg.png")
+    xalign 0.5
+    yalign 0.5
+    xsize 250
+    ysize 75
+
+style stein_settings_header:
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
+    size 32
+    color "#AAAAAA"
+    xalign 0.5
+    text_align 0.5
+
+style stein_settings_label:
+    font "mod_assets/fonts/BebasNeue-Regular.ttf"
+    size 26
+    color "#FFFFFF"
+    xalign 0.5
+    text_align 0.5
+
+style stein_tab_button is sayoristein_menu_button:
+    xsize 200
+    ysize 60
+
+screen sayoristein_menu():
+    tag menu
+
+    add "pics/gui/main_menu.png"
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 15
+
+        textbutton _("Play") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Settings") action ShowMenu("sayoristein_settings_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Exit") action Return() style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+screen sayoristein_settings_menu():
+    tag menu
+    modal True
+    
+    default current_tab = "graphics"
+
+    add "pics/gui/main_menu_bg.png"
+
+    text "SETTINGS":
+        font "mod_assets/fonts/BebasNeue-Regular.ttf"
+        size 70
+        color "#ffffff"
+        xalign 0.5
+        yalign 0.03
+        outlines [(4, "#000", 0, 0)]
+
+    hbox:
+        xalign 0.5
+        yalign 0.14 
+        spacing 15
+        
+        textbutton _("Graphics"):
+            action SetScreenVariable("current_tab", "graphics")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "graphics" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
+
+        textbutton _("Controls"):
+            action SetScreenVariable("current_tab", "controls")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "controls" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
+
+        textbutton _("Gameplay"):
+            action SetScreenVariable("current_tab", "gameplay")
+            style "stein_tab_button"
+            text_color ("#00FF00" if current_tab == "gameplay" else "#FFFFFF")
+            text_style "sayoristein_menu_button_text"
+
+    frame:
+        background None
+        xalign 0.5
+        yalign 0.8
+        xsize 1100
+        ysize 500
+        
+        viewport id "settings_vp":
+            scrollbars "vertical"
+            mousewheel True
+            draggable True
+            pagekeys True
+            yinitial 0.0
+            
+            vbox:
+                xalign 0.5
+                spacing 25
+                xsize 1080
+
+                if current_tab == "graphics":
+                    vbox:
+                        spacing 10
+                        xalign 0.5
+                        text _("Resolution") style "stein_settings_header"
+                        
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("High") action SetVariable("persistent.stein_quality_mode", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Low") action SetVariable("persistent.stein_quality_mode", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Ultra Low") action SetVariable("persistent.stein_quality_mode", 2) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("MS Paint is Better") action SetVariable("persistent.stein_quality_mode", 3) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+                            textbutton _("Bro, can you see?") action SetVariable("persistent.stein_quality_mode", 4) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_size 22
+
+                    null height 10
+                    
+                    vbox:
+                        spacing 10
+                        xalign 0.5
+                        text _("Lighting") style "stein_settings_header"
+                        
+                        hbox:
+                            spacing 15
+                            xalign 0.5
+                            textbutton _("High") action SetVariable("persistent.stein_lighting_quality", 0) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_color ("#00FF00" if persistent.stein_lighting_quality == 0 else "#FFFFFF")
+                            textbutton _("Low") action SetVariable("persistent.stein_lighting_quality", 1) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text" text_color ("#00FF00" if persistent.stein_lighting_quality == 1 else "#FFFFFF")
+
+                    null height 10
+
+                    vbox:
+                        spacing 10
+                        xalign 0.5
+                        text _("Post-Processing") style "stein_settings_header"
+                        
+                        textbutton ("Bloom Effect: " + ("ON" if persistent.stein_enable_bloom else "OFF")):
+                            action ToggleVariable("persistent.stein_enable_bloom")
+                            style "sayoristein_menu_button"
+                            text_style "sayoristein_menu_button_text"
+
+                        textbutton ("Volumetric Clouds: " + ("ON" if persistent.stein_volumetric_clouds else "OFF")):
+                            action ToggleVariable("persistent.stein_volumetric_clouds")
+                            style "sayoristein_menu_button"
+                            text_style "sayoristein_menu_button_text"
+
+                        if persistent.stein_volumetric_clouds:
+                            textbutton ("Weather Effects: " + ("ON" if persistent.stein_enable_weather else "OFF")):
+                                action ToggleVariable("persistent.stein_enable_weather")
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                        else:
+                            textbutton _("Weather Effects: LOCKED"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
+
+                        if persistent.stein_lighting_quality == 0:
+                            textbutton ("Shadows: " + ("ON" if persistent.stein_enable_shadows else "OFF")):
+                                action [ToggleVariable("persistent.stein_enable_shadows"), Function(lambda: setattr(persistent, "stein_soft_shadows", False) if not persistent.stein_enable_shadows else None)]
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+
+                            if persistent.stein_enable_shadows:
+                                textbutton ("Soft Shadows: " + ("ON" if persistent.stein_soft_shadows else "OFF")):
+                                    action ToggleVariable("persistent.stein_soft_shadows")
+                                    style "sayoristein_menu_button"
+                                    text_style "sayoristein_menu_button_text"
+                            else:
+                                textbutton _("Soft Shadows: LOCKED"):
+                                    action None
+                                    style "sayoristein_menu_button"
+                                    text_style "sayoristein_menu_button_text"
+                                    text_color "#888888"
+                        else:
+                            textbutton _("Shadows: DISABLED (Low)"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
+                            
+                            textbutton _("Soft Shadows: DISABLED"):
+                                action None
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                text_color "#888888"
+
+                        # textbutton ("Heat Distortion: " + ("ON" if persistent.stein_heat_distortion else "OFF")):
+                        #     action ToggleVariable("persistent.stein_heat_distortion")
+                        #     style "sayoristein_menu_button"
+                        #     text_style "sayoristein_menu_button_text"
+
+                    null height 10
+
+                    vbox:
+                        spacing 5
+                        xalign 0.5
+                        text _("Motion Blur Strength: [int(persistent.stein_motion_blur_strength * 100)]%") style "stein_settings_label"
+                        bar value FieldValue(persistent, "stein_motion_blur_strength", range=1.0, step=0.05):
+                            xalign 0.5
+                            xsize 600
+                            ysize 45
+                            left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                            thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+                    
+                    null height 50
+
+                elif current_tab == "controls":
+                    hbox:
+                        spacing 80
+                        xalign 0.5
+                        vbox:
+                            spacing 15
+                            xsize 400
+                            text _("Mouse & Keyboard") style "stein_settings_header"
+                            text _("Sensitivity: [persistent.stein_mouse_sens:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_mouse_sens", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                        vbox:
+                            spacing 15
+                            xsize 400
+                            text _("Gamepad (Controller)") style "stein_settings_header"
+                            text _("Horiz. Sensitivity: [persistent.stein_gamepad_sens_x:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_gamepad_sens_x", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                            text _("Vert. Sensitivity: [persistent.stein_gamepad_sens_y:.2f]") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_gamepad_sens_y", range=3.0, step=0.1):
+                                xalign 0.5
+                                xsize 350
+                                ysize 35
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                    null height 50
+
+                elif current_tab == "gameplay":
+                    vbox:
+                        xalign 0.5
+                        spacing 30
+                        
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            text _("Music Volume: [int(persistent.stein_music_volume * 100)]%") style "stein_settings_label"
+                            bar value FieldValue(persistent, "stein_music_volume", range=1.0, step=0.05, action=Function(js_stein_audio.update_volume)):
+                                xalign 0.5
+                                xsize 600
+                                ysize 45
+                                left_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                right_bar Frame("pics/gui/button_bg.png", 10, 10)
+                                thumb Frame("pics/gui/bar_thumb.png", 10, 10)
+
+                        vbox:
+                            spacing 5
+                            xalign 0.5
+                            textbutton ("Show FPS Counter: [persistent.stein_show_fps]"):
+                                action ToggleVariable("persistent.stein_show_fps")
+                                style "sayoristein_menu_button"
+                                text_style "sayoristein_menu_button_text"
+                                xalign 0.5
+                            
+                            text _("Shows frames per second in top-right corner") font "mod_assets/fonts/BebasNeue-Regular.ttf" size 18 color "#888" xalign 0.5
+                    
+                    null height 50
+
+    textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
+        xalign 0.5
+        yalign 0.96
+
+
+screen sayoristein_level_select():
+    tag menu
+
+    add "pics/gui/main_menu_bg.png"
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 15
+
+        textbutton _("Level 1") action Jump("start_level_1") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level1_cleared:
+            textbutton _("Level 2") action Jump("start_level_2") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Level 2 (Locked)") action Show("stein_locked_message", msg=__("Complete Level 1 first!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level2_cleared:
+            textbutton _("Level 3") action Jump("start_level_3") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Level 3 (Locked)") action Show("stein_locked_message", msg=__("Complete Level 2 first!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        
+        if persistent.stein_level3_cleared:
+            textbutton _("Arena Mode") action ShowMenu("sayoristein_arena_hub") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        else:
+            textbutton _("Arena Mode (Locked)") action Show("stein_locked_message", msg=__("Complete Level 3 to unlock Arena!")) style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+        textbutton _("Back") action ShowMenu("sayoristein_menu") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+screen sayoristein_arena_hub():
+    tag menu
+    add "pics/gui/main_menu_bg.png"
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 15
+
+        label _("ARENA MODE") style "sayoristein_menu_button_text" text_style "sayoristein_menu_button_text":
+            xalign 0.5
+
+        textbutton _("Start Arena") action Jump("start_level_4_arena") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        # textbutton _("Upgrades") action ShowMenu("sayoristein_upgrades") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+        textbutton _("Back") action ShowMenu("sayoristein_level_select") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+init python:
+    if getattr(persistent, "stein_lighting_quality", None) is None:
+        persistent.stein_lighting_quality = 0 # 0=High, 1=Low
+
+    if getattr(persistent, "stein_volumetric_clouds", None) is None:
+        persistent.stein_volumetric_clouds = False
+
+    if getattr(persistent, "stein_enable_weather", None) is None:
+        persistent.stein_enable_weather = True
+
+    if getattr(persistent, "stein_motion_blur_strength", None) is None:
+        persistent.stein_motion_blur_strength = 0.3
+    
+    if getattr(persistent, "stein_soft_shadows", None) is None:
+        persistent.stein_soft_shadows = False
+
+    if getattr(persistent, "stein_enable_shadows", None) is None:
+        persistent.stein_enable_shadows = False
+
+    if getattr(persistent, "stein_flashlight_shadows", None) is None:
+        persistent.stein_flashlight_shadows = False
+
+    if getattr(persistent, "stein_heat_distortion", None) is None:
+        persistent.stein_heat_distortion = False
+
+    def stein_fps_displayable(st, at):
+        fps = getattr(renpy.store, 'stein_current_fps', 0)
+        return Text(f"FPS: {fps}", size=30, color="#607567", outlines=[(2, "#000000", 0, 0)], font="mod_assets/fonts/BebasNeue-Regular.ttf"), 0.01
+
+    def gamepad_debug_displayable(st, at):
+        import pygame
+        debug_info = ["--- GAMEPAD DEBUG ---"]
+        
+        count = pygame.joystick.get_count()
+        if count == 0:
+            debug_info.append("No Gamepads Detected")
+        else:
+            for i in range(count):
+                try:
+                    joy = pygame.joystick.Joystick(i)
+                    if not joy.get_init():
+                        joy.init()
+                    
+                    debug_info.append(f"ID {i}: {joy.get_name()}")
+                    
+                    # Axes
+                    axes_str = []
+                    for a in range(joy.get_numaxes()):
+                        val = joy.get_axis(a)
+                        if abs(val) > 0.01: 
+                            axes_str.append(f"A{a}: {val:.2f}")
+                    if axes_str:
+                        debug_info.append("  Axes: " + ", ".join(axes_str))
+                    
+                    # Buttons
+                    btns_str = []
+                    for b in range(joy.get_numbuttons()):
+                        if joy.get_button(b):
+                            btns_str.append(f"B{b}")
+                    if btns_str:
+                        debug_info.append("  Btns: " + ", ".join(btns_str))
+                    
+                    # Hats
+                    hats_str = []
+                    for h in range(joy.get_numhats()):
+                        val = joy.get_hat(h)
+                        if val != (0,0):
+                            hats_str.append(f"H{h}: {val}")
+                    if hats_str:
+                        debug_info.append("  Hats: " + ", ".join(hats_str))
+                        
+                    debug_info.append("")
+                except Exception as e:
+                    debug_info.append(f"Err: {e}")
+
+        return Text("\n".join(debug_info), size=22, color="#00FF00", outlines=[(2, "#000000", 0, 0)], font="mod_assets/fonts/BebasNeue-Regular.ttf"), 0.05
+
+    def buy_stein_upgrade(upgrade_type):
+        pass
+
+
+screen sayoristein_upgrades():
+    tag menu
+    add "pics/gui/main_menu_bg.png"
+
+    # Header
+    hbox:
+        xalign 0.5
+        yalign 0.05
+        spacing 50
+        text _("Sayo-Forge") size 60 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+        text _("Coins: [persistent.tradu_coins]") size 40 color "#ffff00" font "mod_assets/fonts/BebasNeue-Regular.ttf" yalign 0.5
+
+    viewport id "stein_upgrades_vp":
+        xalign 0.5
+        yalign 0.5
+        xsize 1200
+        ysize 500
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+        pagekeys True
+
+        hbox:
+            xalign 0.5
+            spacing 50
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 365
+                
+                
+                
+                text _("Pistol") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ p_dmg_bonus = persistent.stein_pistol_level * 1
+                text _("Level: [persistent.stein_pistol_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[p_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ p_cost = 1000 + (persistent.stein_pistol_level * 100)
+                textbutton _("Upgrade ([p_cost])") action Function(buy_stein_upgrade, "pistol") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 365
+                
+                
+                
+                text _("Shotgun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ s_dmg_bonus = persistent.stein_shotgun_level * 1
+                text _("Level: [persistent.stein_shotgun_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[s_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ s_cost = 1000 + (persistent.stein_shotgun_level * 100)
+                textbutton _("Upgrade ([s_cost])") action Function(buy_stein_upgrade, "shotgun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+                if not persistent.stein_shotgun_unlocked:
+                    text _("NOT OWNED") xalign 0.5 size 20 color "#ff0000" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                    textbutton _("Unlock (25000)") action Function(buy_stein_upgrade, "unlock_shotgun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+            vbox:
+                spacing 10
+                xalign 0.5
+                xsize 365
+                
+                
+                
+                text _("Minigun") xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ m_dmg_bonus = persistent.stein_minigun_level * 10
+                text _("Level: [persistent.stein_minigun_level]") xalign 0.5 size 24 color "#aaaaaa" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                text _("Bonus: +[m_dmg_bonus]% Dmg") xalign 0.5 size 24 color "#00ff00" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                
+                $ m_cost = 50 + (persistent.stein_minigun_level * 15)
+                textbutton _("Upgrade ([m_cost])") action Function(buy_stein_upgrade, "minigun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+                if not persistent.stein_minigun_unlocked:
+                    text _("NOT OWNED") xalign 0.5 size 20 color "#ff0000" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+                    textbutton _("Unlock (50000)") action Function(buy_stein_upgrade, "unlock_minigun") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"
+
+    textbutton _("Back") action ShowMenu("sayoristein_arena_hub") style "sayoristein_menu_button" text_style "sayoristein_menu_button_text":
+        xalign 0.5
+        yalign 0.95
+
+screen stein_locked_message(msg):
+    modal True
+    
+    frame:
+        xalign 0.5
+        yalign 0.5
+        padding (40, 40)
+        background Frame("pics/gui/button_bg.png")
+        
+        vbox:
+            spacing 20
+            xalign 0.5
+            
+            text "[msg]" xalign 0.5 size 30 color "#ffffff" font "mod_assets/fonts/BebasNeue-Regular.ttf"
+            
+            textbutton _("OK") action Hide("stein_locked_message") xalign 0.5 style "sayoristein_menu_button" text_style "sayoristein_menu_button_text"

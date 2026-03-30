@@ -127,7 +127,7 @@ screen input(prompt):
 screen choice(items):
     style_prefix "choice"
 
-    vbox:
+    vbox at fade_in:
 
         for i in items:
 
@@ -174,7 +174,7 @@ style talk_choice_button is choice_button
 screen talk_choice(items):
     style_prefix "talk_choice"
 
-    vbox:
+    vbox at fade_in:
         for i in items:
             textbutton i.caption action i.action
 
@@ -397,7 +397,8 @@ screen navigation():
 
         textbutton _("Submods") action [ShowMenu("submods"), SensitiveIf(renpy.get_screen("submods") == None)]
 
-        textbutton _("QABs") action [ShowMenu("qab"), SensitiveIf(renpy.get_screen("qab") == None)]
+        if not renpy.android:
+            textbutton _("QABs") action [ShowMenu("qab"), SensitiveIf(renpy.get_screen("qab") == None)]
 
 
 
@@ -864,10 +865,10 @@ screen preferences():
 
 
 
-                if not renpy.android:
-                    textbutton _("Import DDLC Save Data"):
-                        action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
-                        style "navigation_button"
+                # if not renpy.android:
+                #     textbutton _("Import DDLC Save Data"):
+                #         action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
+                #         style "navigation_button"
                 
                 textbutton _("Web functions"):
                     action Function(show_ps_overlay)
@@ -1080,7 +1081,7 @@ screen name_input(message, ok_action):
     add "gui/overlay/confirm.png"
     key "K_RETURN" action [Play("sound", gui.activate_sound), ok_action]
 
-    frame:
+    frame at fade_in:
         vbox:
             xalign .5
             yalign .3
@@ -1118,7 +1119,7 @@ screen dialog(message, ok_action):
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    frame at fade_in:
 
         has vbox
         xalign .5
@@ -1188,7 +1189,7 @@ screen confirm(message, yes_action, no_action):
 
     add "gui/overlay/confirm.png"
 
-    frame:
+    frame at fade_in:
 
         has vbox
         xalign .5

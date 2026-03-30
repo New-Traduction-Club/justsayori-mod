@@ -230,8 +230,9 @@ screen mg_ttt_scr():
         textbutton _("Quit (Q)") xpadding 0 xsize 200 keysym 'q' action Jump("mg_ttt_quit")
     
 
-label mg_ttt:
+label mg_ttt(mg_obj=None):
     #$justIsSitting = False
+    $ js_update_rpc(state="Playing Tic Tac Toe")
     if not hasattr(ttt, "field"):
         $ ttt()
     hide sayori
@@ -292,6 +293,7 @@ label mg_ttt_s_turn:
     return
     
 label mg_ttt_quit:
+    $ js_update_rpc(state="In the spaceroom")
     hide screen mg_ttt_scr
     hide sayori
     #$show_s_mood(ss1)

@@ -132,7 +132,7 @@ transform sky_scroll:
         repeat
 
 init python in fae_sky:
-    from Enum import Enum
+    from enum import Enum
     import os
     import random
     import store

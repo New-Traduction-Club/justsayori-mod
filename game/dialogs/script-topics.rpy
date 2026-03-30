@@ -2360,32 +2360,32 @@ label s_answer_lostFriends:
     return
 
 
-init python:
+# init python:
 
-    chatReg(
-        Chat(
-            persistent._chat_db,
-            label="s_event_music_intro_redux",
-            unlocked=True,
-            prompt=__("music"),
-            conditional="not persistent.fae_reversi_unlocked_redux and not persistent.fae_custom_music_unlocked",
-            random=True,
-            category=[__("Music")],
-            affection_range=(fae_affection.HAPPY, None)
-        ),
-        chat_group=CHAT_GROUP_NORMAL
-    )
+#     chatReg(
+#         Chat(
+#             persistent._chat_db,
+#             label="s_event_music_intro_redux",
+#             unlocked=True,
+#             prompt=__("music"),
+#             conditional="not persistent.fae_reversi_unlocked_redux and not persistent.fae_custom_music_unlocked",
+#             random=True,
+#             category=[__("Music")],
+#             affection_range=(fae_affection.HAPPY, None)
+#         ),
+#         chat_group=CHAT_GROUP_NORMAL
+#     )
 
-label s_event_music_intro_redux:
-    s abfcaoa "Hey [player]! Guess what!"
-    s abfccaa "I did some coding and I found a way to let you play your own music here!"
-    s abegabaj "It might be a little buggy, ehehehe~"
-    s abegmoaj "It was my first attempt after all..."
-    s abfccaa "But it seems to be working fine for me!"
-    s abagaoa "All you need to do is put a .mp3 file in the {i}music{/i} folder in the game directory, and click on the {i}Music{/i} tab in the bottom-left!"
-    s abagcka "I'm basically giving you the aux cord to the rest of my existence, so no pressure! Ehehehe~"
-    $ persistent.fae_custom_music_unlocked_redux = True
-    return
+# label s_event_music_intro_redux:
+#     s abfcaoa "Hey [player]! Guess what!"
+#     s abfccaa "I did some coding and I found a way to let you play your own music here!"
+#     s abegabaj "It might be a little buggy, ehehehe~"
+#     s abegmoaj "It was my first attempt after all..."
+#     s abfccaa "But it seems to be working fine for me!"
+#     s abagaoa "All you need to do is put a .mp3 file in the {i}music{/i} folder in the game directory, and click on the {i}Music{/i} tab in the bottom-left!"
+#     s abagcka "I'm basically giving you the aux cord to the rest of my existence, so no pressure! Ehehehe~"
+#     $ persistent.fae_custom_music_unlocked_redux = True
+#     return
 
 
 init python:
@@ -2396,7 +2396,7 @@ init python:
             label="s_stopic_bulls_and_cows_redux",
             unlocked=True,
             prompt=__("Bulls and Cows"),
-            conditional="persistent.fae_custom_music_unlocked and not persistent.fae_bnc_unlocked_redux",
+            conditional="not persistent.fae_bnc_unlocked_redux",
             random=True,
             category=[__("Games")],
             affection_range=(fae_affection.HAPPY, None)
@@ -2406,7 +2406,7 @@ init python:
 
 label s_stopic_bulls_and_cows_redux:
     s abfcaoa "Hey [player]! I have something to show you!"
-    s abagaaa "So, remember how I coded the music player a little while ago?"
+    # s abagaaa "So, remember how I coded the music player a little while ago?"
     s abfccaa "I tried to code something a little more complex this time, so I made a game!"
     s abagaaa "It’s called {i}Bows and Cows{/i}, my version of Bulls and Cows, ehehehe~"
     s abagaoa "Here I’ll explain the rules!"
@@ -2418,13 +2418,8 @@ label s_stopic_bulls_and_cows_redux:
     s abhhcaa "With a couple attempts and some clever thinking you should be able to figure out my number!"
     s abfccea "You can start a round in the {i}Play{/i} menu, good luck [player]!"
 
+    # Fixed...
     $ persistent.fae_bnc_unlocked_redux = True
-
-    $ bnc = minigame(__("Bows & Cows"), 'mg_bnc', bnc_prep)
-
-    $ persistent.games_reset_redo.append(bnc)
-
-    $ renpy.save_persistent()
 
     $ get_chat("s_stopic_bulls_and_cows_redux").lock()
 
@@ -2459,9 +2454,9 @@ label s_topic_reversi_redux:
 
     $ persistent.fae_reversi_unlocked_redux = True
 
-    $ reversi = minigame(__("Reversi"), 'mg_reversi', reversi_prep)
+    # $ reversi = minigame(__("Reversi"), 'mg_reversi', reversi_prep)
 
-    $ persistent.games_reset_redo.append(reversi)
+    # $ persistent.games_reset_redo.append(reversi)
 
     $ get_chat("s_topic_reversi_redux").lock()
     return
@@ -3303,36 +3298,19 @@ label s_topics_location:
 
     return
 
-init python:
+# init python:
 
-    chatReg(
-        Chat(
-            persistent._chat_db,
-            label="renpystein_demo",
-            unlocked=True,
-            prompt=__("Renpystein"),
-            random=False,
-            category=[__("Secret Games")]
-        ),
-        chat_group=CHAT_GROUP_NORMAL
-    )
-
-label renpystein_demo:
-    python:
-        reset_stein_state()
-    s "This is a secret..."
-    
-    # Show the UI overlay with controls.
-    show screen stein_controls_overlay
-    
-    # Call the game screen. This will display the game until it returns a value (e.g., from an exit).
-    call screen stein
-
-    "You found exit [_return]!"
-
-    hide screen stein_controls_overlay
-
-    return
+#     chatReg(
+#         Chat(
+#             persistent._chat_db,
+#             label="renpystein_demo",
+#             unlocked=True,
+#             prompt=__("Renpystein"),
+#             random=False,
+#             category=[__("Secret Games")]
+#         ),
+#         chat_group=CHAT_GROUP_NORMAL
+#     )
 
 label js_music_player_entry:
     if not persistent.js_music_player_tutorial_seen:
@@ -3342,9 +3320,9 @@ label js_music_player_entry:
         s ebfcao "Oh! And the best part is that you can add your very own music for us to listen to!"
         s ebbbas "It's really easy, I'll show you!"
         s ebbbao "First, you need to find the 'game' folder in the mod's files."
-        s ebgbao "Inside there, you'll see a folder called 'custom_music'."
+        s ebgbao "Inside there, you'll see a folder called 'custom_bgm'."
         s ebhhao "You can just put your songs right in there."
-        s ebhejd "Just make sure they are in the .ogg format, okay? "
+        s ebhejd "Just make sure they are in the .mp3 format, okay? "
         s ebhhao "That's the one the game likes to read."
         s ebgcao "I'm so excited to hear your favorite songs! It'll be like sharing a little piece of your world with me."
         s ebgbdia "Have fun!"
@@ -3436,13 +3414,13 @@ label s_answer_opinion_player:
         s abaaaoa "You're kind, and you're always here for me. It makes me feel really safe and happy."
         s abgccaa "I really cherish the time we spend together. It's always so much fun!"
     elif Affection.isHappy(higher=True):
-        s abhfaoa "I think you're a great friend, [player]!"
+        s abhfaoa "I think you're a great person, [player]!"
         s abaaaoa "You're really easy to talk to, and you always listen."
         s abgccaa "I'm really glad we get to spend so much time together. It makes me happy!"
     else:
         s abhaaca "You're a really nice person, [player]."
         s abaaaoa "It's been nice having you around. It's... less lonely."
-        s abhfcaa "I hope we can keep being friends."
+        s abhfcaa "I hope we can keep it."
     return
 
 init python:

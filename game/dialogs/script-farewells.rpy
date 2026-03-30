@@ -6,7 +6,7 @@ default -5 persistent.fae_player_force_quit_state = 1
 
 
 init -6 python in fae_farewells:
-    from Enum import Enum
+    from enum import Enum
     import random
     import store
     import store.fae_affection as fae_affection
@@ -74,7 +74,7 @@ label farewell_init:
 
 label farewell_force_quit:
 
-    s "You can't just leave!"
+    s ebgchga "YOU CAN'T LEAVE LIKE THAT!"
 
     $ persistent.fae_player_force_quit_state = int(fae_farewells.FAEForceQuitStates.first_force_quit)
     if not persistent.fae_first_leave_response:

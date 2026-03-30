@@ -4,13 +4,13 @@
 translate spanish compliment_best_girl_51fa6b97:
 
     # s abagcea "I'm the best girl? Aww, you're so sweet, [player]!"
-    s abagcea "¿Soy la mejor chica? ¡Ayyy, eres tan dulce, [player]!"
+    s abagcea "¿Que soy la mejor? ¡Ayyy! ¡Qué mono eres, [player]!"
 
 # game/dialogs/script-compliments.rpy:63
 translate spanish compliment_best_girl_f4535cc3:
 
     # s abagdka "I'm really happy you think so! It means a lot to me, ehehehe~"
-    s abagdka "¡Estoy muy feliz de que pienses eso! Significa mucho para mí, je, je, je."
+    s abagdka "¡Estoy muy feliz de que pienses eso! Significa mucho para mí. Je, je, je..."
 
 # game/dialogs/script-compliments.rpy:64
 translate spanish compliment_best_girl_2934d886:

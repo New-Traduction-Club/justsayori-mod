@@ -98,7 +98,7 @@ define dim_change_transition = Dissolve(0.25)
 
 init python in fae_atmosphere:
 
-    from Enum import Enum
+    from enum import Enum
     import os
     import random
     import store

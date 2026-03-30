@@ -34,7 +34,7 @@ translate spanish mg_bnc_s_comment_a40713db:
 translate spanish mg_bnc_s_comment_b962237c:
 
     # s "You were close to the right answer."
-    s "Estuviste cerca de la respuesta correcta."
+    s "Casi aciertas la respuesta correcta."
 
 # game/additional/mg_bnc.rpy:150
 translate spanish mg_bnc_s_comment_1f187c67:
@@ -70,7 +70,7 @@ translate spanish mg_bnc_s_comment_4f687ab2:
 translate spanish mg_bnc_s_comment_05bb0885:
 
     # s gbaaipa "OK, you win, {i}meanie{/i}!"
-    s gbaaipa "¡Vale, tú ganas, 'desagradable'!"
+    s gbaaipa "¡Vale, tú ganas! ¡Eres muy malo conmigo!"
 
 # game/additional/mg_bnc.rpy:160
 translate spanish mg_bnc_s_comment_20dca1e6:
@@ -118,7 +118,7 @@ translate spanish strings:
 
     # game/additional/mg_bnc.rpy:64
     old "Quit (Q)"
-    new "Salir (Q)"
+    new "Cerrar (Q)"
 
     # game/additional/mg_bnc.rpy:89
     old "Guess the number:"
@@ -130,15 +130,15 @@ translate spanish strings:
 
     # game/additional/mg_bnc.rpy:102
     old "It stops being funny, [player]."
-    new "Deja de tener gracia, [player]."
+    new "Ya no tiene gracia, [player]."
 
     # game/additional/mg_bnc.rpy:104
     old "Come on, give a valid answer already!"
-    new "¡Venga, da una respuesta válida ya!"
+    new "¡Venga, responde bien ya!"
 
     # game/additional/mg_bnc.rpy:108
     old "Just type as more numbers as you can. This field has the needed max length anyway."
-    new "Simplemente escribe tantos números como puedas. De todas formas, este campo tiene la longitud máxima necesaria."
+    new "Solo tienes que escribir tantos números como puedas. De todas formas, este campo tiene la longitud máxima necesaria."
 
     # game/additional/mg_bnc.rpy:112
     old "I'm getting annoyed, [player]."
@@ -146,7 +146,7 @@ translate spanish strings:
 
     # game/additional/mg_bnc.rpy:114
     old "Further error will cost you a try."
-    new "Un error más te costará un intento."
+    new "Errar te costará un intento."
 
     # game/additional/mg_bnc.rpy:117
     old "I warned you."
@@ -154,11 +154,11 @@ translate spanish strings:
 
     # game/additional/mg_bnc.rpy:120
     old "mr."
-    new "sr."
+    new "Sr."
 
     # game/additional/mg_bnc.rpy:122
     old "mrs."
-    new "sra."
+    new "Sra."
 
     # game/additional/mg_bnc.rpy:123
     old "Last chance, [mr] I Can't Count Up To [bnc.guessed_len]."

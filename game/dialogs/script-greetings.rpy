@@ -66,6 +66,11 @@ label greeting_first_force_quit:
         "Turn on the lights.":
             hide screen fae_jump_timer
             $ Affection.calculatedAffectionGain(1)
+
+            python:
+                main_background.form()
+                fae_atmosphere.showSky(fae_atmosphere.WEATHER_SUNNY, with_transition=False)
+
             hide black
             show sayori bbaaafag zorder fae_sprites.FAE_SAYORI_ZORDER at t11
             pause 2.0
@@ -85,6 +90,11 @@ label first_force_quit_2:
 
     s "Never mind..."
     s "I found the switch."
+
+    python:
+        main_background.form()
+        fae_atmosphere.showSky(fae_atmosphere.WEATHER_SUNNY, with_transition=False)
+
     hide black with dissolve
     show sayori bbaaafag zorder fae_sprites.FAE_SAYORI_ZORDER at t11
     pause 2.0
@@ -291,6 +301,7 @@ init python:
 label s_return_long_absence:
 
     $ persistent._fae_long_absence = False
+    hide sayori
     scene black
 
     show desknote

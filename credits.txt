@@ -1,0 +1,51 @@
+Credits of Forever and Ever:
+
+    Awesome people of Forever and Ever:
+        - Orcaramelo: Project Lead, Lead Artist, Writer
+        - Nathan: Lead Developer, Writer
+        - Emilia/Monika (EYLO): Writer
+
+    Previous contributors:
+        - Otter: Writer
+        - Nemu-sus: Artist
+        - NekoLaiS: Programmer
+        - Sobbcat: Writer
+        - SlightlyAmiss: Musician
+        - AlexanDDOS: Project Lead, Lead Developer, Writer, Tester
+        - ElReyZero: Programmer
+        - Venus: Writer
+        - tberriman: Proofreader
+        - vermicellibug: Proofreader
+        - Atlas: Proofreader
+        - Lucian Pavel: Artist
+        - Vova Petelin: Translator (Russian)
+        - ElReyZero: Translator (Spanish)
+        - littlebin: Translator (Chinese), Tester
+        - Leon9023: Tester
+        - Evgeny Zotov: Tester
+        - MarioXenobladefan614: Tester
+
+    Special thanks:
+        - DJMayDay: Black hoodie outfit, commisioned by Z
+        - Monika After Story Team:
+            - Adapted source code and systems used with permission
+            - Weather assets used with permission
+            - Ongoing support
+        - Just Natsuki Team:
+            - Adapted source code and systems used with permission
+            - Weather assets used with permission
+            - Ongoing support
+        - multimokia: Night theme (_Slepyori_)
+        - /r/DDLCMods
+        - Pipe98x: SFX (drawing cross)
+        - sirrealist2: SFX (drawing circle/line)
+        - Fj0rd_: Prerelease Sayori spritework
+
+(Reboot) Credits of Just Sayori:
+
+    Current contributors:
+        - Just: Project Lead, Developer, Spanish Translator
+        - Fran: Writer, Spanish Translator
+        - Bach !: Protuguese Translator
+
+    Sayori's night bedroom: Kuudere Ghost

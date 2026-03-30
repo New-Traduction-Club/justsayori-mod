@@ -964,3 +964,14 @@ game/cache/screens.rpyb
 *.rpyc
 *.bak
 *.rpyc
+faerun
+**.keystore
+android.json
+build/
+**.c
+**_core.pyd
+**_core.h
+stein_core.dll
+stein_core.exp
+stein_core.lib
+stein_core.obj

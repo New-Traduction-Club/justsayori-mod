@@ -59,7 +59,7 @@ init -1 python:
             :param delete_after: (bool) If True, the gift file will be deleted after being received
             :param unlock_var: (str, optional) A persistent variable to be set to True after receiving the gift
             """
-            if not isinstance(filename, basestring) or not isinstance(reaction_label, basestring):
+            if not isinstance(filename, str) or not isinstance(reaction_label, str):
                 fae_utilities.log("Gift filename and reaction_label must be strings.", fae_utilities.SEVERITY_ERR)
                 return
 

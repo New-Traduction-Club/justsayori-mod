@@ -3,12 +3,12 @@
 default persistent.use_alt_font = False
 
 
-define -2 gui.default_font = "mod_assets/fonts/NotoSerifCJK.ttc"
-define -2 gui.name_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.default_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.name_font = "mod_assets/fonts/NotoSerifCJK.ttc"
 
 
-define -2 gui.interface_font = "mod_assets/fonts/NotoSerifCJK.ttc"
-define -2 gui.text_size = 22
+# define -2 gui.interface_font = "mod_assets/fonts/NotoSerifCJK.ttc"
+# define -2 gui.text_size = 22
 
 
 init -2 python:
@@ -16,16 +16,16 @@ init -2 python:
     gui.init(1280, 720)
 
     if not persistent.language == "chinese":
-        if persistent.use_alt_font == False:
-            gui.default_font = "gui/font/s1.ttf"
-            gui.name_font = "gui/font/RifficFree-Bold.ttf"
-            gui.interface_font = "gui/font/Aller_Rg.ttf"
-            gui.text_size = 38
-        elif persistent.use_alt_font == True:
+        if persistent.use_alt_font:
             gui.default_font = "gui/font/Aller_Rg.ttf"
             gui.name_font = "gui/font/RifficFree-Bold.ttf"
             gui.interface_font = "gui/font/Aller_Rg.ttf"
             gui.text_size = 22
+        else:
+            gui.default_font = "gui/font/s1.ttf"
+            gui.name_font = "gui/font/RifficFree-Bold.ttf"
+            gui.interface_font = "gui/font/Aller_Rg.ttf"
+            gui.text_size = 38
     elif persistent.language == "chinese":
         gui.default_font = "mod_assets/fonts/NotoSansSC-Regular.ttf"
         gui.name_font = "mod_assets/fonts/NotoSansSC-Bold.ttf"
@@ -44,6 +44,11 @@ init -2 python:
         gui.name_font = "mod_assets/fonts/NotoSansSC-Bold.ttf"
         gui.interface_font = "mod_assets/fonts/NotoSansSC-Regular.ttf"
         gui.text_size = 22
+
+    if renpy.android:
+        gui.scrollbar_size = 18
+    else:
+        gui.scrollbar_size = 12
 
 
 define -2 gui.hover_sound = "gui/sfx/hover.ogg"
@@ -300,7 +305,7 @@ define gui.frame_tile = False
 
 
 define gui.bar_size = 36
-define gui.scrollbar_size = 12
+# define gui.scrollbar_size = 12
 define gui.slider_size = 30
 
 

@@ -1,13 +1,21 @@
 # RenPyStein - Main Script and Data File
 
 # --- Persistent Data ---
-# 'persistent' variables keep their value even when the game is closed and reopened.
-# We use it to remember the player's preferred quality setting.
-default persistent.performance_mode = False
+default persistent.stein_quality_mode = 1  # 0=High, 1=Low, 2=Ultra Low, 3=MS Paint is Better
+default persistent.sayoristein_arena_highscore = 0
+default persistent.stein_kills = 0
+default persistent.tradu_coins = 0
+default persistent.stein_pistol_level = 0
+default persistent.stein_shotgun_level = 0
+default persistent.stein_minigun_level = 0
+default persistent.stein_shotgun_unlocked = False
+default persistent.stein_minigun_unlocked = False
+default persistent.stein_level1_cleared = False
+default persistent.stein_level2_cleared = False
+default persistent.stein_level3_cleared = False
 
 # --- Save-Specific Data ---
-# 'default' variables are part of Ren'Py's save system. They are reset when a new game starts.
-# We use them to store the state of the game world and the player's position.
+# These variables hold the LIVE game state. They are initialized by reset_stein_state.
 default player_x = 22.0
 default player_y = 11.5
 default player_dirx = -1.0
@@ -16,128 +24,562 @@ default player_planex = 0.0
 default player_planey = 0.66
 default stein_enemies = []
 default stein_sprites = []
+default stein_session_coins = 0
+default stein_has_shotgun = False
+default stein_has_minigun = False
+default stein_current_round = 0
+default stein_inter_round_timer = 0.0
+default stein_sniper_count = 0
+default stein_yuritler_count = 0
+default worldMap = []
+default exits = []
 
+default stein_current_fps = 60
+default stein_current_lighting = None
+
+default persistent.stein_mouse_sens = 1.0
+default persistent.stein_gamepad_sens_x = 1.0
+default persistent.stein_gamepad_sens_y = 1.0
+default persistent.stein_show_fps = True
+default persistent.stein_enable_bloom = True
 
 init python:
-    # The world map and level exits are static and can be defined once at startup.
-    # --- World Map Legend ---
-    # 0: Empty space
-    # 1-8: Different wall textures
-    worldMap = [
-        [8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4],#0
-        [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
-        [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,6],
-        [8,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
-        [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
-        [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,6,6,6,0,6,4,6],#5
-        [8,8,8,8,0,8,8,8,8,8,8,4,4,4,4,4,4,6,0,0,0,0,0,6],
-        [7,7,7,7,0,7,7,7,7,0,8,0,8,0,8,0,8,4,0,4,0,6,0,6],
-        [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,0,0,0,0,0,6],
-        [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,0,0,0,0,4],
-        [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,6,0,6,0,6],#10
-        [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,4,6,0,6,6,6],
-        [7,7,7,7,0,7,7,7,7,8,8,4,0,6,8,4,8,3,3,3,0,3,3,3],
-        [2,2,2,2,0,2,2,2,2,4,6,4,0,0,6,0,6,3,0,0,0,0,0,3],
-        [2,2,0,0,0,0,0,2,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
-        [2,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],#15
-        [1,0,0,0,0,0,0,0,1,4,4,4,4,4,6,0,6,3,3,0,0,0,3,3],
-        [2,0,0,0,0,0,0,0,2,2,2,1,2,2,2,6,6,0,0,5,0,5,0,5],
-        [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
-        [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
-        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],#20
-        [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
-        [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
-        [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5]
-    ]
+    if 's' in config.keymap['screenshot']:
+        config.keymap['screenshot'].remove('s')
+    if 'alt_s' in config.keymap['screenshot']:
+        config.keymap['screenshot'].remove('alt_s')
 
-    def reset_stein_state():
-        """
-        Initializes or resets the game state. This is called at the start of a new game
-        to ensure all variables are set to their default values.
-        """
-        # Make the global variables available to modify
-        global player_x, player_y, player_dirx, player_diry, player_planex, player_planey
-        global stein_enemies, stein_sprites
+    stein_lighting_presets = {
+        "night": {
+            'ambient_base': (0.02, 0.02, 0.05),
+            'ambient_near': (0.05, 0.05, 0.08),
+            'sky_texture': "pics/background.webp",
+            'time_id': 0.0
+        },
+        "day": {
+            'ambient_base': (1.0, 1.0, 1.0),
+            'ambient_near': (0.0, 0.0, 0.0),
+            'sky_texture': "pics/background.webp",
+            'time_id': 1.0
+        },
+        "afternoon": {
+            'ambient_base': (0.6, 0.6, 0.7),
+            'ambient_near': (0.1, 0.1, 0.1),
+            'sky_texture': "pics/background.webp",
+            'time_id': 2.0
+        }
+    }
 
-        # Player's starting position and orientation
-        player_x = 22.0
-        player_y = 11.5
-        player_dirx = -1.0
-        player_diry = 0.0
-        player_planex = 0.0
-        player_planey = 0.66
-
-        # Enemy data format: (x, y, sprite_index, destroyed_sprite_index)
-        stein_enemies = [
-            (18.5, 10.5, 1, 3),
-            (5.5, 16.5, 1, 3)
+    # --- Level 1 Data ---
+    level1_data = {
+        "lighting": "day",
+        "worldMap": [
+            [8,8,8,8,8,8,8,8,8,8,8,4,4,6,4,4,6,4,6,4,4,4,6,4],
+            [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
+            [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,6],
+            [8,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+            [8,0,3,3,0,0,0,0,0,8,8,4,0,0,0,0,0,0,0,0,0,0,0,4],
+            [8,0,0,0,0,0,0,0,0,0,8,4,0,0,0,0,0,6,6,6,0,6,4,6],
+            [8,8,8,8,0,8,8,8,8,8,8,4,4,4,4,4,4,6,0,0,0,0,0,6],
+            [7,7,7,7,0,7,7,7,7,0,8,0,8,0,8,0,8,4,0,4,0,6,0,6],
+            [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,0,0,0,0,0,6],
+            [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,0,0,0,0,4],
+            [7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,6,0,6,0,6,0,6],
+            [7,7,0,0,0,0,0,0,7,8,0,8,0,8,0,8,8,6,4,6,0,6,6,6],
+            [7,7,7,7,0,7,7,7,7,8,8,4,0,6,8,4,8,3,3,3,0,3,3,3],
+            [2,2,2,2,0,2,2,2,2,4,6,4,0,0,6,0,6,3,0,0,0,0,0,3],
+            [2,2,0,0,0,0,0,2,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
+            [2,0,0,0,0,0,0,0,2,4,0,0,0,0,0,0,4,3,0,0,0,0,0,3],
+            [1,0,0,0,0,0,0,0,1,4,4,4,4,4,6,0,6,3,3,0,0,0,3,3],
+            [2,0,0,0,0,0,0,0,2,2,2,1,2,2,2,6,6,0,0,5,0,5,0,5],
+            [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,2,5,0,5,0,5,0,5,0,5],
+            [2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,0,5,0,5,0,0,0,5,5],
+            [2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,5,5,5,5,5,5,5,5,5]
+        ],
+        "player_x": 22.0, "player_y": 11.5,
+        "player_dirx": -1.0, "player_diry": 0.0,
+        "player_planex": 0.0, "player_planey": 0.66,
+        "enemies": [
+            # (18.5, 10.5, 4, 5), (5.5, 16.5, 4, 5)
+        ],
+        "sprites": [
+            (20.5, 11.5, 2), (18.5,4.5, 2), (10.0,4.5, 2), (10.0,12.5,2),
+            (3.5, 6.5, 2), (3.5, 20.5,2), (3.5, 14.5,2), (14.5,20.5,2)
+        ],
+        "exits": [
+            (1.5, 1.5, "Exit 1"), (1.5, 22.5, "Exit 2"),
+            (21.5, 1.5, "Exit 3"), (21.5, 22.5, "Exit 4")
         ]
-        # Sprite data format: (x, y, sprite_index)
-        stein_sprites = [
-            (20.5, 11.5, 2), #green light in front of playerstart
-            (18.5,4.5, 2),
-            (10.0,4.5, 2),
-            (10.0,12.5,2),
-            (3.5, 6.5, 2),
-            (3.5, 20.5,2),
-            (3.5, 14.5,2),
-            (14.5,20.5,2),
-            (1.5,1.5,0),
-            (1.5,22.5,0),
-            (21.5,1.5,0),
-            (21.5,22.5,0),
-        ]
+    }
 
-    # Exit data format: (x, y, return_value)
-    exits = [
-        (1.5, 1.5, "Exit 1"),
-        (1.5, 22.5, "Exit 2"),
-        (21.5, 1.5, "Exit 3"),
-        (21.5, 22.5, "Exit 4")
-    ]
+    # --- Level 2 Data ---
+    level2_data = {
+        "lighting": "afternoon",
+        "worldMap": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,2,2,0,0,3,3,0,0,2,2,2,0,1],
+            [1,0,2,0,0,0,0,3,0,0,0,0,0,2,0,1],
+            [1,0,2,0,0,5,5,5,5,5,5,0,0,2,0,1],
+            [1,0,0,0,0,5,0,0,0,0,5,0,0,0,0,1],
+            [1,0,3,3,0,5,0,4,4,0,5,0,3,3,0,1],
+            [1,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1],
+            [1,0,3,3,0,5,0,4,4,0,5,0,3,3,0,1],
+            [1,0,0,0,0,5,0,0,0,0,5,0,0,0,0,1],
+            [1,0,2,0,0,5,5,5,5,5,5,0,0,2,0,1],
+            [1,0,2,0,0,0,0,3,0,0,0,0,0,2,0,1],
+            [1,0,2,2,2,0,0,3,3,0,0,2,2,2,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ],
+        "player_x": 8.0, "player_y": 8.0,
+        "player_dirx": 0.0, "player_diry": 1.0,
+        "player_planex": 0.66, "player_planey": 0.0,
+        "enemies": [ (13.5, 2.5, 4, 5), (2.5, 13.5, 4, 5), (7.5, 13.5, 4, 5) ],
+        "sprites": [],
+        "exits": [ (1.5, 1.5, "Exit") ]
+    }
+
+    # --- Level 3 Data ---
+    level3_data = {
+        "worldMap": [
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,2],
+            [2,0,2,2,2,2,2,0,2,0,4,4,4,4,4,4,4,4,0,5,0,4,4,4,0,4,4,4,4,4,0,2],
+            [2,0,2,0,0,0,2,0,2,0,4,0,0,0,0,0,0,4,0,5,0,4,0,0,0,0,0,0,0,4,0,2],
+            [2,0,2,0,2,0,2,0,0,0,4,0,4,4,4,4,0,4,0,0,0,4,0,4,4,4,4,4,0,4,0,2],
+            [2,0,2,0,2,0,2,2,2,0,4,0,4,0,0,4,0,4,4,4,4,4,0,4,0,0,0,0,0,4,0,2],
+            [2,0,0,0,2,0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0,0,0,4,4,0,4,4,4,4,0,2],
+            [2,2,2,2,2,2,2,2,2,5,5,5,5,0,5,5,5,5,5,5,5,5,0,4,0,0,0,0,0,4,0,2],
+            [6,6,6,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,0,6,0,2],
+            [6,0,0,0,0,0,6,0,6,0,6,6,6,6,6,6,0,6,6,6,6,6,6,6,0,6,0,0,0,6,0,2],
+            [6,0,3,3,0,0,0,0,0,0,0,0,0,0,0,6,0,6,0,0,0,0,0,6,0,6,0,6,6,6,0,2],
+            [6,0,3,3,0,0,6,0,6,0,6,6,6,6,0,6,0,6,0,6,6,6,0,6,0,0,0,0,0,0,0,2],
+            [6,0,0,0,0,0,6,0,6,0,6,0,0,0,0,0,0,0,0,6,0,6,0,6,6,6,6,6,6,6,6,6],
+            [6,6,6,6,6,6,6,0,6,0,6,0,6,6,6,6,6,6,6,6,0,6,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,1],
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,0,0,0,0,0,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,1],
+            [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,1,0,0,0,1,0,1,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,1,0,1,0,1],
+            [1,1,1,1,1,1,1,1,8,8,8,8,8,8,8,8,8,8,8,0,8,8,0,0,0,0,0,0,0,1,0,1],
+            [3,3,3,3,3,3,3,3,8,0,0,0,8,0,0,0,0,0,8,0,8,0,0,1,1,1,1,1,0,0,0,1],
+            [3,0,0,0,0,0,0,3,8,0,8,0,8,0,8,8,8,0,8,0,8,0,8,8,0,0,0,8,0,8,8,8],
+            [3,0,3,3,3,3,0,3,8,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,8],
+            [3,0,3,0,0,3,0,3,8,8,8,8,8,0,8,8,8,8,8,8,8,8,8,8,0,8,8,8,8,8,0,8],
+            [3,0,3,0,0,3,0,3,3,3,3,3,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,8],
+            [3,0,3,3,3,3,0,0,0,0,0,3,8,8,8,8,8,0,8,8,8,8,8,8,8,8,8,8,0,8,0,8],
+            [3,0,0,0,0,0,0,3,3,3,0,3,7,7,7,7,8,0,8,7,7,7,7,7,7,7,0,0,0,8,0,8],
+            [3,3,3,3,3,3,3,3,0,0,0,0,7,0,0,0,0,0,0,0,0,0,7,0,0,0,0,7,7,7,0,8],
+            [7,7,7,7,7,7,7,7,0,7,7,7,7,0,7,7,7,7,7,7,7,0,7,0,7,7,7,7,0,0,0,8],
+            [7,0,0,0,0,0,0,0,0,7,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,8],
+            [7,0,7,7,7,7,7,7,7,7,0,7,7,7,7,0,7,7,7,7,7,7,7,7,7,7,7,7,0,0,0,8],
+            [7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8]
+        ],
+        "player_x": 1.5, "player_y": 1.5,
+        "player_dirx": 0.0, "player_diry": 1.0,
+        "player_planex": 0.66, "player_planey": 0.0,
+        "enemies": [
+            (3.5, 4.5, 4, 5, 100), (6.5, 7.5, 4, 5, 100),
+            (7.5, 12.5, 4, 5, 100), (7.5, 20.5, 4, 5, 100),
+            (10.5, 2.5, 4, 5, 100), (10.5, 5.5, 4, 5, 100), (11.5, 4.5, 4, 5, 100),
+            (12.5, 15.5, 4, 5, 100), (12.5, 18.5, 4, 5, 100),
+            (15.5, 3.5, 4, 5, 100), (15.5, 7.5, 4, 5, 100), (15.5, 11.5, 4, 5, 100),
+            (16.5, 5.5, 4, 5, 100), (16.5, 9.5, 4, 5, 100),
+            (21.5, 2.5, 4, 5, 100), (22.5, 12.5, 4, 5, 100), (24.5, 5.5, 4, 5, 100),
+            (25.5, 28.5, 4, 5, 100), (20.5, 29.5, 4, 5, 100),
+            (29.5, 25.5, 4, 5, 150), (29.5, 27.5, 4, 5, 150),
+            (30.5, 28.5, 4, 5, 300)
+        ],
+        "sprites": [
+            (10.5, 10.5, 1), (10.5, 20.5, 1), (12.5, 12.5, 1),
+            (1.5, 10.5, 0), (1.5, 20.5, 0),
+            (28.5, 28.5, 2), (28.5, 29.5, 2), (28.5, 27.5, 2)
+        ],
+        "exits": [
+            (30.5, 30.5, "Level 3 Complete")
+        ]
+    }
+
+    # --- Level 4 (Arena) Data ---
+    level4_data = {
+        "worldMap": {
+    -1: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    0: [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1],
+        [1, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1],
+        [1, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    1: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    2: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+},
+        "player_x": 15.0, "player_y": 15.0,
+        "player_dirx": -1.0, "player_diry": 0.0,
+        "player_planex": 0.0, "player_planey": 0.66,
+        "enemies": [],
+        "sprites": [],
+        "exits": [],
+        "spawn_points": [
+            (2,2), (2,27), (27,2), (27,27),
+            (5,5), (5,24), (24,5), (24,24),
+            (15, 2), (15, 27), (2, 15), (27, 15),
+            (12,12), (18,18), (12,18), (18,12)
+        ],
+        "lighting": "day"
+    }
+
+    # --- Level 5 Data ---
+    # A test fo multiple z levels
+    level5_data = {
+        "lighting": "day",
+        "worldMap": {
+            0: [
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,2,2,2,0,0,0,1],
+                [1,0,0,2,2,2,0,0,0,1],
+                [1,0,0,2,2,2,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1]
+            ],
+            1: [
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,3,0,3,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,3,0,3,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0]
+            ],
+            2: [
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,4,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0]
+            ]
+        },
+        "player_x": 1.5, "player_y": 1.5,
+        "player_dirx": 0.0, "player_diry": 1.0,
+        "player_planex": 0.66, "player_planey": 0.0,
+        "enemies": [],
+        "sprites": [],
+        "exits": []
+    }
+
+    def reset_stein_state(level=1, arena=False):
+        """
+        Initializes or resets the game state for a specific level.
+        """
+
+        store.is_arena_mode = arena
+        
+        if level == 2:
+            level_data = level2_data
+        elif level == 3:
+            level_data = level3_data
+        elif level == 4:
+            level_data = level4_data
+        elif level == 5:
+            level_data = level5_data
+        else: # Default to level 1
+            level_data = level1_data
+
+        renpy.store.worldMap = level_data["worldMap"]
+        renpy.store.exits = level_data["exits"]
+        renpy.store.player_x = level_data["player_x"]
+        renpy.store.player_y = level_data["player_y"]
+        renpy.store.player_dirx = level_data["player_dirx"]
+        renpy.store.player_diry = level_data["player_diry"]
+        renpy.store.player_planex = level_data["player_planex"]
+        renpy.store.player_planey = level_data["player_planey"]
+        renpy.store.stein_player_health = 100
+        renpy.store.stein_current_weapon = "fist"
+        renpy.store.stein_enemies = list(level_data["enemies"])
+        renpy.store.stein_session_coins = 0
+        renpy.store.stein_current_round = 0
+        renpy.store.stein_inter_round_timer = 0.0
+        renpy.store.stein_sniper_count = 0
+        renpy.store.stein_yuritler_count = 0
+        
+        # Set Lighting
+        lighting_key = level_data.get("lighting", "night")
+        renpy.store.stein_current_lighting = stein_lighting_presets.get(lighting_key, stein_lighting_presets["night"])
+
+        # Initialize sprites list with defined sprites and add barrel for each exit
+        temp_sprites = list(level_data["sprites"])
+        for exit_coord in level_data["exits"]:
+            temp_sprites.append((exit_coord[0], exit_coord[1], 0)) # 0 is the barrel sprite index
+        renpy.store.stein_sprites = temp_sprites
+
+        # Pass arena data to the store
+        renpy.store.is_arena_mode = arena
+        if arena:
+            renpy.store.persistent.stein_kills = 0
+            renpy.store.arena_spawn_points = level_data.get("spawn_points", [])
+            renpy.store.stein_has_shotgun = persistent.stein_shotgun_unlocked
+            renpy.store.stein_has_minigun = persistent.stein_minigun_unlocked
+        else:
+            renpy.store.arena_spawn_points = []
+            renpy.store.stein_has_shotgun = True # Always have weapons in story mode (for now)
+            renpy.store.stein_has_minigun = True
+
 
 # The screen that displays the main game engine.
 screen stein:
-    # This python block runs every time the screen is shown.
+    key "s" action None
+    key "mouseup_3" action None
+    key "K_LSHIFT" action None
+    key "K_RSHIFT" action None
+    key "K_LCTRL" action None
+    key "K_RCTRL" action None
+    key "K_f" action None
+
     python:
-        # Check the persistent quality setting to determine the internal rendering resolution.
-        if persistent.performance_mode:
-            # Low quality = half resolution (4x faster)
+        # Quality settings: 0=High, 1=Low, 2=Ultra Low
+        if persistent.stein_quality_mode == 0: # High
+            internal_width = 960
+            internal_height = 540 
+        elif persistent.stein_quality_mode == 1: # Low
             internal_width = 640
             internal_height = 360
-        else:
-            # High quality = full resolution
-            internal_width = 1280
-            internal_height = 720
-    
-    # Add the Renpystein displayable to the screen.
-    # It will read the player and world state from the `default` variables.
-    add Renpystein(
+        elif persistent.stein_quality_mode == 2: # Ultra Low
+            internal_width = 426
+            internal_height = 240
+        elif persistent.stein_quality_mode == 3: # MS Paint is Better
+            internal_width = 213
+            internal_height = 120
+        else: # Bro, can you see?
+            internal_width = 142
+            internal_height = 80
+
+    add GPURenpystein(
         1280, 720,
         worldMap=worldMap,
         exits=exits,
-        internal_width=internal_width, 
-        internal_height=internal_height
-    ):
-        xalign 0.5
-        yalign 0.3
+        internal_width=internal_width,
+        internal_height=internal_height,
+        lighting_preset=stein_current_lighting
+    )
 
-# The main game label.
-# label start:
-#     # When a new game starts, reset the game state.
-#     python:
-#         reset_stein_state()
+label renpystein_game:
+    hide black
+    show screen stein_controls_overlay
+    call screen stein
     
-#     "This is a test of Ren'PyStein."
-    
-#     "Using concepts from the Python code Gh0stenstein, with many thanks to gh0st."
-    
-#     # Show the UI overlay with controls.
-#     show screen stein_controls_overlay
-    
-#     # Call the game screen. This will display the game until it returns a value (e.g., from an exit).
-#     call screen stein
+    if _return == 'game_over_arena':
+        $ persistent.tradu_coins += stein_session_coins
+        s "You survived [renpy.store.last_arena_round] rounds and collected [stein_session_coins] Coins."
+        if persistent.stein_session_coins != 0:
+            s "Now you have a total of [persistent.tradu_coins] Tradu-Coins."
+        else:
+            s "You have [persistent.tradu_coins] Tradu-Coins."
 
-#     "You found exit [_return]!"
+        if renpy.store.new_highscore:
+            s "A new high score!"
+        else:
+            s "You have a high score of [persistent.sayoristein_arena_highscore]."
+            s "Try next time!"
+    elif _return == 'game_over':
+        s "You died."
+    else:
+        if _return == "Exit 1" or _return == "Exit 2" or _return == "Exit 3" or _return == "Exit 4":
+            $ persistent.stein_level1_cleared = True
+        elif _return == "Exit":
+            $ persistent.stein_level2_cleared = True
+        elif _return == "Level 3 Complete":
+            $ persistent.stein_level3_cleared = True
+             
+        s "You found exit [_return]!"
+    hide screen stein_controls_overlay
+    return
 
-#     return
+label start_level_1:
+    $ js_stein_audio.play("level_1")
+    $ reset_stein_state(level=1)
+    jump renpystein_game
+
+label start_level_2:
+    $ js_stein_audio.play("level_2")
+    $ reset_stein_state(level=2)
+    jump renpystein_game
+
+label start_level_3:
+    $ js_stein_audio.play("level_3")
+    $ reset_stein_state(level=3)
+    jump renpystein_game
+
+label start_level_4_arena:
+    call screen shader_warmup
+    $ js_stein_audio.play("arena")
+    $ reset_stein_state(level=4, arena=True)
+    jump renpystein_game
+
+label start_level_5:
+    call screen shader_warmup
+    $ reset_stein_state(level=5)
+    jump renpystein_game
+
+# This is for backwards compatibility / direct calls
+label renpystein_demo:
+    jump start_level_1
+
+label sayoristein_main_menu(mg_obj=None):
+    $ preferences.gl_powersave = False
+    $ preferences.gl_framerate = 120
+    $ js_stein_audio.enter_minigame()
+    $ js_stein_audio.play("menu")
+    show black zorder 99 with dissolve
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 1.5
+    hide chibi_dvd with dissolve
+    call screen sayoristein_menu with dissolve
+    show black zorder 99 with dissolve
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 1.0
+    $ js_stein_audio.exit_minigame()
+    hide chibi_dvd with dissolve
+    hide black with dissolve
+    return
+
+label test_gpu:
+    $ reset_stein_state(level=1)
+    call screen gpu_stein_test
+    return

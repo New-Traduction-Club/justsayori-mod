@@ -183,8 +183,12 @@ label ch30_autoload:
 label ch30_setup:
 
 
-
+    stop music
     show black zorder 99
+    show chibi_dvd zorder 100 at t_chibi_dvd
+    with dissolve
+    pause 5.0
+    hide chibi_dvd with dissolve
 
     if not persistent.mg_merge:
         $ game_reset()
@@ -198,10 +202,9 @@ label ch30_setup:
 
         Affection.checkResetDailyAffectionGain()
 
-        try:
-            setupRPC("In the spaceroom")
-        except:
-            pass
+        # Start RPC
+        js_start_rpc()
+        js_update_rpc(state="In the spaceroom")
 
         random_chat()
 
@@ -286,8 +289,8 @@ label ch30_init:
                 renpy.call("cnc")
 
 
+    hide black with dissolve
     show sayori idle zorder store.fae_sprites.FAE_SAYORI_ZORDER at t11
-    hide black with Dissolve(2)
     show screen hidden1(True)
 
 
@@ -297,7 +300,7 @@ label after_holiday:
 
 label ch30_loop:
 
-    hide black
+    hide black with dissolve
 
     $ init_qabs()
 
@@ -361,6 +364,7 @@ label cnc(show_sayori=True):
 
     if show_sayori:
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER at fae_center
+    hide black with dissolve
 
     if persistent._event_list:
         $ _chat = persistent._event_list.pop(0)
@@ -409,6 +413,7 @@ label cnc_notify(show_sayori=True):
 
     if show_sayori:
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER at fae_center
+    hide black with dissolve
 
     if persistent._event_list:
         $ _chat_notify = persistent._event_list.pop(0)
@@ -475,13 +480,14 @@ label force_quit:
         $ renpy.jump("confirm_quit")
     else:
 
+        if config.developer:
+            $ renpy.jump("confirm_quit")
+        else:
 
+            s ebgchga "YOU CAN'T LEAVE LIKE THAT!"
 
-        s ebgchga "YOU CAN'T LEAVE LIKE THAT!"
-
-        python:
-            Affection.percentageAffectionLoss(2)
-            Sayori.add_new_regret_awaiting(fae_regrets.RegretTypes.unexpected_quit)
-            Sayori.add_regret_quit(fae_regrets.RegretTypes.unexpected_quit)
-
-        $ renpy.jump("confirm_quit")
+            python:
+                Affection.percentageAffectionLoss(2)
+                Sayori.add_new_regret_awaiting(fae_regrets.RegretTypes.unexpected_quit)
+                Sayori.add_regret_quit(fae_regrets.RegretTypes.unexpected_quit)
+            $ renpy.jump("confirm_quit")

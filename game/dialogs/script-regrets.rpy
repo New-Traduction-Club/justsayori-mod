@@ -7,7 +7,7 @@ default -5 persistent._fae_player_awaiting_apologies = list()
 
 init -6 python in fae_regrets:
 
-    from Enum import Enum
+    from enum import Enum
     import store
 
     REGRET_DEFS = dict()

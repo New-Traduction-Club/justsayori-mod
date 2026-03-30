@@ -2,7 +2,7 @@ init python in fae_intro:
     import random
     import store
     import store.fae_utilities as fae_utilities
-    from Enum import Enum
+    from enum import Enum
 
     class FAEIntroStatus(Enum):
         
@@ -23,10 +23,9 @@ default persistent.fae_intro_status = 1
 
 label fae_intro_checks:
     python:
-        try:
-            setupRPC("In the spaceroom")
-        except:
-            pass
+        # Start RPC
+        js_start_rpc()
+        js_update_rpc(state="In the spaceroom")
         store._game_menu_screen = "preferences"
 
     if not fae_intro.FAEIntroStatus(persistent.fae_intro_status) == fae_intro.FAEIntroStatus.new_game:

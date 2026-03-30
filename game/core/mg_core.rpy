@@ -1,7 +1,5 @@
 ##### MiniGame Registry Core (and a Hub)
-
 default persistent.mg_registry = []
-default mg_selected_index = 0
 
 init -2 python:
     if not hasattr(store, "_MG_OBJECTS"):
@@ -47,10 +45,13 @@ init -2 python:
                     self.prep(self)
                 except Exception:
                     pass
-            renpy.call_in_new_context(self.label)
+            renpy.call_in_new_context(self.label, mg_obj=self)
 
     def _sync_persistent_entry(mg):
         """Ensure a dict form of the MiniGame exists in persistent for simple state"""
+        if persistent.mg_registry is None:
+            persistent.mg_registry = []
+
         for entry in persistent.mg_registry:
             if entry.get("pid") == mg.pid:
                 return
@@ -102,7 +103,10 @@ init -2 python:
 # styles
 
 style mg_hub_frame is music_player_frame
-style mg_cards_viewport is music_list_viewport
+style mg_cards_viewport:
+    xsize 680
+    ysize 550
+
 style mg_cards_grid:
     spacing 18
 
@@ -151,15 +155,17 @@ transform mg_card_hover:
 
 # the big boy of the screen >:)
 screen modern_minigame_player():
-    zorder 100
     tag menu
     modal True
 
+    default mg_selected_index = 0
+
     add Solid("#000000cc")
 
-    $ _games = get_registered_minigames(True)
-    $ mg_selected_index = 0 if not _games else min(mg_selected_index, len(_games)-1)
-    $ _current = _games[mg_selected_index] if _games else None
+    python:
+        _games = get_registered_minigames(True)
+        mg_selected_index = 0 if not _games else min(mg_selected_index, len(_games)-1)
+        _current = _games[mg_selected_index] if _games else None
 
     frame style "mg_hub_frame" xalign 0.5 yalign 0.5 at music_ui_pop:
 
@@ -180,10 +186,11 @@ screen modern_minigame_player():
                         hbox:
                             spacing 18
                             for idx, g in row:
-                                $ selected = (idx == mg_selected_index)
-                                $ _mg_style = "mg_card_button_selected" if selected else "mg_card_button"
+                                python:
+                                    selected = (idx == mg_selected_index)
+                                    _mg_style = "mg_card_button_selected" if selected else "mg_card_button"
                                 button style _mg_style:
-                                    action SetVariable("mg_selected_index", idx)
+                                    action SetScreenVariable("mg_selected_index", idx)
                                     at mg_card_hover
                                     vbox:
                                         spacing 8
@@ -208,15 +215,15 @@ screen modern_minigame_player():
                     text _current.name style "mg_detail_title"
                     if _current.description:
                         text _current.description style "mg_detail_desc"
-                    else:
-                        text _("Ready to play!") style "mg_detail_desc"
+                    # else:
+                        # text _("Ready to play!") style "mg_detail_desc"
 
                     textbutton _("Play") style "big_play_button" text_style "big_play_button_text" action Function(_current.launch)
                 else:
                     frame style "song_image_placeholder"
                     text _("Select a game") style "mg_detail_title"
 
-                textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action Hide("modern_minigame_player")
+                textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [Hide("modern_minigame_player"), Jump("ch30_loop")]
 
 # The transition handler
 label mg_launcher_label(mg_label):
@@ -226,6 +233,7 @@ label mg_launcher_label(mg_label):
 
 # The Main Label
 label mg_hub:
+    $ renpy.hide_screen('hidden1')
     call screen modern_minigame_player
     return
 
@@ -237,14 +245,33 @@ init 10 python:
         register_minigame(
             label="mg_ttt",
             name=_("Tic Tac Toe"),
-            image="mod_assets/images/minigames/ttt_cover.png",
+            image="mod_assets/images/minigames/covers/ttt_cover.png",
             unlocked=True
         )
-    # if not any(g.label == "mg_reversi" for g in _MG_OBJECTS):
-    #     register_minigame(
-    #         label="mg_reversi",
-    #         name=_("Reversi"),
-    #         image="mod_assets/images/minigames/reversi_cover.png",
-    #         unlocked=lambda: hasattr(persistent, "fae_reversi_unlocked_redux") and persistent.fae_reversi_unlocked_redux
-    #     )
-    # import_legacy_minigames()
+
+    if not any(g.label == "mg_bnc" for g in _MG_OBJECTS):
+        register_minigame(
+            label="mg_bnc",
+            name=_("Bows & Cows"),
+            image="mod_assets/images/minigames/covers/bnc_cover.png",
+            unlocked=lambda: getattr(persistent, 'fae_bnc_unlocked_redux', False),
+            prep=bnc_prep,
+            description=_("Guess the secret number!")
+        )
+
+    if not any(g.label == "mg_reversi" for g in _MG_OBJECTS):
+        register_minigame(
+            label="mg_reversi",
+            name=_("Reversi"),
+            image="mod_assets/images/minigames/covers/reversi_cover.png",
+            unlocked=lambda: getattr(persistent, 'fae_reversi_unlocked_redux', False),
+        )
+    
+    if not any(g.label == "sayoristein_main_menu" for g in _MG_OBJECTS):
+        register_minigame(
+            label="sayoristein_main_menu",
+            name=_("Sayoristein 3D"),
+            image="mod_assets/images/minigames/covers/sayoristein.png",
+            unlocked=True,
+            description=_("Now in 3D!")
+        )

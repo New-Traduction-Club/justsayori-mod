@@ -9,7 +9,7 @@ init -1 python in fae_utilities:
         
         store.Chat._save_chat_data()
         
-        store.fae_outfits.FAEOutfit.save_all()
+        store.fae_outfit_manager.save_all_data()
         
         if store.persistent._affection_daily_bypasses > 5:
             store.persistent._affection_daily_bypasses = 5

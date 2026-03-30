@@ -10,7 +10,7 @@ init -999 python:
 
 
 
-
+define config.developer = "auto"
 
 
 
@@ -22,7 +22,7 @@ define config.name = "Just Sayori"
 define gui.show_name = True
 
 
-define config.version = "1.1.2"
+define config.version = "1.2.0"
 
 
 
@@ -211,12 +211,12 @@ init python:
 
     ###### START | Check this for android builds ######
 
-    build.classify("game/bgm/**", None)
+    # build.classify("game/bgm/**", None)
 
-    # original stuff
-    build.classify("game/sfx/**", None)
-    build.classify("game/images/**", None)
-    build.classify("game/gui/**", None)
+    # # original stuff
+    # build.classify("game/sfx/**", None)
+    # build.classify("game/images/**", None)
+    # build.classify("game/gui/**", None)
 
     ###### END | Check this for android builds ######
 

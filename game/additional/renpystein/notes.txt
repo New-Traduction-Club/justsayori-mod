@@ -1,0 +1,6 @@
+Generate the c file:
+py -m cython -3 stein_core.pyx -o stein_core.c
+
+Compile dll for windows:
+# cl /LD /O2 /Tc stein_core.c /I "Your/Include/Path" /link /LIBPATH:"Your/libs/Path" /DEF:stein_core.def
+cl /LD /O2 /Tc stein_core.c /I "C:\Users\justn\AppData\Local\Python\pythoncore-3.12-64\Include" /link /LIBPATH:"C:\Users\justn\AppData\Local\Python\pythoncore-3.12-64\libs" /DEF:stein_core.def

@@ -587,6 +587,14 @@ transform chibi_hide(x=64):
     pos (x, 0.795)
     easeout 0.5 ypos 1.25
 
+transform fade_in:
+    on show:
+        alpha 0.0
+        linear 0.3 alpha 1.0
+    on hide:
+        linear 0.2 alpha 0.0
+
+
 init -5 python:
     dissolve_sayori = {"master": Dissolve(0.25, alpha=True)}
 
@@ -660,3 +668,120 @@ init -10 python:
             return Frame(img_path, **frm_borders)
         except:
             return None
+
+transform t_chibi_dvd:
+    xalign 1.0
+    yalign 1.0
+
+image chibi_dvd:
+    Animation(
+        "mod_assets/videos/chibi_dvd/00.png", 0.05,
+        "mod_assets/videos/chibi_dvd/01.png", 0.05,
+        "mod_assets/videos/chibi_dvd/02.png", 0.05,
+        "mod_assets/videos/chibi_dvd/03.png", 0.05,
+        "mod_assets/videos/chibi_dvd/04.png", 0.05,
+        "mod_assets/videos/chibi_dvd/05.png", 0.05,
+        "mod_assets/videos/chibi_dvd/06.png", 0.05,
+        "mod_assets/videos/chibi_dvd/07.png", 0.05,
+        "mod_assets/videos/chibi_dvd/08.png", 0.05,
+        "mod_assets/videos/chibi_dvd/09.png", 0.05,
+        "mod_assets/videos/chibi_dvd/10.png", 0.05,
+        "mod_assets/videos/chibi_dvd/11.png", 0.05,
+        "mod_assets/videos/chibi_dvd/12.png", 0.05,
+        "mod_assets/videos/chibi_dvd/13.png", 0.05,
+        "mod_assets/videos/chibi_dvd/14.png", 0.05,
+        "mod_assets/videos/chibi_dvd/15.png", 0.05,
+        "mod_assets/videos/chibi_dvd/16.png", 0.05,
+        "mod_assets/videos/chibi_dvd/17.png", 0.05,
+        "mod_assets/videos/chibi_dvd/18.png", 0.05,
+        "mod_assets/videos/chibi_dvd/19.png", 0.05,
+        "mod_assets/videos/chibi_dvd/20.png", 0.05,
+        "mod_assets/videos/chibi_dvd/21.png", 0.05,
+        "mod_assets/videos/chibi_dvd/22.png", 0.05,
+        "mod_assets/videos/chibi_dvd/23.png", 0.05,
+        "mod_assets/videos/chibi_dvd/24.png", 0.05,
+        "mod_assets/videos/chibi_dvd/25.png", 0.05,
+        "mod_assets/videos/chibi_dvd/26.png", 0.05,
+        "mod_assets/videos/chibi_dvd/27.png", 0.05,
+        "mod_assets/videos/chibi_dvd/28.png", 0.05,
+        "mod_assets/videos/chibi_dvd/29.png", 0.05,
+        "mod_assets/videos/chibi_dvd/30.png", 0.05,
+        "mod_assets/videos/chibi_dvd/31.png", 0.05,
+        "mod_assets/videos/chibi_dvd/32.png", 0.05,
+        "mod_assets/videos/chibi_dvd/33.png", 0.05,
+        "mod_assets/videos/chibi_dvd/34.png", 0.05,
+        "mod_assets/videos/chibi_dvd/35.png", 0.05,
+        "mod_assets/videos/chibi_dvd/36.png", 0.05,
+        "mod_assets/videos/chibi_dvd/37.png", 0.05,
+        "mod_assets/videos/chibi_dvd/38.png", 0.05,
+        "mod_assets/videos/chibi_dvd/39.png", 0.05,
+        "mod_assets/videos/chibi_dvd/40.png", 0.05,
+        "mod_assets/videos/chibi_dvd/41.png", 0.05,
+        "mod_assets/videos/chibi_dvd/42.png", 0.05,
+        "mod_assets/videos/chibi_dvd/43.png", 0.05,
+        "mod_assets/videos/chibi_dvd/44.png", 0.05,
+        "mod_assets/videos/chibi_dvd/45.png", 0.05,
+        "mod_assets/videos/chibi_dvd/46.png", 0.05,
+        "mod_assets/videos/chibi_dvd/47.png", 0.05,
+        "mod_assets/videos/chibi_dvd/48.png", 0.05,
+        "mod_assets/videos/chibi_dvd/49.png", 0.05,
+        "mod_assets/videos/chibi_dvd/50.png", 0.05,
+        "mod_assets/videos/chibi_dvd/51.png", 0.05,
+        "mod_assets/videos/chibi_dvd/52.png", 0.05,
+        "mod_assets/videos/chibi_dvd/53.png", 0.05,
+        "mod_assets/videos/chibi_dvd/54.png", 0.05,
+        "mod_assets/videos/chibi_dvd/55.png", 0.05,
+        "mod_assets/videos/chibi_dvd/56.png", 0.05,
+        "mod_assets/videos/chibi_dvd/57.png", 0.05,
+        "mod_assets/videos/chibi_dvd/58.png", 0.05,
+        "mod_assets/videos/chibi_dvd/59.png", 0.05,
+        "mod_assets/videos/chibi_dvd/60.png", 0.05,
+        "mod_assets/videos/chibi_dvd/61.png", 0.05,
+        "mod_assets/videos/chibi_dvd/62.png", 0.05,
+        "mod_assets/videos/chibi_dvd/63.png", 0.05,
+        "mod_assets/videos/chibi_dvd/64.png", 0.05,
+        "mod_assets/videos/chibi_dvd/65.png", 0.05,
+        "mod_assets/videos/chibi_dvd/66.png", 0.05,
+        "mod_assets/videos/chibi_dvd/67.png", 0.05,
+        "mod_assets/videos/chibi_dvd/68.png", 0.05,
+        "mod_assets/videos/chibi_dvd/69.png", 0.05,
+        "mod_assets/videos/chibi_dvd/70.png", 0.05,
+        "mod_assets/videos/chibi_dvd/71.png", 0.05,
+        "mod_assets/videos/chibi_dvd/72.png", 0.05,
+        "mod_assets/videos/chibi_dvd/73.png", 0.05,
+        "mod_assets/videos/chibi_dvd/74.png", 0.05,
+        "mod_assets/videos/chibi_dvd/75.png", 0.05,
+        "mod_assets/videos/chibi_dvd/76.png", 0.05,
+        "mod_assets/videos/chibi_dvd/77.png", 0.05,
+        "mod_assets/videos/chibi_dvd/78.png", 0.05,
+        "mod_assets/videos/chibi_dvd/79.png", 0.05,
+        "mod_assets/videos/chibi_dvd/80.png", 0.05,
+        "mod_assets/videos/chibi_dvd/81.png", 0.05,
+        "mod_assets/videos/chibi_dvd/82.png", 0.05,
+        "mod_assets/videos/chibi_dvd/83.png", 0.05,
+        "mod_assets/videos/chibi_dvd/84.png", 0.05,
+        "mod_assets/videos/chibi_dvd/85.png", 0.05,
+        "mod_assets/videos/chibi_dvd/86.png", 0.05,
+        "mod_assets/videos/chibi_dvd/87.png", 0.05,
+        "mod_assets/videos/chibi_dvd/88.png", 0.05,
+        "mod_assets/videos/chibi_dvd/89.png", 0.05,
+        "mod_assets/videos/chibi_dvd/90.png", 0.05,
+        "mod_assets/videos/chibi_dvd/91.png", 0.05,
+        "mod_assets/videos/chibi_dvd/92.png", 0.05,
+        "mod_assets/videos/chibi_dvd/93.png", 0.05,
+        "mod_assets/videos/chibi_dvd/94.png", 0.05,
+        "mod_assets/videos/chibi_dvd/95.png", 0.05,
+        "mod_assets/videos/chibi_dvd/96.png", 0.05,
+        "mod_assets/videos/chibi_dvd/97.png", 0.05,
+        "mod_assets/videos/chibi_dvd/98.png", 0.05,
+        "mod_assets/videos/chibi_dvd/99.png", 0.05,
+        "mod_assets/videos/chibi_dvd/100.png", 0.05,
+        "mod_assets/videos/chibi_dvd/101.png", 0.05,
+        "mod_assets/videos/chibi_dvd/102.png", 0.05,
+        "mod_assets/videos/chibi_dvd/103.png", 0.05,
+        "mod_assets/videos/chibi_dvd/104.png", 0.05,
+        "mod_assets/videos/chibi_dvd/105.png", 0.05,
+        "mod_assets/videos/chibi_dvd/106.png", 0.05,
+        "mod_assets/videos/chibi_dvd/107.png", 0.05,
+        "mod_assets/videos/chibi_dvd/108.png", 0.05,
+    )

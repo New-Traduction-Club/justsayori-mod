@@ -5,7 +5,7 @@ default persistent.fae_gave_bad_name = 0
 init python in fae_nicknames:
     import re
     import store.fae_globals as fae_globals
-    from Enum import Enum
+    from enum import Enum
 
     class NameType(Enum):
         bad = 1

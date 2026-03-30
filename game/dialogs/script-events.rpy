@@ -31,7 +31,7 @@ init -1 python in fae_events:
     import store
 
     import datetime
-    from Enum import Enum
+    from enum import Enum
     import store.fae_music as fae_music
     import store.fae_sky as fae_sky
     import store.fae_affection as fae_affection
