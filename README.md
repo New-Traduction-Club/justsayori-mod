@@ -1,207 +1,127 @@
-<!-- <p align="center">
-    <img src="https://static-trad-club.nyc3.cdn.digitaloceanspaces.com/img/forever_and_ever_logo.png" height="300"/>
+<p align="center">
+    <img src="https://raw.githubusercontent.com/New-Traduction-Club/justsayori-mod/refs/heads/main/game/mod_assets/Logo.webp" height="300" alt="Just Sayori Logo"/>
 </p>
-<br> -->
+<br>
+
+<p align="center">
+    <img src="https://img.shields.io/badge/Platform-PC%20%7C%20Android-blue" alt="Supported Platforms">
+    <img src="https://img.shields.io/badge/Languages-English%20%7C%20Spanish-success" alt="Supported Languages">
+    <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen" alt="Project Status">
+</p>
 
 # Just Sayori (JS)
 
 _Just Sayori_ is a mod for the free game [Doki Doki Literature Club](https://www.ddlc.moe) from [Team Salvato](http://teamsalvato.com/).
 
-In it, you can become closer to Sayori than ever before! You have all the time in the world to build the perfect relationship with our cinnamon bun as the star of the show. At the heart of the mod, we took a mental health based approach in line with the experiences Sayori had in the original game, so we can hopefully support people by offering a source of positivity, advice, and unconditional understanding.
+In it, you can become closer to Sayori than ever before! You have all the time in the world to build the perfect relationship with our cinnamon bun as the star of the show. At the heart of the mod, we took a mental health-based approach in line with the experiences Sayori had in the original game, so we can hopefully support people by offering a source of positivity, advice, and unconditional understanding.
 
-Currently we have a whole range of unique dialogue, questions, and games for you and Sayori to enjoy!
+Currently, we have a whole range of unique dialogue, questions, and games for you and Sayori to enjoy!
 
----
-
-## LTS
-
-This a based-version on the original [Forever and Ever](https://github.com/ForeverAndEverTeam/fae-mod) mod.\
-(Trying to make a long-term support for the mod and/or continue with the project.)\
-All the original code belongs to original Forever and Ever Team (and contributors) for more details see [here](https://github.com/ForeverAndEverTeam/fae-mod)
+> **Developer's Note (Long Term Support):** This is a based-version of the original [Forever and Ever](https://github.com/ForeverAndEverTeam/fae-mod) mod. We are providing long-term support for the mod and continuing with the project's development. All original code belongs to the Forever and Ever Team and its contributors.
 
 ---
 
-## Language
+## Language Support
 
-Only available in two official languages:
-- English
-- Spanish
+Currently available in two official languages:
+*   English
+*   Spanish
 
-We are working to have more languages, thanks for all good people that are helping us!!
-
-<!-- # COMPLETION NOTICE
-
-# THE MOD IS COMPLETE AND THE FOREVER & EVER TEAM IS NOW DISBANDED
-
-As of writing, 1.0: The Curtain Call has just been released, and the mod is now complete.
-See below for a list of what you can and can't do with our mod.
-
-# CONTENT USE
-
-## Will there be translations/can I translate the mod
-### NO.
-We will not be allowing translations.
-
-## Can I port the mod?
-### NO
-I've reached out to someone already about porting the mod, but if the person requested doesn't do it, then nobody will.
-
-## Can I continue the mod?
-### NO
-The mod is now complete and the Forever & Ever team is now disbanded.
-
-## Can I use your content in {project/mod}?
-### NO
-We worked hard on this, despite challenges, both internal and external and we're going to protect it.
-You may not use our content without our express permission.
-
-# YOU MAY NOT
-- Use our content (assets, dialogue, code, music) for any purpose
-- Continue the mod under **any** name
-- Abuse the submod system.
-
-# YOU MAY
-
-- Submod
-- Add your own outfits
-- Anything not defined in the "you may not" section.
-
-We hope you've enjoyed our journey and the mod we've made. -->
----
-
-## Compatability notice
-
-This mod is designed for use with a copy of the original game by Team Salvato, available at from the [official website](https://ddlc.moe).
-
-*DDLC+ is not supported.*
+We are actively working on expanding localization. Thank you to all the contributors helping us break language barriers!
 
 ---
 
-## Installation
+## Compatibility Notice
 
-*Use these instructions if you haven't played Just Sayori before.*
+This modification is designed exclusively for use with a pristine copy of the original game by Team Salvato, available from the [official website](https://ddlc.moe).
 
-**Read the instructions carefully.**
-
-### PC
-
-
-1. Download a fresh copy of DDLC from the [official site](https://ddlc.moe). **Do not use a Steam installation**.
-2. Extract/unzip DDLC.
-3. Download the latest release [here](https://github.com/Just3090/justsayori-mod/releases): select the ZIP file starting with `Just.Sayori` (I.E `Just.Sayori.1.0.zip`). **Do not download the source code, as this will result in future updates failing.**
-4. Extract/unzip the JS mod files.
-5. Copy everything in the JS mod files to the DDLC folder. If asked to replace files, select _Yes_.
-6. Delete `scripts.rpa` in the `game` folder of the DDLC folder.
-7. Finally, launch `JustSayori.exe` if you are on Windows, or `JustSayori.sh` if you are on Linux.
-
-### Android
-1. Download the latest port [here](https://link.traduction-club.live/7I8jSN).
-2. Install the APK file.
-3. Enjoy.
----
-
-## Updating
-
-*Use these instructions if you already have Just Sayori installed.*
-
-**Read the instructions carefully.**
-
-### PC
-
-1. Stop Just Sayori, if you are currently playing the mod.
-2. **Back up your persistent**.
-3. Download the latest release [here](https://github.com/Just3090/justsayori-mod/releases): select the ZIP file starting with `Just.Sayori` (I.E `Just.Sayori.1.0.zip`). **Do not download the source code, as this will result in future updates failing.**
-4. Extract/unzip the JS mod files.
-5. Copy everything in the JS release files to the DDLC folder. If asked to replace files, select _Yes_.
-6. Finally, launch `JustSayori.exe` if you are on Windows, or `JustSayori.sh` if you are on Linux.
-
-### Android
-
-1. Download the latest port [here](https://link.traduction-club.live/7I8jSN).
-2. Update your mod by click `Update` button when you try to install the APK.
-3. Enjoy.
+**Warning:** _DDLC Plus (DDLC+) is not supported by this modification._
 
 ---
 
-## Bugs and feedback
+## Installation Guide
 
-To report bugs, request support or provide input with/to the mod, please raise a new issue [here](https://github.com/Just3090/justsayori-mod/issues).
+*Use these instructions if you are installing Just Sayori for the first time.*
 
-<!-- ### BUG REPORTS WILL BE CLOSED, SIGHT UNSEEN. -->
+**Please read the instructions carefully before proceeding.**
 
----
+### PC Deployment
 
-# LEGACY CREDITS:
+1. Download a fresh, unmodified copy of DDLC from the [official site](https://ddlc.moe). **Do not use a Steam installation**, as it may cause directory pathing conflicts.
+2. Extract/unzip the DDLC archive into a dedicated directory.
+3. Download the latest release [here](https://github.com/New-Traduction-Club/justsayori-mod/releases): select the ZIP file starting with `Just.Sayori` (e.g., `Just.Sayori.1.0.zip`). **Do not download the source code**, as this will result in future update failures.
+4. Extract/unzip the downloaded JS modification archive.
+5. Copy the entire contents of the JS modification directory and paste them into the root DDLC folder. If prompted by your OS to replace files, select _Yes_ or _Replace All_.
+6. Navigate to the `game` folder within the DDLC directory and permanently delete the `scripts.rpa` file.
+7. Execute the application: Launch `JustSayori.exe` if operating on Windows, or `JustSayori.sh` if operating on a Linux distribution.
 
-## Brought to you by
+### Android Deployment
 
-<!-- ## Current contributors -->
-_Bottling up those happy thoughts!_
-
-- [Orcaramelo](https://github.com/Orcaramelo): Project Lead, Lead Artist, Writer
-- [Nathan](https://github.com/TRIDENT1313): Lead Developer, Writer
-- [Emilia/Monika (EYLO)](https://www.reddit.com/u/EmiliaMonika?utm_medium=android_app&utm_source=share): Writer
-
-## Previous contributors
-
-_Thank you for your help in bringing FaE to life - we wouldn't be here without you!_
-
-- [Otter](https://github.com/my-otter-self): Writer
-- [Nemu-sus](https://github.com/Nemu-sus): Artist
-- [NekoLaiS](https://github.com/NekoLaiS): Programmer
-- Sobbcat: Writer
-- SlightlyAmiss: Musician
-- [AlexanDDOS](https://github.com/AlexanDDOS): Project Lead, Lead Developer, Writer, Tester
-- ElReyZero: Programmer
-- Venus: Writer
-- tberriman: Proofreader
-- vermicellibug: Proofreader
-- Atlas: Proofreader
-- Lucian Pavel: Artist
-- Vova Petelin: Translator (Russian)
-- ElReyZero: Translator (Spanish)
-- littlebin: Translator (Chinese), Tester
-- Leon9023: Tester
-- Evgeny Zotov: Tester
-- MarioXenobladefan614: Tester
-
-## Special thanks
-
-- DJMayDay: Black hoodie outfit, commisioned by Z
-
-- [Monika After Story Team](https://github.com/Monika-After-Story/MonikaModDev)
-  - Adapted source code and systems used with permission
-  - Weather assets used with permission
-  - Ongoing support
-- [Just Natsuki Team](https://github.com/Just-Natsuki-Team/NatsukiModDev)
-  - Adapted source code and systems used with permission
-  - Weather assets used with permission
-  - Ongoing support
-- [multimokia](https://github.com/multimokia): Night theme (_Slepyori_)
-- [/r/DDLCMods](reddit.com/r/ddlcmods/)
-- Pipe98x: SFX (drawing cross)
-- sirrealist2: SFX (drawing circle/line)
-- Fj0rd_: Prerelease Sayori spritework
-- **Our community, for your ongoing patience and support**
-
-_You're all awesome!_
+1. Download the latest compiled APK port [here](https://link.traduction-club.live/7I8jSN).
+2. Execute the APK file on your device and follow the standard Android installation prompts (ensure installation from unknown sources is permitted if required).
+3. Launch the application and enjoy.
 
 ---
 
-# Community
+## Update Guide
 
-Follow us on [Twitter!](https://twitter.com/JustSayoriDev)
+*Use these instructions if you have an existing installation of Just Sayori.*
 
-Interested in taking part in a growing community of Sayori fans just like you, or just a chat with the team?
+### PC Update Procedure
 
-If so, then please consider joining us on [Discord](https://discord.gg/nUWzgVZ9WT): we'd love to see you there!
+1. Close Just Sayori if it is currently running in the background.
+2. **Critical Step: Back up your persistent data files** to prevent potential save corruption.
+3. Download the latest release [here](https://github.com/Just3090/justsayori-mod/releases): select the ZIP file starting with `Just.Sayori`. **Do not download the source code.**
+4. Extract/unzip the new JS release archive.
+5. Copy all contents from the extracted directory to your existing DDLC installation folder. Overwrite all existing files when prompted.
+6. Launch `JustSayori.exe` (Windows) or `JustSayori.sh` (Linux).
+
+### Android Update Procedure
+
+1. Download the latest APK port [here](https://link.traduction-club.live/7I8jSN).
+2. Execute the APK. When prompted, tap `Update` to overwrite the existing application data without losing your save state.
+3. Launch the application.
 
 ---
 
-# Another Credits
+## Bugs & Feedback
 
-- [Traduction Club!](https://traduction-club.live/)
-  - Just: Programmer, translator for Spanish
-  - Fran: Translator for Spanish, writer
-  - Nico: Translator for Spanish
-  - Moav: Translator for Italian
+To report system bugs, request technical support, or provide feedback regarding the modification, please open a new issue ticket on our tracker [here](https://github.com/New-Traduction-Club/justsayori-mod/issues).
+
+---
+
+## Credits & Acknowledgements
+
+### Current Maintenance & Development (Traduction Club)
+_The team currently keeping the happy thoughts flowing!_
+Visit us at: [Traduction Club!](https://traduction-club.live/)
+
+*   **Just:** Programmer, Spanish Translator
+*   **Fran:** Spanish Translator, Writer
+*   **Nico:** Spanish Translator
+
+### Original Creators (Forever & Ever Team)
+_Thank you for your foundational work in bringing FaE to life._
+
+*   **Orcaramelo:** Project Lead, Lead Artist, Writer
+*   **Nathan:** Lead Developer, Writer
+*   **Emilia/Monika (EYLO):** Writer
+*   **AlexanDDOS:** Project Lead, Lead Developer, Writer, Tester
+*   _And all previous contributors, writers, artists, and testers involved in the FaE project._
+
+### Special Thanks
+
+*   **DJMayDay:** Black hoodie outfit (commissioned by Z)
+*   **[Monika After Story Team](https://github.com/Monika-After-Story/MonikaModDev):** Adapted source code, weather assets, and ongoing support.
+*   **[Just Natsuki Team](https://github.com/Just-Natsuki-Team/NatsukiModDev):** Adapted source code, weather assets, and ongoing support.
+*   **multimokia:** Night theme (_Slepyori_)
+*   **/r/DDLCMods:** Community support
+*   **Pipe98x & sirrealist2:** SFX contributions
+*   **Fj0rd_:** Prerelease Sayori spritework
+*   **Our community:** For your ongoing patience and support.
+
+---
+
+## Community
+
+Interested in taking part in a growing community of Sayori fans, or just want to chat with the development team? Consider joining us on [Discord](https://discord.gg/nUWzgVZ9WT) — we'd love to see you there!
