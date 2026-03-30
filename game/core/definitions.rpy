@@ -809,19 +809,6 @@ init -100 python:
             return False
 
 init python:
-    import store.fae_games as fae_games
-
-    def game_reset():
-        """
-        One-off function to transfer games to persistent memory instead of local variables
-        """
-        
-        persistent.fae_games_list = fae_games.mg_list_redo
-        
-        fae_games.mg_list_redo.clear()
-        
-        return
-
     def boop():
         """
         Boop screen code stuff

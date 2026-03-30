@@ -225,7 +225,7 @@ init python:
     )
 
 label s_mood_bored:
-    $ random_mg = renpy.random.choice(store.fae_games.mg_list_redux).name
+    $ random_mg = renpy.random.choice(get_registered_minigames(True)).name
     s abhfmja "Hmm…{w=0.5}{nw}"
     extend abhfaaa " if you're bored, would you like to play [random_mg] with me?"
     s abbbaoa "You can start a game in the {i}'Play'{/i} menu!"

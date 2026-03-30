@@ -93,31 +93,6 @@ init -2 python:
         renpy.hide_screen('hidden1')
         renpy.jump('talk_menu_wip')
 
-    def mg():
-        renpy.hide_screen('hidden1')
-        renpy.jump('mglist')
-
     def music_init():
         renpy.hide_screen('hidden1')
         renpy.jump('music_menu')
-
-label mglist:
-
-    show sayori idle at t22
-    call screen minigame_ui() nopredict
-    hide screen minigame_ui
-    show screen hidden1(True)
-
-    jump ch30_loop
-
-screen minigame_ui():
-    style_prefix "choice"
-
-    vbox:
-        xcenter 250
-
-        for i in persistent.games_reset_redo:
-            if i.available:
-                textbutton i.name action [Function(i), Hide("minigame_ui"), Jump("ch30_loop")]
-
-        textbutton _("Close") action [Hide("minigame_ui"), Return()]

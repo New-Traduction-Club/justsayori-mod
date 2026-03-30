@@ -190,11 +190,6 @@ label ch30_setup:
     pause 5.0
     hide chibi_dvd with dissolve
 
-    if not persistent.mg_merge:
-        $ game_reset()
-        $ persistent.mg_merge = True
-        $ renpy.save_persistent()
-
     python:
         main_background.form()
 
