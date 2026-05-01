@@ -3,12 +3,6 @@
 </p>
 <br>
 
-<p align="center">
-    <img src="https://img.shields.io/badge/Platform-PC%20%7C%20Android-blue" alt="Supported Platforms">
-    <img src="https://img.shields.io/badge/Languages-English%20%7C%20Spanish-success" alt="Supported Languages">
-    <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen" alt="Project Status">
-</p>
-
 # Just Sayori (JS)
 
 _Just Sayori_ is a mod for the free game [Doki Doki Literature Club](https://www.ddlc.moe) from [Team Salvato](http://teamsalvato.com/).
@@ -45,7 +39,7 @@ This modification is designed exclusively for use with a pristine copy of the or
 
 **Please read the instructions carefully before proceeding.**
 
-### PC Deployment
+### PC
 
 1. Download a fresh, unmodified copy of DDLC from the [official site](https://ddlc.moe). **Do not use a Steam installation**, as it may cause directory pathing conflicts.
 2. Extract/unzip the DDLC archive into a dedicated directory.
@@ -55,7 +49,7 @@ This modification is designed exclusively for use with a pristine copy of the or
 6. Navigate to the `game` folder within the DDLC directory and permanently delete the `scripts.rpa` file.
 7. Execute the application: Launch `JustSayori.exe` if operating on Windows, or `JustSayori.sh` if operating on a Linux distribution.
 
-### Android Deployment
+### Android
 
 1. Download the latest compiled APK port [here](https://link.traduction-club.live/7I8jSN).
 2. Execute the APK file on your device and follow the standard Android installation prompts (ensure installation from unknown sources is permitted if required).
@@ -67,7 +61,7 @@ This modification is designed exclusively for use with a pristine copy of the or
 
 *Use these instructions if you have an existing installation of Just Sayori.*
 
-### PC Update Procedure
+### PC Update
 
 1. Close Just Sayori if it is currently running in the background.
 2. **Critical Step: Back up your persistent data files** to prevent potential save corruption.
@@ -76,7 +70,7 @@ This modification is designed exclusively for use with a pristine copy of the or
 5. Copy all contents from the extracted directory to your existing DDLC installation folder. Overwrite all existing files when prompted.
 6. Launch `JustSayori.exe` (Windows) or `JustSayori.sh` (Linux).
 
-### Android Update Procedure
+### Android Update
 
 1. Download the latest APK port [here](https://link.traduction-club.live/7I8jSN).
 2. Execute the APK. When prompted, tap `Update` to overwrite the existing application data without losing your save state.
@@ -125,3 +119,9 @@ _Thank you for your foundational work in bringing FaE to life._
 ## Community
 
 Interested in taking part in a growing community of Sayori fans, or just want to chat with the development team? Consider joining us on [Discord](https://discord.gg/nUWzgVZ9WT) — we'd love to see you there!
+
+<p align="center">
+    <img src="https://img.shields.io/badge/Platform-PC%20%7C%20Android-blue" alt="Supported Platforms">
+    <img src="https://img.shields.io/badge/Languages-English%20%7C%20Spanish-success" alt="Supported Languages">
+    <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen" alt="Project Status">
+</p>
