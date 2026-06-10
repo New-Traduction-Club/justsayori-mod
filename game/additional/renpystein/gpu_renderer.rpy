@@ -164,12 +164,12 @@ init -50 python:
             library_path = "libstein_core.so"
         
         elif renpy.windows:
-            library_path = os.path.join(config.gamedir, "additional", "renpystein" , "stein_core.dll")
+            library_path = os.path.join(config.gamedir, "additional", "renpystein", "stein_core.dll")
             if not os.path.exists(library_path):
                 library_path = os.path.join(config.gamedir, "stein_core.dll")
 
-        # elif renpy.linux:
-        #     library_path = os.path.join(config.gamedir, "core", "stein_core.so")
+        elif renpy.linux:
+            library_path = os.path.join(config.gamedir, "additional", "renpystein", "stein_core.so")
 
         if library_path:
             stein_lib = ctypes.CDLL(library_path)
