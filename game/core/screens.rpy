@@ -861,7 +861,7 @@ screen preferences():
                         # textbutton "Português (BR)" text_font "DejaVuSans.ttf" action [Language("ptbr"), SetField(persistent, "language", "ptbr"), Show("dialog", message="É recomendado reiniciar o jogo para aplicar as alterações.\n\nCaso contrário, alguns itens podem permanecer em outros idiomas.", ok_action=Hide("dialog"))]
                         # textbutton "中文" text_font "mod_assets/fonts/NotoSansSC-Regular.ttf"  action [Language("chinese"), SetField(persistent, "language", "chinese"), Show("dialog", message="建议重新启动游戏以应用更改。\n\n否则，部分内容可能仍会显示为其他语言。", ok_action=Quit(), font="gui/font/NotoSansSC-Regular.ttf")]
 
-            hbox:
+            # hbox:
 
 
 
@@ -870,9 +870,9 @@ screen preferences():
                 #         action Function(renpy.call_in_new_context, 'import_ddlc_persistent_in_settings')
                 #         style "navigation_button"
                 
-                textbutton _("Web functions"):
-                    action Function(show_ps_overlay)
-                    style "navigation_button"
+                # textbutton _("Web functions"):
+                #     action Function(show_ps_overlay)
+                #     style "navigation_button"
 
             vbox:
                 style_prefix "radio"
