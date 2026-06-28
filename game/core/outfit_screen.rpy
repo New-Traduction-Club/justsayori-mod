@@ -98,8 +98,7 @@ screen outfit_changer():
                 null yfill True
 
                 textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [
-                    Function(fae_outfit_logic.evaluate_outfit_reactions, changed_items=changed_items_list),
-                    Return()
+                    Return(changed_items_list)
                 ]
 
             # Column 3: Navigation menu

@@ -3443,6 +3443,10 @@ init python:
 
 label fae_change_outfits:
     s "Of course! Let's see what I have."
+    $ store.outfit_reaction_triggered = False
     call screen outfit_changer
-    s "How do I look?"
+    $ changed_items = _return
+    $ fae_outfit_logic.evaluate_outfit_reactions(changed_items)
+    if not store.outfit_reaction_triggered:
+        s "How do I look?"
     return

@@ -110,6 +110,7 @@ init -1 python in fae_outfit_logic:
         Checks for reaction labels for a list of changed wearables and calls them
         Only reacts to the last applied item for each category
         """
+        store.outfit_reaction_triggered = False
         if not changed_items:
             return
 
@@ -123,4 +124,5 @@ init -1 python in fae_outfit_logic:
             reaction_label = "reaction_{0}_{1}".format(category, item_data['reference_name'])
 
             if renpy.has_label(reaction_label):
+                store.outfit_reaction_triggered = True
                 renpy.call_in_new_context(reaction_label)
