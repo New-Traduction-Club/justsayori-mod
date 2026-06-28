@@ -3314,7 +3314,7 @@ label s_topics_location:
 
 label js_music_player_entry:
     if not persistent.js_music_player_tutorial_seen:
-        s eabbaa "Welcome to the music player, [player]!"
+        s eabbaa "Welcome to the music menu, [player]!"
         s ebfbaa "You can use this to listen to all sorts of songs while we spend time together."
         s ebfdac "It makes everything feel extra special, you know?"
         s ebfcao "Oh! And the best part is that you can add your very own music for us to listen to!"
@@ -3329,8 +3329,13 @@ label js_music_player_entry:
         extend abhfaa " Here we go!{fast}"
         $ persistent.js_music_player_tutorial_seen = True
     
+    hide screen hidden1
+    show sayori at t21
     call screen modern_music_player
-    return
+    show sayori at t11
+    show screen hidden1(True)
+    
+    jump ch30_loop
 
 init python:
 

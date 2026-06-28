@@ -115,7 +115,61 @@ init 5 python:
     # Register the function to be called when the game starts
     config.start_callbacks.append(resume_music_on_start)
 
-##### Styles for the Modern UI
+screen modern_music_player():
+    zorder 100
+    tag menu
+    modal True
+    
+    on "show":
+        action Function(scan_for_music)
+
+    default music_adjust = ui.adjustment()
+
+    fixed at fade_in:
+        area (980, 70, 250, 572)
+        
+        bar:
+            adjustment music_adjust
+            style "sayo_scroller"
+            xalign -0.1
+        
+        vbox:
+            ypos 0
+            yanchor 0
+            
+            viewport:
+                yadjustment music_adjust
+                yfill False
+                mousewheel True
+                
+                has vbox:
+                    spacing 5
+                
+                if not persistent.music_playlist:
+                    textbutton _("No songs found") style "t_m_button" action None
+                else:
+                    for i, song in enumerate(persistent.music_playlist):
+                        textbutton song["name"]:
+                            style "t_m_button"
+                            action [Function(play_music_at_index, index=i), Return()]
+                            hover_sound gui.hover_sound
+                            activate_sound gui.activate_sound
+                
+                null height 10
+                
+                textbutton _("No music"):
+                    style "t_m_button"
+                    action [Function(stop_custom_music), Return()]
+                    hover_sound gui.hover_sound
+                    activate_sound gui.activate_sound
+                    
+                null height 10
+                
+                textbutton _("Close"):
+                    style "t_m_button"
+                    action Return()
+                    hover_sound gui.hover_sound
+                    activate_sound gui.activate_sound
 
 # The main container
 style music_player_frame:
@@ -218,7 +272,6 @@ style song_info_author:
     text_align 0.5
     xalign 0.5
 
-##### Animations and Transforms
 transform music_button_hover:
     on hover:
         ease 0.15 xoffset 5
@@ -232,155 +285,3 @@ transform music_ui_pop:
         easein 0.5 alpha 1.0 yoffset 0
     on hide:
         easeout 0.3 alpha 0.0 yoffset 50
-
-# Main screen
-screen modern_music_player():
-    zorder 100
-    tag menu
-    modal True
-    
-    # Scans for music every time the screen is opened
-    on "show":
-        action Function(scan_for_music)
-
-    add Solid("#000000cc")
-    
-    # Define current song variable for easier access
-    $ current_song = persistent.music_playlist[persistent.current_song_index] if persistent.music_playlist and 0 <= persistent.current_song_index < len(persistent.music_playlist) else None
-
-    # Main frame with the enter/leave animation
-    frame style "music_player_frame" xalign 0.5 yalign 0.5 at music_ui_pop:
-        
-        # Hbox for the two-column layout
-        hbox:
-            ##### Left Column: Playlist and Controls
-            vbox style "music_player_vbox":
-                
-                text _("Music Player") style "music_player_title"
-
-                # Scrollable song list
-                viewport style "music_list_viewport" scrollbars "vertical" mousewheel True:
-                    vbox style "music_list_vbox":
-                        if not persistent.music_playlist:
-                            text "No songs found.\nAdd .ogg, .opus, .mp3, .wav, or .flac files\nto the 'game/custom_bgm' folder." style "music_button_text" xalign 0.5
-                        else:
-                            for i, song in enumerate(persistent.music_playlist):
-                                # Determines if this is the currently playing song on our custom channel
-                                $ is_playing = renpy.music.get_playing(channel="custom_music") and persistent.current_song_index == i
-                                
-                                # Construct the button text with a prefix if it's the current song
-                                $ button_text = song["name"]
-
-                                # Creates the button for the song
-                                textbutton button_text action Function(play_music_at_index, index=i) style "music_button":
-                                    if is_playing:
-                                        text_style "music_button_text_playing"
-                                    else:
-                                        text_style "music_button_text"
-                                    at music_button_hover
-
-                # Playback Controls
-                hbox style "music_controls_hbox":
-                    textbutton "⏮" action Function(prev_song) style "music_control_button" text_style "music_control_button_text"
-                    
-                    if renpy.music.get_playing(channel="custom_music") and not renpy.music.get_pause(channel="custom_music"):
-                        textbutton "⏸︎" action Function(toggle_music_pause) style "music_control_button" text_style "music_control_button_text" xpos 14
-                    else:
-                        textbutton "▶︎" action Function(toggle_music_pause) style "music_control_button" text_style "music_control_button_text" xpos 14
-
-                    textbutton "■" action Function(stop_custom_music) style "music_control_button" text_style "music_control_button_text"
-                    textbutton "⏭" action Function(next_song) style "music_control_button" text_style "music_control_button_text"
-
-                # Button to close the screen
-                textbutton _("Close") action Hide("modern_music_player") style "music_player_close_button" text_style "music_player_close_button_text"
-
-            ##### Right Column: Song Art and Info
-            vbox style "song_info_vbox":
-                if current_song:
-                    add "pedro"
-
-                    # Current song title
-                    text current_song["name"] style "song_info_title"
-                    
-                    # Current song author, with a fallback for custom songs
-                    text "by [current_song.get('author', 'Unknown Artist')]" style "song_info_author"
-                else:
-                    # Displayed when the playlist is empty
-                    frame style "song_image_placeholder"
-                    text "Select a song" style "song_info_title"
-
-image pedro:
-    Animation(
-        "mod_assets/videos/pedro/ezgif-frame-001.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-002.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-003.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-004.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-005.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-006.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-007.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-008.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-009.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-010.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-011.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-012.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-013.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-014.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-015.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-016.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-017.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-018.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-019.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-020.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-021.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-022.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-023.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-024.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-025.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-026.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-027.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-028.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-029.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-030.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-031.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-032.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-033.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-034.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-035.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-036.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-037.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-038.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-039.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-040.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-041.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-042.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-043.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-044.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-045.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-046.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-047.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-048.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-049.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-050.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-051.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-052.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-053.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-054.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-055.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-056.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-057.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-058.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-059.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-060.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-061.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-062.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-063.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-064.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-065.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-066.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-067.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-068.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-069.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-070.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-071.png", 0.09,
-        "mod_assets/videos/pedro/ezgif-frame-072.png", 0.09,
-    )
