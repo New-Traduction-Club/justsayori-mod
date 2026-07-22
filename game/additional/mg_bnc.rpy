@@ -1,23 +1,38 @@
 #Bull and cows
 init 5 python:
-    def bnc_prep(self, restart = False, *args, **kwargs):
-        self.state = 0 #0 = game not over, 1 = player won, -1 = player lost
+    def bnc_prep(self, restart=False, *args, **kwargs):
+        """
+        Initializes the state and variables for the Bulls and Cows minigame.
+
+        IN:
+            restart - bool: True if this is a game restart, triggering a setup call.
+        """
+        self.state = 0 # 0 = game not over, 1 = player won, -1 = player lost
         self.guessed = ""
         self.guessed_len = 0
         self.lifes = 0
         self.bulls = 0
         self.cows = 0
         
-        ns = "0123456789" #All selectable numbers
+        ns = "0123456789" # All selectable numbers
         for i in range (renpy.random.randint(3, 6)):
-            n = renpy.random.choice(ns) #Selected number
+            n = renpy.random.choice(ns) # Selected number
             self.guessed += n
-            ns = ns.replace(n, "") #Remove the selected number from ns
+            ns = ns.replace(n, "") # Remove the selected number from ns
         self.guessed_len = len(self.guessed)
         self.lifes = self.guessed_len
         self.last = "_ " * self.guessed_len
         
         def bnc_check(answer):
+            """
+            Checks the player's guess against the generated target number.
+
+            IN:
+                answer - str: The player's guessed number.
+
+            OUT:
+                int: The game state (0 = in progress, 1 = won, -1 = lost).
+            """
             self.last = ""
             self.bulls, self.cows = 0, 0
             for i in range(self.guessed_len):
@@ -42,6 +57,9 @@ init 5 python:
         if restart:
             renpy.call(self.label, mg_obj=self)
     
+## Bulls and Cows Game Screen #################################################
+## Screen displaying the game state and an
+## input field for the player's next guess.
 screen bnc_game_screen(mg_obj, prompt):
     zorder 110
 
@@ -74,6 +92,7 @@ screen bnc_game_screen(mg_obj, prompt):
 
     
 
+## Main entry label for the Bulls and Cows minigame.
 label mg_bnc(mg_obj=None):
     $ Sayori.setInGame(True)
     $ js_update_rpc(state="Playing Bows and Cows")
@@ -204,6 +223,7 @@ label mg_bnc(mg_obj=None):
         call mg_bnc_s_comment(mg_obj.state, mg_obj=mg_obj) from _call_mg_bnc_s_comment_1
     return
 
+## Handles dialogue comments from Sayori depending on minigame states.
 label mg_bnc_s_comment(state=-1, restart=False, mg_obj=None):
     hide screen mg_bnc_scr
     if state == 0: # Starting prompt
@@ -214,7 +234,8 @@ label mg_bnc_s_comment(state=-1, restart=False, mg_obj=None):
             s bbaaada "Are you giving up?"
         else:
             s abaacia "Your tries are over."
-        if mg_obj.bulls + mg_obj.cows == mg_obj.guessed_len: # NO CLUE WHAT THIS IS. FUCK THIS CODE (XD)
+        # Checks if all guessed digits were correct but placed in the wrong positions
+        if mg_obj.bulls + mg_obj.cows == mg_obj.guessed_len:
             s "You were close to the right answer."
         elif restart:
             s abaadaa "OK, I'll tell you the right answer."
@@ -236,6 +257,7 @@ label mg_bnc_s_comment(state=-1, restart=False, mg_obj=None):
 
 
     
+## Label called when exiting the Bulls and Cows minigame.
 label mg_bnc_quit:
     $ Sayori.setInGame(False)
     hide screen mg_bnc_scr
