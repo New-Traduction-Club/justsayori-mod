@@ -522,7 +522,7 @@ label bg_hub_no_change:
         extend abbbaoa "[chosen_line]"
 
     else:
-        s abgbaoa __("Oh, decided not to go anywhere?")
-        s abagaoa __("That's okay, we are fine here for now.")
+        s abgbaoa "Oh, decided not to go anywhere?"
+        s abagaoa "That's okay, we are fine here for now."
 
     return
