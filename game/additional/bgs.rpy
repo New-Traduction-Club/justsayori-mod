@@ -483,46 +483,46 @@ label bg_hub_no_change:
 
     if Affection.isLove(higher=True):
         $ chosen_line = renpy.random.choice([
-            "any place is perfect as long as I'm with you.",
-            "I honestly love this spot when I'm with you.",
-            "it doesn't matter where we are, as long as we're together.",
-            "I'm happy just being here, right by your side."
+            __("any place is perfect as long as I'm with you."),
+            __("I honestly love this spot when I'm with you."),
+            __("it doesn't matter where we are, as long as we're together."),
+            __("I'm happy just being here, right by your side.")
         ])
         s abfccaa "Oh, decided to keep it as is? That's fine, "
         extend abfcaaa "[chosen_line]"
 
     elif Affection.isEnamoured(higher=True):
         $ chosen_line = renpy.random.choice([
-            "I was actually getting really comfortable in this room.",
-            "so I don't have to get used to a new environment all of a sudden.",
-            "this room has its own charm, doesn't it?",
-            "I've grown quite fond of being here, to be honest."
+            __("I was actually getting really comfortable in this room."),
+            __("so I don't have to get used to a new environment all of a sudden."),
+            __("this room has its own charm, doesn't it?"),
+            __("I've grown quite fond of being here, to be honest.")
         ])
         s abgbcaa "Changed your mind? Ehehe. I don't blame you, "
         extend abgbaaa "[chosen_line]"
 
     elif Affection.isAffectionate(higher=True):
         $ chosen_line = renpy.random.choice([
-            "this place already feels like our little corner!",
-            "I like staying in this room a little longer.",
-            "we can just keep chatting right here.",
-            "it's actually pretty cozy in here."
+            __("this place already feels like our little corner!"),
+            __("I like staying in this room a little longer."),
+            __("we can just keep chatting right here."),
+            __("it's actually pretty cozy in here.")
         ])
         s abhfaoa "Not feeling it? Well, no problem, "
         extend abbcaoa "[chosen_line]"
 
     elif Affection.isHappy(higher=True):
         $ chosen_line = renpy.random.choice([
-            "the important thing is that we keep talking!",
-            "we'll just stay put then.",
-            "let's just enjoy the atmosphere here!",
-            "let's just get back to our topic!"
+            __("the important thing is that we keep talking!"),
+            __("we'll just stay put then."),
+            __("let's just enjoy the atmosphere here!"),
+            __("let's just get back to our topic!")
         ])
         s abgbaoa "Did you change your mind? No worries! "
         extend abbbaoa "[chosen_line]"
 
     else:
-        s abgbaoa "Oh, decided not to go anywhere?"
-        s abagaoa "That's okay, we are fine here for now."
+        s abgbaoa __("Oh, decided not to go anywhere?")
+        s abagaoa __("That's okay, we are fine here for now.")
 
     return
