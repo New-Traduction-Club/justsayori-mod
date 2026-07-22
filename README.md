@@ -55,6 +55,10 @@ This modification is designed exclusively for use with a pristine copy of the or
 2. Execute the APK file on your device and follow the standard Android installation prompts (ensure installation from unknown sources is permitted if required).
 3. Launch the application and enjoy.
 
+> We're making a new version for Android, check progress [here](https://github.com/New-Traduction-Club/justsayori-mod-android-port)
+>
+> Pre-register on Play Store: https://play.google.com/store/apps/details?id=com.z.tdclub.jsl
+
 ---
 
 ## Update Guide
@@ -86,13 +90,13 @@ To report system bugs, request technical support, or provide feedback regarding 
 
 ## Credits & Acknowledgements
 
-### Current Maintenance & Development (Traduction Club)
+### Current Maintenance & Development
 _The team currently keeping the happy thoughts flowing!_
-Visit us at: [Traduction Club!](https://traduction-club.live/)
 
-*   **Just:** Programmer, Spanish Translator
+*   **Just:** Project Lead, Lead Developer
 *   **Fran:** Spanish Translator, Writer
 *   **Nico:** Spanish Translator
+*   _Comming soon..._
 
 ### Original Creators (Forever & Ever Team)
 _Thank you for your foundational work in bringing FaE to life._
@@ -118,7 +122,7 @@ _Thank you for your foundational work in bringing FaE to life._
 
 ## Community
 
-Interested in taking part in a growing community of Sayori fans, or just want to chat with the development team? Consider joining us on [Discord](https://discord.gg/nUWzgVZ9WT) — we'd love to see you there!
+Interested in taking part in a growing community of Sayori fans, or just want to chat with the development team? Consider joining us on [Discord](https://discord.gg/y4cqrJahaF) — we'd love to see you there!
 
 <p align="center">
     <img src="https://img.shields.io/badge/Platform-PC%20%7C%20Android-blue" alt="Supported Platforms">
