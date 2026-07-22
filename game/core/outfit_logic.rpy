@@ -5,13 +5,16 @@ init -1 python in fae_outfit_logic:
 
     def get_categorized_wearables():
         """
-        Parses all registered wearables and organizes them by category
+        Parses all registered wearables and organizes them by category.
+
+        OUT:
+            dict of str -> list of dict: A dictionary mapping category names to
+                lists of metadata dictionaries representing each wearable.
         """
         categorized_wearables = {category: [] for category in fae_outfits.WEARABLE_CATEGORIES}
         optional_categories = ["eyewear", "accessory", "headgear", "necklace"]
         all_wearables = fae_outfits.get_all_wearables()
 
-        # Prepare the None item data
         none_wearable_obj = fae_outfits.get_wearable("fae_none")
         if none_wearable_obj:
             none_wearable_data = {
@@ -19,7 +22,6 @@ init -1 python in fae_outfit_logic:
                 "reference_name": none_wearable_obj.reference_name,
                 "author": none_wearable_obj.author
             }
-            # Add the None option to the start of each optional category
             for category in optional_categories:
                 item_data = none_wearable_data.copy()
                 item_data["category"] = category
@@ -51,7 +53,17 @@ init -1 python in fae_outfit_logic:
 
     def generate_preview_for_wearable(wearable_data):
         """
-        Generates a LiveComposite preview for a given wearable, layered on the current outfit
+        Generates a LiveComposite preview for a given wearable layered on the current outfit.
+
+        IN:
+            wearable_data - dict: The metadata of the wearable to preview,
+                containing 'reference_name' and 'category'.
+
+        OUT:
+            renpy.display.layout.LiveComposite: The composite preview image of Sayori wearing the item.
+
+        ASSUMES:
+            store.Sayori is initialized and has a valid current outfit.
         """
         preview_outfit = store.fae_outfits.FAEOutfit(
             reference_name="preview",
@@ -66,15 +78,12 @@ init -1 python in fae_outfit_logic:
             necklace=store.Sayori._outfit.necklace
         )
 
-        # Get the full wearable object and apply it to the preview outfit
         wearable_obj = fae_outfits.get_wearable(wearable_data['reference_name'])
         if wearable_obj:
             setattr(preview_outfit, wearable_data['category'], wearable_obj)
 
-        # Use the expression renderer to get all parts for a static pose
         exp_parts = fae_sprites._exp_renderer("abegaa")
 
-        # Build the list of sprite parts
         sprite_parts = [
             (0, 0), "mod_assets/sayori/table/chair.png",
             (0, 0), "mod_assets/sayori/sitting/backarms/{}/{}.png".format(preview_outfit.clothes.reference_name, exp_parts["backarm"]),
@@ -89,13 +98,11 @@ init -1 python in fae_outfit_logic:
             (0, 0), "mod_assets/sayori/sitting/mouth/{}.png".format(exp_parts["mouth"]),
         ]
 
-        # Add optional parts
         if preview_outfit.necklace and preview_outfit.necklace.reference_name != "fae_none":
             sprite_parts.extend([(0, 0), "mod_assets/sayori/sitting/necklace/{}/sitting.png".format(preview_outfit.necklace.reference_name)])
         if preview_outfit.accessory and preview_outfit.accessory.reference_name != "fae_none":
             sprite_parts.extend([(0, 0), "mod_assets/sayori/sitting/accessory/{}/sitting.png".format(preview_outfit.accessory.reference_name)])
 
-        # Add eyebrows and headgear
         sprite_parts.extend([(0, 0), "mod_assets/sayori/sitting/eyebrows/{}.png".format(exp_parts["eyebrows"])])
 
         if preview_outfit.headgear and preview_outfit.headgear.reference_name != "fae_none":
@@ -107,20 +114,23 @@ init -1 python in fae_outfit_logic:
 
     def evaluate_outfit_reactions(changed_items):
         """
-        Checks for reaction labels for a list of changed wearables and calls them
-        Only reacts to the last applied item for each category
+        Checks for reaction labels for a list of changed wearables and calls them.
+        Only reacts to the last applied item for each category.
+
+        IN:
+            changed_items - list of dict: A list of changed items, where each
+                item is a dictionary containing 'category' and 'reference_name'.
         """
         store.outfit_reaction_triggered = False
         if not changed_items:
             return
 
-        # Use a dictionary to get the last applied item for each category
         last_changes = {}
         for item in changed_items:
             last_changes[item['category']] = item
 
         for category, item_data in last_changes.items():
-            # Construct the label name, example: "reaction_hairstyle_fae_bowless"
+            # Example reaction label: "reaction_hairstyle_fae_bowless"
             reaction_label = "reaction_{0}_{1}".format(category, item_data['reference_name'])
 
             if renpy.has_label(reaction_label):
