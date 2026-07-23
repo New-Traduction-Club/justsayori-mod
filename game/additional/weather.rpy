@@ -151,6 +151,9 @@ init python in fae_sky:
     _SKY_Z_ORDER = -2
 
     class FAEWeatherTypes(Enum):
+        """
+        Enum representing supported weather types.
+        """
         
         overcast = 1
         rain = 2
@@ -172,11 +175,12 @@ init python in fae_sky:
             """
             Initializes a new instance of weather.
 
-            FEED:
-                day_sky_image = name of image to show for the weather event
-                evening_sky_image = name of image to show for evening
-                night_sky_image = name of the image to show for evening
-                dim_image = name of dimming effect to use
+            IN:
+                weather_type - FAEWeatherTypes: The type of weather.
+                day_sky_image - str: Name of the image to show for the weather event during the day.
+                evening_sky_image - str: Name of the image to show during the evening.
+                night_sky_image - str: Name of the image to show during the night.
+                dim_image - str, optional: Name of the dimming effect to use.
             """
             
             self.weather_type = weather_type
@@ -206,12 +210,11 @@ init python in fae_sky:
     current_weather = None
 
     def reload_sky(with_transition=True):
-        
         """
         Shows the sky based on sunrise/sunset times specified in persistent.
         
-        FEED:
-            with_transition = If True, will visually fade in the new weather
+        IN:
+            with_transition - bool: If True, will visually fade in the new weather.
         """
         
         form_sky(WEATHER_SUNNY, with_transition=with_transition)
@@ -238,12 +241,12 @@ init python in fae_sky:
         """
 
     def form_sky(weather, with_transition=True):
-        
         """
-        Shows the specified sky with clouds/dimming effect
-        FEED:
-            weather = Weather to set
-            with_transition = If True, will visually fade in new weather
+        Shows the specified sky with clouds/dimming effect.
+
+        IN:
+            weather - FAEWeather: Weather to set.
+            with_transition - bool: If True, will visually fade in new weather.
         """
         
         if store.fae_is_day():
