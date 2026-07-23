@@ -44,6 +44,14 @@ init -999 python:
     def js_update_rpc(details=None, state=None, large_image='faelogo', large_text=None, small_image=None, small_text=None):
         """
         Updates the Discord Rich Presence status.
+
+        IN:
+            details - str: Main description of the user's activity.
+            state - str: Current state of the activity.
+            large_image - str: Asset name for the large icon.
+            large_text - str: Hover text for the large icon.
+            small_image - str: Asset name for the small icon.
+            small_text - str: Hover text for the small icon.
         """
         if RPC:
             try:
