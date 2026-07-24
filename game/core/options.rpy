@@ -2,116 +2,58 @@ init -999 python:
 
     renpy.config.allow_skipping = True
 
-
-
-
-
-
-
-
-
 define config.developer = "auto"
-
-
-
 
 define config.name = "Just Sayori"
 
-
-
 define gui.show_name = True
-
 
 define config.version = "1.2.0"
 
-
-
 define gui.about = _("")
-
-
-
-
-
 
 define build.name = "JustSayori"
 
-
 define config.has_sound = True
 
-
 define config.has_music = True
-
 
 define config.has_voice = False
 
 define config.rollback_enabled = False
 
-
-
 define config.main_menu_music = audio.s1
-
-
-
-
-
 
 define config.enter_transition = Dissolve(.2)
 define config.exit_transition = Dissolve(.2)
 
-
 define config.after_load_transition = None
-
 
 define config.end_game_transition = Dissolve(.5)
 
-
-
-
-
 define config.window = "auto"
-
-
-
-
 
 define config.window_show_transition = Dissolve(.2)
 define config.window_hide_transition = Dissolve(.2)
 
-
 default preferences.text_cps = 50
 
-
 default preferences.afm_time = 15
-
 
 default preferences.music_volume = 0.75
 default preferences.sfx_volume = 0.75
 
-
-
-
-
-
 define config.save_directory = "JustSayori"
-
-
 
 define config.window_icon = "mod_assets/Logo.webp"
 
-
-
 define config.has_autosave = False
-
 
 define config.autosave_on_quit = False
 
-
 define config.autosave_slots = 0
 
-
 define config.rollback_enabled = config.developer
-
-
 
 define config.layers = [ 'master', 'transient', 'screens', 'overlay', 'front' ]
 define config.image_cache_size = 64
@@ -139,8 +81,6 @@ init python:
         else:
             return (float(height) * (float(config.screen_width) / float(config.screen_height)), height)
 
-
-
     def saveIco(filepath):
         import pygame_sdl2
         
@@ -162,25 +102,7 @@ init python:
         
         renpy.show_screen("dialog", message="Exported your mod logo as a icon successfully.", ok_action=Hide("dialog"))
 
-
-
-
-
 init python:
-
-    # check this
-
-
-
-
-
-
-
-
-
-
-
-
 
     build.classify('**.bak', None)
     build.classify('**/thumbs.db', None)
@@ -209,21 +131,8 @@ init python:
 
     build.classify('/music/*.*', None)
 
-    ###### START | Check this for android builds ######
-
-    # build.classify("game/bgm/**", None)
-
-    # # original stuff
-    # build.classify("game/sfx/**", None)
-    # build.classify("game/images/**", None)
-    # build.classify("game/gui/**", None)
-
-    ###### END | Check this for android builds ######
-
-    # this
     build.include_update = False
 
-    # this
     build.classify("game/mod_assets/**", "all")
     build.classify("game/**.rpyc", "all")
     build.classify("game/gui/**", "all")
@@ -233,49 +142,6 @@ init python:
     build.classify("renpy/**", "all")
     build.classify("lib/**", "all")
 
-    # build.classify("game/images/bg/warning3.webp", "all")
-    # build.classify("game/gui/scrollbar/horizontal_poem_bar_d.png", "all")
-    # build.classify("game/gui/scrollbar/vertical_poem_bar_d.png", "all")
-
-
-
-
-
-
-
     build.package(build.directory_name + "Mod", 'zip', "all", description="Ren'Py 8 DDLC Compliant Mod")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     build.include_old_themes = False
