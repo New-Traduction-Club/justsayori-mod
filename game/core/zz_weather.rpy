@@ -3,13 +3,11 @@
 
 image sky day overcast = "mod_assets/backgrounds/atmosphere/sky/sky_day_overcast.webp"
 image sky day rain = "mod_assets/backgrounds/atmosphere/sky/sky_day_rain.webp"
-image sky day sunny = "mod_assets/backgrounds/atmosphere/sky/sky_day_sunny.webp"
 image sky day thunder = "mod_assets/backgrounds/atmosphere/sky/sky_day_thunder.webp"
 image sky day snow = "mod_assets/backgrounds/atmosphere/sky/sky_day_snow.webp"
 
 image sky night overcast = "mod_assets/backgrounds/atmosphere/sky/sky_night_overcast.webp"
 image sky night rain = "mod_assets/backgrounds/atmosphere/sky/sky_night_rain.webp"
-image sky night sunny = "mod_assets/backgrounds/atmosphere/sky/sky_night_sunny.webp"
 image sky night thunder = "mod_assets/backgrounds/atmosphere/sky/sky_night_thunder.webp"
 
 
@@ -65,6 +63,27 @@ image particles snow:
     "mod_assets/backgrounds/atmosphere/particles/snow.webp"
     snow_scroll
 
+image space 1:
+    "images/cg/monika/mask.png"
+    sky_scroll
+image space 2:
+    "images/cg/monika/mask_2.png"
+    sky_scroll
+image space 3:
+    "images/cg/monika/mask_3.png"
+    sky_scroll
+
+image sky day sunny:
+    "mod_assets/masks/sky_day.png"
+    sky_scroll
+
+image sky evening sunny:
+    "mod_assets/masks/sky_sunset.png"
+    sky_scroll
+
+image sky night sunny:
+    "mod_assets/masks/sky_night.png"
+    sky_scroll
 
 transform cloud_scroll:
 
@@ -89,6 +108,15 @@ transform rain_scroll:
     parallel:
         xoffset 0 yoffset 0
         linear 2 xoffset 220 yoffset 1280
+        repeat
+
+transform sky_scroll:
+
+    subpixel True
+    topleft
+    parallel:
+        xoffset 0 yoffset 0
+        linear 60 xoffset -1280
         repeat
 
 
@@ -127,6 +155,7 @@ init python in fae_atmosphere:
             weather_type,
             day_sky_image,
             night_sky_image,
+            evening_sky_image=None,
             notify_text=list(),
             dim_image=None,
             day_clouds_image=None,
@@ -142,6 +171,7 @@ init python in fae_atmosphere:
                 - weather_type - FAEWeatherTypes type describing this weather
                 - day_sky_image - Name of the image to show for this weather during the day
                 - night_sky_image - Name of the image to show for this weather during the night
+                - evening_sky_image - Name of the image to show for this weather during the evening
                 - notify_text - The text to show via popup if the weather changes, and Natsuki decides to react
                 - dim_image - Name of the dimming effect to use, or None
                 - day_clouds_image - Name of the clouds to use for this weather during the day, or None
@@ -152,6 +182,7 @@ init python in fae_atmosphere:
             """
             self.weather_type = weather_type
             self.day_sky_image = day_sky_image
+            self.evening_sky_image = evening_sky_image
             self.night_sky_image = night_sky_image
             self.notify_text = notify_text
             self.dim_image = dim_image
@@ -208,6 +239,7 @@ init python in fae_atmosphere:
     WEATHER_SUNNY = FAEWeather(
         weather_type=FAEWeatherTypes.sunny,
         day_sky_image="sky day sunny",
+        evening_sky_image="sky evening sunny",
         night_sky_image="sky night sunny",
         day_clouds_image="clouds day light",
         night_clouds_image="clouds night light"
@@ -216,28 +248,51 @@ init python in fae_atmosphere:
     WEATHER_GLITCH = FAEWeather(
         weather_type=FAEWeatherTypes.glitch,
         day_sky_image="sky glitch_fuzzy",
-        night_sky_image="sky glitch_fuzzy")
+        night_sky_image="sky glitch_fuzzy"
+    )
+
+    WEATHER_SPACE = FAEWeather(
+        weather_type=FAEWeatherTypes.glitch,
+        day_sky_image="space 2",
+        evening_sky_image="space 2",
+        night_sky_image="space 2"
+    )
 
     current_weather = None
+
+    def reload_sky(with_transition=True):
+        """
+        Reloads the current weather, defaulting to WEATHER_SUNNY if none is set.
+        """
+        global current_weather
+        if current_weather is None:
+            current_weather = WEATHER_SUNNY
+        showSky(current_weather, with_transition=with_transition)
 
     def updateSky(with_transition=True):
         
         showSky(random.choice([
             WEATHER_OVERCAST,
-                    WEATHER_RAIN,
-                    WEATHER_THUNDER,
-                    WEATHER_SUNNY,
-                    WEATHER_SUNNY,
-                    WEATHER_SUNNY,
-                    WEATHER_SNOW,
-                    WEATHER_SNOW
+            WEATHER_RAIN,
+            WEATHER_THUNDER,
+            WEATHER_SUNNY,
+            WEATHER_SUNNY,
+            WEATHER_SUNNY,
+            WEATHER_SNOW,
+            WEATHER_SNOW
         ]),
         with_transition=with_transition)
 
 
     def showSky(weather, with_transition=True):
         
-        sky_to_show = weather.day_sky_image if store.fae_is_day() else weather.night_sky_image
+        if store.fae_is_day():
+            sky_to_show = weather.day_sky_image
+        elif getattr(store, 'fae_is_evening', None) and store.fae_is_evening() and getattr(weather, 'evening_sky_image', None):
+            sky_to_show = weather.evening_sky_image
+        else:
+            sky_to_show = weather.night_sky_image
+
         clouds_to_show = weather.day_clouds_image if store.fae_is_day() else weather.night_clouds_image
         
         

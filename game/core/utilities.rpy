@@ -539,7 +539,7 @@ init python:
 
     def qh_check():
         
-        fae_sky.reload_sky()
+        fae_atmosphere.reload_sky()
         
         return
 
@@ -556,7 +556,7 @@ init python:
         
         reset()
         
-        fae_sky.reload_sky()
+        fae_atmosphere.reload_sky()
         
         persistent.fae_last_visit_date = datetime.datetime.now()
         

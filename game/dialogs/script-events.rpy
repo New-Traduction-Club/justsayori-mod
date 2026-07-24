@@ -33,7 +33,7 @@ init -1 python in fae_events:
     import datetime
     from enum import Enum
     import store.fae_music as fae_music
-    import store.fae_sky as fae_sky
+    import store.fae_atmosphere as fae_atmosphere
     import store.fae_affection as fae_affection
     import store.fae_globals as fae_globals
     import store.fae_outfits as fae_outfits
@@ -244,7 +244,7 @@ label fae_event_door_open:
             jump fae_event_door_open
         "Gently open the door":
             $ main_background.form()
-            $ fae_sky.reload_sky()
+            $ fae_atmosphere.reload_sky()
             hide black
             show sayori zorder fae_sprites.FAE_SAYORI_ZORDER at t11
             s bbegmoajj "Whoops! Sorry about that!"

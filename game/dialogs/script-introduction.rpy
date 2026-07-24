@@ -31,7 +31,7 @@ label fae_intro_checks:
     if not fae_intro.FAEIntroStatus(persistent.fae_intro_status) == fae_intro.FAEIntroStatus.new_game:
 
         $ Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
-        $ fae_sky.form_sky(fae_sky.WEATHER_SUNNY)
+        $ fae_atmosphere.showSky(fae_atmosphere.WEATHER_SUNNY)
         $ main_background.form()
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER
 
@@ -118,7 +118,7 @@ label fae_intro_1:
     s "Well... here goes nothing!"
     call updateconsole ("show background spaceroom", "updating...") from _call_updateconsole_2
     $ main_background.form()
-    $ fae_sky.reload_sky()
+    $ fae_atmosphere.reload_sky()
     $ Sayori.setOutfit(fae_outfits.get_outfit("fae_uniform"))
 
     hide black
