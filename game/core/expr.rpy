@@ -14,13 +14,25 @@ init -50 python in fae_sprites:
     _FAE_DESK_SPRITE = "desk"
 
     class Pose():
+        """
+        Enum representing the pose of Sayori.
+        """
         sitting = "sitting"
         
         def __str__(self):
+            """
+            Returns the string representation of the pose.
+
+            OUT:
+                str: String value of the pose.
+            """
             return self.name
 
 
     class FAEEyebrows():
+        """
+        Enum representing eyebrow expressions.
+        """
         a = "normal"
         b = "sad"
         c = "angry"
@@ -31,18 +43,36 @@ init -50 python in fae_sprites:
         numb = "numb"
         
         def __str__(self):
+            """
+            Returns the string representation of the eyebrows.
+
+            OUT:
+                str: String value of the eyebrows.
+            """
             return self.name
 
     class FAEBackarms():
+        """
+        Enum representing backarm positions.
+        """
         unknown = "a"
         empty = "b"
         
         def __str__(self):
+            """
+            Returns the string representation of the backarms.
+
+            OUT:
+                str: String value of the backarms.
+            """
             return self.name
 
 
 
     class FAEArms():
+        """
+        Enum representing primary arm configurations.
+        """
         cookiebite = "cb"
         cookie = "cookie"
         doublepoint = "double-point"
@@ -53,11 +83,20 @@ init -50 python in fae_sprites:
         none = "empty"
         
         def __str__(self):
+            """
+            Returns the string representation of the primary arm.
+
+            OUT:
+                str: String value of the arm.
+            """
             return self.name
 
 
 
     class FAEArms2():
+        """
+        Enum representing secondary arm configurations.
+        """
         
         folded = "folded"
         rtr = "right-table-rest"
@@ -69,10 +108,19 @@ init -50 python in fae_sprites:
         crossthk = "crossed_thonk"
         
         def __str__(self):
+            """
+            Returns the string representation of the secondary arm.
+
+            OUT:
+                str: String value of the secondary arm.
+            """
             return self.name
 
 
     class FAEEyes():
+        """
+        Enum representing eye expressions.
+        """
         a = "normal-eyes"
         b = "look-left"
         c = "closed-happy"
@@ -92,17 +140,35 @@ init -50 python in fae_sprites:
         
         
         def __str__(self):
+            """
+            Returns the string representation of the eyes.
+
+            OUT:
+                str: String value of the eyes.
+            """
             return self.name
 
     class FAEHair():
+        """
+        Enum representing hair state/accessories.
+        """
         no_bow = "n"
         bow = "b"
         
         def __str__(self):
+            """
+            Returns the string representation of the hair.
+
+            OUT:
+                str: String value of the hair.
+            """
             return self.name
 
 
     class FAEMouth():
+        """
+        Enum representing mouth expressions.
+        """
         a = "normal-smile"
         b = "weird"
         c = "delicate-agape"
@@ -124,10 +190,19 @@ init -50 python in fae_sprites:
         s = "O_MOUTH"
         
         def __str__(self):
+            """
+            Returns the string representation of the mouth.
+
+            OUT:
+                str: String value of the mouth.
+            """
             return self.name
 
 
     class FAETears():
+        """
+        Enum representing tears and/or facial effect indicators.
+        """
         d_tears = "d_tears"
         happy_d_tears = "happy_d_tears"
         pooled_tears = "pooled_tears"
@@ -137,9 +212,18 @@ init -50 python in fae_sprites:
         
         
         def __str__(self):
+            """
+            Returns the string representation of the tears/effects.
+
+            OUT:
+                str: String value of the tears/effects.
+            """
             return self.name
 
     class FAEBlush():
+        """
+        Enum representing blush states.
+        """
         blushing = "blushing"
         default_cheeks = "default_cheeks"
         red_eyes = "eye-redness"
@@ -147,6 +231,12 @@ init -50 python in fae_sprites:
         
         
         def __str__(self):
+            """
+            Returns the string representation of the blush.
+
+            OUT:
+                str: String value of the blush.
+            """
             return self.name
 
     def fae_gen_sprite(
@@ -160,7 +250,20 @@ init -50 python in fae_sprites:
         tears=None
     ):
         """
-        Creates sprite from given argument
+        Creates a composite sprite displayable from the given arguments.
+
+        IN:
+            arms - str: Arm sprite name.
+            arms2 - str: Arm2 sprite name.
+            backarm - str: Backarm sprite name.
+            eyes - str: Eye sprite name.
+            eyebrows - str: Eyebrow sprite name.
+            mouth - str: Mouth sprite name.
+            blush - str, optional: Blush sprite name.
+            tears - str, optional: Tears sprite name.
+
+        OUT:
+            renpy.Displayable: The generated composite sprite displayable.
         """
         
         
@@ -366,6 +469,15 @@ init 1 python in fae_sprites:
 
 
     def _exp_renderer(exp_code):
+        """
+        Parses the expression code into a dictionary of individual sprite part identifiers.
+
+        IN:
+            exp_code - str: The multi-character expression code to decode.
+
+        OUT:
+            dict: Mapping of sprite part categories (eyebrows, eyes, etc.) to their enum values.
+        """
         if len(exp_code) < 6:
             raise ValueError("Invalid expression code: {0}".format(exp_code))
         
@@ -423,7 +535,10 @@ init 1 python in fae_sprites:
 
     def _auto_gen(exp_code):
         """
-        Generating image from given sprite code
+        Generates and registers a new sprite image composite from the given expression code.
+
+        IN:
+            exp_code - str: The expression code.
         """
         
         disp = fae_gen_sprite(**_exp_renderer(exp_code))
@@ -434,12 +549,14 @@ init 1 python in fae_sprites:
 
 
     def _find_target_override(self):
-        
         """
-        This method tries to find an image by its reference. It can be a displayable or tuple.
-        If this method can't find an image and it follows the pattern of Sayori's sprites, it'll try to generate one.
+        Overrides find_target on ImageReference to support auto-generating Sayori sprites.
 
-        Main change to this function is the ability to auto generate displayables
+        IN:
+            self - ImageReference: The ImageReference object.
+
+        OUT:
+            bool: True if the target was found/assigned, False otherwise.
         """
         
         name = self.name
@@ -522,7 +639,7 @@ init -1 python in fae_sprites:
 
     def show_empty_desk():
         """
-        Shows empty desk
+        Renders/shows the empty desk composite image on the screen.
         """
         renpy.show(
             "emptydesk",
@@ -628,4 +745,7 @@ image sayori idle normal:
 
 init python:
     def refresh():
+        """
+        Refreshes/shows Sayori in her normal idle state.
+        """
         renpy.show("sayori idle normal")
