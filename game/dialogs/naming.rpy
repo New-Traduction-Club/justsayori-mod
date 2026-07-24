@@ -186,7 +186,7 @@ init python in fae_nicknames:
             else:
                 return NameType.like
 
-
+# TODO: This can't appear.
 init 5 python:
 
     chatReg(
