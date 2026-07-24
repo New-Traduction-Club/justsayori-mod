@@ -13,6 +13,16 @@ init python in fae_notifs:
 
 
     def notify(title, message):
+        """
+        Triggers a desktop notification with specified title and message.
+
+        IN:
+            title - str: The title text for notification.
+            message - str: The body text of notification.
+
+        OUT:
+            bool/None: True/None representing the success of notification trigger.
+        """
         title = title
         message = message
         
@@ -47,6 +57,12 @@ init python in fae_notifs:
         if store.fae_notifs.can_show_notifs:
             
             def notifyWindows():
+                """
+                Sends a default notification on Windows systems.
+
+                OUT:
+                    bool/None: Success status of the Windows notification.
+                """
 
                 title = 'Sayori'
                 message = _('I have something to tell you!')
@@ -74,6 +90,12 @@ init python in fae_notifs:
         if store.fae_notifs.can_show_notifs:
 
             def notifyLinux():
+                """
+                Sends a default notification on Linux systems.
+
+                OUT:
+                    bool/None: Success status of the Linux notification.
+                """
 
                 title = 'Sayori'
                 message = _('I have something to tell you!')

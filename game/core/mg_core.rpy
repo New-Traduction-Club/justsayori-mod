@@ -7,17 +7,23 @@ init -2 python:
 
     class MiniGame(object):
         """
-        Represents a mini game entry shown in the modern minigame hub.
-        - label: Ren'Py label to call
-        - name: Display name
-        - image: Path to cover image (string) or None
-        - unlocked: Bool or callable -> bool (re-evaluated when drawing)
-        - condition: Optional callable/string for extra gating (returns bool)
-        - description: Optional short text (future use)
-        - prep: Optional callable executed before launching
+        Represents a mini game entry shown in the minigame hub.
         """
         def __init__(self, label, name, image, unlocked=True,
                      condition=None, description=None, prep=None, pid=None):
+            """
+            Initializes a new MiniGame entry.
+
+            IN:
+                label - str: Ren'Py label to call.
+                name - str: Display name of the minigame.
+                image - str: Path to the cover image.
+                unlocked - bool/callable: Unlock evaluation status.
+                condition - str/callable, optional: Extra gating condition.
+                description - str, optional: Short descriptive text.
+                prep - callable, optional: Callback executed before launching.
+                pid - str, optional: Unique persistent ID identifier.
+            """
             self.label = label
             self.name = name
             self.image = image
@@ -29,6 +35,12 @@ init -2 python:
 
         @property
         def unlocked(self):
+            """
+            Evaluates and returns whether the minigame is unlocked.
+
+            OUT:
+                bool: True if unlocked, False otherwise.
+            """
             base = self._unlocked() if callable(self._unlocked) else self._unlocked
             cond = True
             if self.condition:
@@ -39,7 +51,9 @@ init -2 python:
             return base and cond
 
         def launch(self):
-            # Optional pre-exec
+            """
+            Prepares and launches the minigame in a new context.
+            """
             if self.prep:
                 try:
                     self.prep(self)
@@ -47,8 +61,14 @@ init -2 python:
                     pass
             renpy.call_in_new_context(self.label, mg_obj=self)
 
+
     def _sync_persistent_entry(mg):
-        """Ensure a dict form of the MiniGame exists in persistent for simple state"""
+        """
+        Ensures a dictionary form of the MiniGame exists in persistent for simple state tracking.
+
+        IN:
+            mg - MiniGame: The MiniGame instance to sync.
+        """
         if persistent.mg_registry is None:
             persistent.mg_registry = []
 
@@ -66,11 +86,21 @@ init -2 python:
     def register_minigame(label, name, image, unlocked=True,
                           condition=None, description=None, prep=None, pid=None):
         """
-        Public API to register a minigame
-        Call this at init time (after the game's own label exists)
-        Avoid duplicates via pid/label
+        Registers a minigame to the registry.
+
+        IN:
+            label - str: Ren'Py label to call.
+            name - str: Display name of the minigame.
+            image - str: Path to the cover image.
+            unlocked - bool/callable: Unlock evaluation status.
+            condition - str/callable, optional: Extra gating condition.
+            description - str, optional: Short descriptive text.
+            prep - callable, optional: Callback executed before launching.
+            pid - str, optional: Unique persistent ID identifier.
+
+        OUT:
+            MiniGame: The registered MiniGame object.
         """
-        # Prevent duplicates
         ident = pid or label
         for g in store._MG_OBJECTS:
             if g.pid == ident:
@@ -81,16 +111,25 @@ init -2 python:
         return mg
 
     def get_registered_minigames(only_unlocked=True):
-        """Return list of MiniGame objects, optionally filtering by unlocked"""
+        """
+        Retrieves a list of all registered minigames.
+
+        IN:
+            only_unlocked - bool: If True, only returns unlocked minigames.
+
+        OUT:
+            list of MiniGame: Registered MiniGame objects.
+        """
         if only_unlocked:
             return [g for g in store._MG_OBJECTS if g.unlocked]
         return list(store._MG_OBJECTS)
 
-    # Optional helper to mirror already created FaE minigames (from games_reset_redo)
     def import_legacy_minigames(as_cover="mod_assets/images/minigames/default_cover.png"):
         """
-        If you want to auto-wrap existing 'minigame' objects (from persistent.games_reset_redo),
-        call this once after they are populated. Provide a fallback cover.
+        Imports legacy minigames from persistent list if present.
+
+        IN:
+            as_cover - str: Path to the default cover image.
         """
         if hasattr(persistent, "games_reset_redo"):
             for legacy in persistent.games_reset_redo:
@@ -99,8 +138,6 @@ init -2 python:
                     name=legacy.name,
                     image=as_cover
                 )
-
-# styles
 
 style mg_hub_frame is music_player_frame
 style mg_cards_viewport:
@@ -153,7 +190,8 @@ transform mg_card_hover:
     on idle:
         ease 0.2 zoom 1.0
 
-# the big boy of the screen >:)
+## Minigame Player Screen ##############################################
+## Displays the minigame hub interface with game cards, descriptions, and launch controls.
 screen modern_minigame_player():
     tag menu
     modal True
@@ -215,8 +253,6 @@ screen modern_minigame_player():
                     text _current.name style "mg_detail_title"
                     if _current.description:
                         text _current.description style "mg_detail_desc"
-                    # else:
-                        # text _("Ready to play!") style "mg_detail_desc"
 
                     textbutton _("Play") style "big_play_button" text_style "big_play_button_text" action Function(_current.launch)
                 else:
@@ -225,22 +261,20 @@ screen modern_minigame_player():
 
                 textbutton _("Close") style "mg_close_button" text_style "mg_close_button_text" action [Hide("modern_minigame_player"), Jump("ch30_loop")]
 
-# The transition handler
+## Transition label to call minigame label in new context.
+## mg_label: The label name of the minigame to run.
 label mg_launcher_label(mg_label):
     call expression mg_label from _call_expression_2
     with Fade(2.0, 2.0, 2.0, color="#000")
     return
 
-# The Main Label
+## Main entry label to start the minigame hub interface.
 label mg_hub:
     $ renpy.hide_screen('hidden1')
     call screen modern_minigame_player
     return
 
-##### Example registration (and a real registration)
 init 10 python:
-    # Example placeholders (ensure images exist or replace with valid paths)
-    # Safe-guard not to duplicate on reload
     if not any(g.label == "mg_ttt" for g in _MG_OBJECTS):
         register_minigame(
             label="mg_ttt",

@@ -50,12 +50,8 @@ init python:
 
 
     def delete_character(name):
-        if renpy.android:
-            try: os.remove(os.environ['ANDROID_PUBLIC'] + "/characters/" + name + ".chr")
-            except: pass
-        else:
-            try: os.remove(config.basedir + "/characters/" + name + ".chr")
-            except: pass
+        try: os.remove(config.basedir + "/characters/" + name + ".chr")
+        except: pass
 
 
 
@@ -64,12 +60,8 @@ init python:
             raise Exception("'names' parameter must be a list. Example: [\"monika\", \"sayori\"].")
         
         for x in names:
-            if renpy.android:
-                try: renpy.file(os.environ['ANDROID_PUBLIC'] + "/characters/" + x + ".chr")
-                except: open(os.environ['ANDROID_PUBLIC'] + "/characters/" + x + ".chr", "wb").write(renpy.file(x + ".chr").read())
-            else:
-                try: renpy.file("../characters/" + x + ".chr")
-                except: open(config.basedir + "/characters/" + x + ".chr", "wb").write(renpy.file(x + ".chr").read())
+            try: renpy.file("../characters/" + x + ".chr")
+            except: open(config.basedir + "/characters/" + x + ".chr", "wb").write(renpy.file(x + ".chr").read())
 
     def restore_all_characters():
         if persistent.playthrough == 0:

@@ -74,24 +74,17 @@ init -20 python:
         ):
 
             """
-            Constructor
-            
-            Feed:
-                id - a unique id for this background. Will raise exceptions if a Location with a duplicate initialized
-                display_name - The translatable name shown to the player.
-                image_directory - Path to images
-                image_failsafe - a dict of image tags with the following keys:
-                    "DAY", "NIGHT", these will have image tags as their values, which should be used to display
-                decoration_permitted - List of strings representing categories for decorations which are supported for this Location
-                    If None, this is set to an empty list. Empty lists mean no decorations are supported
-                    (Default: None)
-                when_enter - Function to run when changing into this Location. If None, nothing is done.
-                    (Default: None)
-                when_leave - Function to run when leaving this Location. If None, nothing is done.
-                    (Default: None)
-            """
+            Constructor for Rooms object.
 
-            # Check it can be loaded.
+            IN:
+                id - str: Unique identifier for the room.
+                display_name - str: Translatable name shown in the UI.
+                image_directory - str: Subdirectory for the images.
+                image_failsafe - dict: Unused failsafe dictionary.
+                decoration_permitted - list of str: Supported decoration categories.
+                when_enter - function: Callback triggered when entering.
+                when_leave - function: Callback triggered when leaving.
+            """
 
             if id in store.fae_rooms.ROOM_DEFS:
                 raise Exception("[ERROR]: A room with id '{0}' already exists.".format(id))
@@ -110,21 +103,15 @@ init -20 python:
             daytime_path = "mod_assets/rooms/{0}/{1}".format(image_directory, id + Rooms.DAY + Rooms.IMG_EXTENSION)
             night_path = "mod_assets/rooms/{0}/{1}".format(image_directory, id + Rooms.NIGHT + Rooms.IMG_EXTENSION)
 
-            # Check if loadable
-
             if not renpy.loadable(daytime_path):
                 raise Exception("[ERROR]: Daytime image ('{0}') is not loadable.".format(daytime_path))
-            # And night
             if not renpy.loadable(night_path):
                 raise Exception("[ERROR]: Nighttime image ('{0}') is not loadable.".format(night_path))
 
-            # Create object
             self.id = id
             self.display_name = display_name
 
-            # Make Daytime tag
             self.daytime_tag = "{0}_day".format(id)
-            # Nighttime tag
             self.nighttime_tag = "{0}_night".format(id)
 
             renpy.image(self.daytime_tag, daytime_path)
@@ -149,15 +136,16 @@ init -20 python:
     class FAERooms(object):
 
         """
-        Main class
+        Main background room manager class.
         """
 
         def __init__(self, fae_sunup, fae_sundown):
-
             """
-            Constructor
+            Constructor for background manager.
 
-            Object managing everything.
+            IN:
+                fae_sunup - int: Hour representing sunrise.
+                fae_sundown - int: Hour representing sunset.
             """
 
             self.room = None
@@ -166,70 +154,57 @@ init -20 python:
             self.fae_sunup = datetime.time(fae_sunup)
             self.fae_sundown = datetime.time(fae_sundown)
 
-            # State
             self.__is_seeing_day = self.is_daytime()
             
-            # Event Handlers
             self.day_to_night_switch = FAEEvent()
-
             self.night_to_day_switch = FAEEvent()
         
         def select_room(self, new_room, **kwargs):
-
             """
-            Sets the location.
+            Sets the active room location without persistence.
 
-            Doesn't persist
-
-            FEED:
-                new_location = new location
-            
+            IN:
+                new_room - Rooms: The new room object to select.
+                **kwargs - Additional arguments passed to the enter callback.
             """
-
 
             if new_room.when_enter is not None:
-
                 new_room.when_enter(self.room, **kwargs)
 
             self.room = new_room
         
         def room_switcher(self, new_room, **kwargs):
-
             """
-            Changer for location
+            Changes location and triggers transition callbacks.
 
-            FEED:
-                new_location = new location
-            
+            IN:
+                new_room - Rooms: The new room object to transition to.
+                **kwargs - Additional arguments passed to callbacks.
             """
 
             if self.room.when_leave is not None:
-
                 self.room.when_leave(new_room, **kwargs)
             
             self.select_room(new_room, **kwargs)
         
 
         def is_daytime(self):
-
             """
-            Checks if it's day at the moment
+            Checks if it is currently daytime.
 
-            RESULT 
-                True if day
-                Otherwise False
-
+            OUT:
+                bool: True if daytime, False otherwise.
             """
 
             return self.fae_sunup <= datetime.datetime.now().time() < self.fae_sundown
         
         def render(self, dissolve_all=False, complete_reset=False):
             """
-            Creates the location
+            Renders the room background.
 
-            FEED:
-                dissolve_all = dissolve everything
-                complete_reset = Do we want to re-render everything?
+            IN:
+                dissolve_all - bool: True to apply dissolve transitions.
+                complete_reset - bool: True to re-render all elements.
             """
 
             renpy.with_statement(None)
@@ -243,15 +218,11 @@ init -20 python:
             if dissolve_all or complete_reset:
                 room = self.room.find_room_now()
             
-            # Draw the room if it's not being shown
             if room is not None:
                 renpy.show(room, tag="main_bg", zorder=FAE_ROOM_ZORDER)
-            
             else:
                 fae_utilities.log("Unable to draw room: no room image was found.")
             
-            # Dissolving everything
-
             if dissolve_all or complete_reset:
                 renpy.hide("black")
                 renpy.with_statement(Dissolve(1.0))
@@ -260,13 +231,12 @@ init -20 python:
         
         def form(self):
             """
-            Draws the location without flashy-washy
+            Draws the location room background instantly without transitions.
             """
 
             room = self.room.find_room_now()
             if room is not None:
                 renpy.show(room, tag="main_bg", zorder=FAE_ROOM_ZORDER)
-            
             else:
                 fae_utilities.log("Unable to show room: no room image was found.")
             
@@ -274,44 +244,42 @@ init -20 python:
         
         def is_seeing_day(self):
             """
-            Check if we're showing the day room
+            Checks if the manager is currently displaying the daytime room background.
+
+            OUT:
+                bool: True if seeing day, False otherwise.
             """
 
             return self.__is_seeing_day
         
         def reset_checker(self):
             """
-            Check if we need to reset for time change.
+            Checks if the active background needs to change due to day/night time cycles.
             """
 
-            # If it's day and we're showing the night room, we need to reset
             if self.is_daytime() and self.__is_seeing_day is False:
                 self.__is_seeing_day = True
-                # self.form(dissolve_all=True)
                 self.render(dissolve_all=True)
-
-                # Run events
                 self.night_to_day_switch()
             
-            # If it's night and we're showing the day room we should reset
             elif not self.is_daytime() and self.__is_seeing_day is True:
                 self.__is_seeing_day = False
-                # self.form(dissolve_all=True)
                 self.render(dissolve_all=True)
-
-                # Run event
                 self.day_to_night_switch()
         
         def save(self):
             """
-            Saves room related into persistent
+            Saves the active room ID to persistent storage.
             """
 
             persistent._present_room = self.room.id
 
         def transition_to_room(self, trans=Dissolve(1.0)):
             """
-            Shows the current room with a transition, correctly replacing the old one.
+            Shows the current room background with a specified transition.
+
+            IN:
+                trans - Transition: Ren'Py transition effect to apply.
             """
             current_room_tag = self.room.find_room_now()
             
@@ -323,17 +291,15 @@ init -5 python in fae_rooms:
 
     def register_room(id, image_directory, **kwargs):
         """
-        Public helper so submods can add rooms safely...
-        Usage (in any submod .rpy):
-            init 5 python:
-                import store.fae_rooms as fr
-                fr.register_room("forest", "forest")
-        Expects files:
-            mod_assets/rooms/{image_directory}/{id}-day.png
-            mod_assets/rooms/{image_directory}/{id}-night.png
-        Real Example:
-            mod_assets/rooms/forest/forest-night.png
-            mod_assets/rooms/forest/forest-night.png
+        Registers a custom room background.
+
+        IN:
+            id - str: Unique identifier for the room.
+            image_directory - str: Subdirectory for the images.
+            **kwargs - Optional keyword arguments passed to the Rooms constructor.
+
+        OUT:
+            Rooms: The registered room object.
         """
         if id in ROOM_DEFS:
             return ROOM_DEFS[id]
@@ -385,15 +351,26 @@ init 100 python:
     else:
         main_background.day_to_night_switch()
 
-##### BGs selector
 default bg_selected_index = 0
 
 init -1 python:
     def _bg_get_rooms():
+        """
+        Retrieves all registered room background objects, sorted by ID.
+
+        OUT:
+            list of Rooms: Sorted list of Rooms objects.
+        """
         import store
         return sorted(store.fae_rooms.ROOM_DEFS.values(), key=lambda r: r.id)
 
     def _bg_apply(room_obj):
+        """
+        Switches the active room background and saves it to persistent storage.
+
+        IN:
+            room_obj - Rooms: The new room object to apply.
+        """
         import store
         store.main_background.room_switcher(room_obj)
         store.main_background.save()

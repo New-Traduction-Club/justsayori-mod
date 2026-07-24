@@ -1,6 +1,12 @@
 #Tic-Tac-Toe
 init 10 python:
     def ttt_prep(self, restart = False, *args, **kwargs):
+        """
+        Prepares and initializes the Tic-Tac-Toe game state.
+
+        IN:
+            restart - bool: True if restarting the game, preserving current scores.
+        """
         self.field = [None] * 9 #True = Cross, False = Circle, None = Empty
         self.playerTurn = True
         self.state = 0 #0 = game not over, 1 = 45deg line, 2 = 135deg line; 3+x = vert. line on the x-th column,
@@ -9,7 +15,24 @@ init 10 python:
         if not restart:
             self.score = [0, 0] #score[0] = Sayori's score (); score[1] = Player's score
             
-            def ttt_check_line(id): # 1 = 45deg line, 2 = 135deg line; 3+x = vert. line on the x-th column, 6+y hor. line on the y-th row, 0 = whole field
+            def ttt_check_line(id):
+                """
+                Checks the state of a specific line (diagonal, vertical, horizontal, or whole board).
+
+                IN:
+                    id - int: Line identifier:
+                        0 = whole field
+                        1 = 45-degree diagonal line
+                        2 = 135-degree diagonal line
+                        3+x = vertical line on column x
+                        6+y = horizontal line on row y
+
+                OUT:
+                    tuple: (clt, crt, t_ids) containing:
+                        clt - int: Count of circle (Sayori's) tiles in the line.
+                        crt - int: Count of cross (Player's) tiles in the line.
+                        t_ids - list of int: Indices of tiles making up the line.
+                """
                 t_ids = None
                 if id == 0:
                     tiles = range(9)
@@ -34,6 +57,16 @@ init 10 python:
                 return clt, crt, t_ids 
             
             def ttt_new_state():
+                """
+                Determines the current game state by scanning all lines for a win or checking for a draw.
+
+                OUT:
+                    int: The new state value:
+                        0 = game not over/active
+                        1 to 8 = Sayori won (circle) on line ID
+                        -1 to -8 = Player won (cross) on line ID
+                        9 = draw
+                """
                 for i in range(1, 9):
                     clt, crt = ttt_check_line(i)[:2]
                     if clt == 3:
@@ -47,6 +80,12 @@ init 10 python:
                 return 9
             
             def ttt_turn(i):
+                """
+                Handles a player or AI turn, placing a figure on the board, updating the state, and playing sound.
+
+                IN:
+                    i - int: Linear index of the clicked tile (0-8).
+                """
                 if ttt.state == 0 and ttt.field[i] is None:
                     ttt.field[i] = ttt.playerTurn
                     ttt.playerTurn = not ttt.playerTurn
@@ -62,6 +101,9 @@ init 10 python:
                         renpy.call_in_new_context("mg_ttt_s_turn")
                     
             def ttt_check_state():
+                """
+                Verifies the current game state and triggers reactions or restarts if the game has ended.
+                """
                 if ttt.state != 0:
                     if abs(ttt.state) < 9:
                         renpy.call_in_new_context("mg_ttt_s_comment", ttt.state < 0)
@@ -75,7 +117,7 @@ init 10 python:
             
             def ttt_ai():
                 """
-                Simple AI priority:
+                Executes Sayori's AI turn using a priority-based rule system:
                 1. Complete its own line (w_lines)
                 2. Block opponent (l_lines)
                 3. Extend a friendly line (f_lines)
@@ -132,9 +174,22 @@ init 11 python:
     # Wrapper object so calls to work
     class TTTWrapper(object):
         def __call__(self, restart=False, winner=None):
+            """
+            Forwards execution to the game preparation function.
+
+            IN:
+                restart - bool: True if restarting the game, preserving current scores.
+                winner - bool/int: The winner index.
+            """
             # Forward to prep function
             ttt_prep(self, restart, winner=winner)
         def set_state(self, val):
+            """
+            Sets the game state to the specified value.
+
+            IN:
+                val - int: The target state value.
+            """
             self.state = val
 
     # Ensure global exists even on first init pass (default is too late)
@@ -165,12 +220,16 @@ image ttt_circle:
         alpha 0.0
         linear 0.25 alpha 1.0
 
-screen mg_ttt_grid(): #3x3 grid with 184x184px tiles
+## Tic-Tac-Toe Grid Screen ####################################################
+## Renders the grid lines on paper background.
+screen mg_ttt_grid():
     add "paper" xalign 0.5
     for i in range(2):
         add "line_black" pos (360, 260 + 192*i) zoom 0.8
         add "line_black" pos (260 + 192*i, 80) rotate 90 zoom 0.8
 
+## Tic-Tac-Toe Play Screen ####################################################
+## Displays the main game screen, game pieces, buttons for cells, score, and controls.
 screen mg_ttt_scr():
     layer "master"
     zorder 5
@@ -230,6 +289,7 @@ screen mg_ttt_scr():
         textbutton _("Quit (Q)") xpadding 0 xsize 200 keysym 'q' action Jump("mg_ttt_quit")
     
 
+## Main entry label to start the Tic-Tac-Toe minigame.
 label mg_ttt(mg_obj=None):
     #$justIsSitting = False
     $ js_update_rpc(state="Playing Tic Tac Toe")
@@ -240,7 +300,9 @@ label mg_ttt(mg_obj=None):
     call screen mg_ttt_scr() nopredict
     return
 
-label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat, 2 = draw, 3 = restart
+## Handles Sayori's reaction comments based on the end-game state or actions.
+## id: 0 = Sayori victory, 1 = Player victory, 2 = draw, 3 = restart
+label mg_ttt_s_comment(id = 0):
     if id == 0: # If sayori wins
         $ random_id = renpy.random.randint(0, 2)
         if random_id == 0:
@@ -282,6 +344,7 @@ label mg_ttt_s_comment(id = 0): #Sayori's comment; 0/1 = Sayori's victory/defeat
             s cbhhag "But I'll be this round's winner."
     return
 
+## Event label representing the AI thinking time and move execution.
 label mg_ttt_s_turn:
     show sayori abaaaa zorder 2 at i44
     python:
@@ -292,6 +355,7 @@ label mg_ttt_s_turn:
     pause 0.25
     return
     
+## Exit cleanup label for Tic-Tac-Toe.
 label mg_ttt_quit:
     $ js_update_rpc(state="In the spaceroom")
     hide screen mg_ttt_scr

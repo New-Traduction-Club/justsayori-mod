@@ -7,10 +7,12 @@ init -999 python:
 
     def _migrate_persistent_data_v8():
         """
-        A more robust and user-friendly persistent data migration system for RenPy 8 (python 3).
-        """
+        Migrates Ren'Py 7 (Python 2) persistent data to Ren'Py 8 (Python 3) format.
 
-        # Attributes we do not want to migrate, these are usually internal to renpy or specific to a version
+        NOTE:
+            Uses zlib decompression and python 2 pickle reading with 'latin1' encoding.
+            Excludes certain built-in and platform-specific Ren'Py attributes.
+        """
         EXCLUDED_ATTRIBUTES = {
             '_version',
             '_renpy_version',
@@ -28,7 +30,6 @@ init -999 python:
         old_persistent_path = os.path.join(renpy.config.savedir, "persistent")
         migrated_marker_path = os.path.join(renpy.config.savedir, "persistent.migrated")
 
-
         if not os.path.exists(old_persistent_path) or os.path.exists(migrated_marker_path):
             if not os.path.exists(old_persistent_path) and not renpy.config.developer:
                 print("No 'persistent' file found to migrate. Skipping.")
@@ -40,14 +41,11 @@ init -999 python:
         try:
             with open(old_persistent_path, 'rb') as f:
                 data = f.read()
-                # renpy 7 (py2) data is compressed with zlib
                 data = zlib.decompress(data)
-                # Its crucial to use encoding='latin1' to read python 2 pickles in python 3
                 old_persistent = pickle.loads(data, encoding='latin1')
 
         except (pickle.UnpicklingError, zlib.error, EOFError, ImportError, AttributeError) as e:
             print("Error loading old 'persistent' file. It may be corrupt or incompatible. Error: %s", e)
-            # rename the problematic file to avoid retrying
             try:
                 os.rename(old_persistent_path, old_persistent_path + ".corrupt")
                 print("Old 'persistent' file has been renamed to 'persistent.corrupt'.")

@@ -16,20 +16,20 @@ transform outfit_preview_thumb_small(w, h):
     truecenter
     zoom 0.8
 
+## Outfit Changer screen #######################################################
+## This screen displays a user interface for selecting, previewing, and
+## applying clothes, hairstyles, and accessories to Sayori.
 screen outfit_changer():
     tag menu
 
     style_prefix "outfit"
 
-    # Get all wearable data and set the initial category when the screen starts
     default categorized_wearables = fae_outfit_logic.get_categorized_wearables()
     default first_category_with_items = next((cat for cat, items in sorted(categorized_wearables.items()) if items), None)
     default current_category = first_category_with_items
 
-    # This will hold the data of the item the user clicks on
     default selected_wearable = None
 
-    # This will track all items applied during the session
     default changed_items_list = []
 
     add Solid("#000000cc")
@@ -38,7 +38,6 @@ screen outfit_changer():
         hbox:
             spacing 30
 
-            # Column 1: Outfit cards
             vbox:
                 xsize 700
                 label _("Select an item") style "outfit_hub_title"
@@ -60,7 +59,6 @@ screen outfit_changer():
 
                                     vbox:
                                         spacing 8
-                                        # Use the dynamic preview generator
                                         add fae_outfit_logic.generate_preview_for_wearable(wearable_data) at outfit_preview_thumb(180, 180):
                                             xalign 0.5
 
@@ -69,14 +67,11 @@ screen outfit_changer():
                         else:
                             text _("No items in this category.") style "outfit_detail_desc" xalign 0.5
 
-            # Column 2: Details and preview
             vbox:
                 style "outfit_details_vbox"
                 if selected_wearable:
-                    # Display details of the selected item
                     text selected_wearable["display_name"] style "outfit_detail_title"
 
-                    # Big preview
                     frame style "outfit_detail_preview_frame":
                         add fae_outfit_logic.generate_preview_for_wearable(selected_wearable) at outfit_preview_thumb_small(226, 226):
                             zoom 1.0
@@ -84,7 +79,6 @@ screen outfit_changer():
                     text "by [selected_wearable['author']]" style "outfit_detail_desc"
 
                     null height 15
-                    # Button to apply the option
                     textbutton _("Apply") style "big_play_button" text_style "big_play_button_text" action [
                         Function(exec_outfit_change_persistent, wearable_ref=selected_wearable['reference_name'], category=current_category),
                         Function(Sayori.save_outfit_to_persistent),
@@ -101,12 +95,10 @@ screen outfit_changer():
                     Return(changed_items_list)
                 ]
 
-            # Column 3: Navigation menu
             vbox:
                 style "outfit_nav_vbox"
                 label _("Categories") style "outfit_hub_title"
                 for category_name in sorted(categorized_wearables.keys()):
-                    # Use the translatable name from the dictionary
                     $ display_name = fae_outfits.WEARABLE_CATEGORY_NAMES.get(category_name, category_name.capitalize())
                     if categorized_wearables[category_name]:
                         textbutton display_name action [SetScreenVariable("current_category", category_name), SetScreenVariable("selected_wearable", None)] style "outfit_nav_button" text_style "outfit_nav_button_text" selected (current_category == category_name)
@@ -116,14 +108,16 @@ init -1 python:
 
     def exec_outfit_change_persistent(wearable_ref, category):
         """
-        Finds the wearable object, applies it to the current outfit, and saves the entire outfit to persistent data
+        Finds a wearable, applies it to the current outfit, and saves it to persistent data.
+
+        IN:
+            wearable_ref - str: The reference name of the wearable to apply.
+            category - str: The category of the wearable (e.g. 'clothes', 'hairstyle').
         """
         wearable_obj = fae_outfits.get_wearable(wearable_ref)
         if wearable_obj:
-            # Apply to the current outfit for immediate visual change
             setattr(store.Sayori._outfit, category, wearable_obj)
 
-            # Directly update all persistent variables based on the now-current outfit
             if store.Sayori._outfit:
                 persistent.sayo_hairstyle = store.Sayori._outfit.hairstyle.reference_name if store.Sayori._outfit.hairstyle else None
                 persistent.sayo_clothes = store.Sayori._outfit.clothes.reference_name if store.Sayori._outfit.clothes else None
