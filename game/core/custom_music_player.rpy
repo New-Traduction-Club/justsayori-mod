@@ -23,11 +23,7 @@ init -1 python:
             {"name": "My Feelings", "path": "mod_assets/bgm/My Feelings.ogg", "author": "Dan Salvato"},
             {"name": "My Confession", "path": "mod_assets/bgm/My Confession.ogg", "author": "Dan Salvato"},
             {"name": "Ohayou Sayori", "path": "mod_assets/bgm/Ohayou Sayori.ogg", "author": "Dan Salvato"},
-            {"name": "Play With Me", "path": "mod_assets/bgm/Play With Me.ogg", "author": "Dan Salvato"},
-            {"name": "For my Rush", "path": "mod_assets/bgm/For my Rush.ogg", "author": "just6889"},
-            {"name": "Luna de miel", "path": "mod_assets/bgm/Luna de miel.ogg", "author": "just6889"},
-            {"name": "My new start", "path": "mod_assets/bgm/My new start.ogg", "author": "just6889"},
-            {"name": "Our Future", "path": "mod_assets/bgm/Our Future.ogg", "author": "just6889"}
+            {"name": "Play With Me", "path": "mod_assets/bgm/Play With Me.ogg", "author": "Dan Salvato"}
         ]
         
         all_songs = list(default_songs)
