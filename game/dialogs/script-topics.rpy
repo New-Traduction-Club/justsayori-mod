@@ -528,7 +528,7 @@ label s_topic_pronouns_redux:
             $ persistent.gender = "F"
         "They/Them":
             s abgbcoa "Alright! From now on I’ll use {i}They/Them{/i}."
-            $ persisten.gender = "X"
+            $ persistent.gender = "X"
     s abhfaoa "And of course if you’d ever like me to use different ones, just ask!"
     s abgbaaa "The most important thing for me is that you’re comfortable expressing yourself."
     $ fae_set_pronouns()
