@@ -1,15 +1,15 @@
 default persistent.js_music_player_tutorial_seen = False
 
-# Defines a dedicated audio channel for the music player to avoid conflicts
 init python:
     renpy.music.register_channel("custom_music", mixer="music", loop=True)
 
 init -1 python:
     import os
 
-    # Function to scan and load songs
     def scan_for_music():
-        # Ensures that persistent variables exist
+        """
+        Scans the custom_bgm folder and populates the music list.
+        """
         if not hasattr(persistent, 'music_playlist'):
             persistent.music_playlist = []
         if not hasattr(persistent, 'current_song_index') or persistent.current_song_index is None:
@@ -17,8 +17,6 @@ init -1 python:
         if not hasattr(persistent, 'music_is_playing'):
             persistent.music_is_playing = False
 
-        ##### Default Songs
-        # These are the songs that will be included in the mod
         default_songs = [
             {"name": "Daijoubu!", "path": "mod_assets/bgm/Daijoubu.ogg", "author": "Dan Salvato"},
             {"name": "Okay everyone (Sayori)", "path": "mod_assets/bgm/Okay Everyone -Sayori- --- Dan Salvato.ogg", "author": "Dan Salvato"},
@@ -35,31 +33,28 @@ init -1 python:
         all_songs = list(default_songs)
         known_paths = {song['path'] for song in all_songs}
 
-        # Search in the custom folder
-        # only in /game/custom_bgm
         custom_folder = os.path.join(config.gamedir, 'custom_bgm')
 
         if os.path.isdir(custom_folder):
-            # Ren'Py supports .ogg, .opus, .mp3, and .wav for music channels
             supported_formats = ('.ogg', '.opus', '.mp3', '.wav', '.mp2', '.flac')
             for filename in os.listdir(custom_folder):
                 if filename.lower().endswith(supported_formats):
-                    # Generates a readable song name from the filename
                     song_name = os.path.splitext(filename)[0].replace('_', ' ').title()
-                    
-                    # Builds the relative path that Renpy can use
                     song_path = "custom_bgm/" + filename
 
                     if song_path not in known_paths:
-                        # Custom songs wontt have an author key, it will be handled in the screen
                         all_songs.append({"name": song_name, "path": song_path})
                         known_paths.add(song_path)
         
         persistent.music_playlist = all_songs
 
-    # Music Control Functions (Now using the 'custom_music' channel)
     def play_music_at_index(index):
-        """Plays a song from the list by its index."""
+        """
+        Plays a song from the playlist by its index.
+
+        IN:
+            index - int: The position of the song in the playlist.
+        """
         if 0 <= index < len(persistent.music_playlist):
             persistent.current_song_index = index
             song = persistent.music_playlist[index]
@@ -67,12 +62,16 @@ init -1 python:
             persistent.music_is_playing = True
 
     def stop_custom_music():
-        """Stops the music with a fadeout."""
+        """
+        Stops the current custom music playback with a fadeout.
+        """
         renpy.music.stop(channel="custom_music", fadeout=1.0)
         persistent.music_is_playing = False
 
     def toggle_music_pause():
-        """Pauses or resumes the current song."""
+        """
+        Pauses or resumes the currently playing song on the custom music channel.
+        """
         if renpy.music.get_playing(channel="custom_music"):
             is_paused = renpy.music.get_pause(channel="custom_music")
             renpy.music.set_pause(not is_paused, channel="custom_music")
@@ -81,13 +80,17 @@ init -1 python:
             play_music_at_index(persistent.current_song_index)
 
     def next_song():
-        """Skips to the next song in the list."""
+        """
+        Skips to the next song in the playlist.
+        """
         if persistent.music_playlist:
             next_index = (persistent.current_song_index + 1) % len(persistent.music_playlist)
             play_music_at_index(next_index)
 
     def prev_song():
-        """Goes to the previous song in the list."""
+        """
+        Goes to the previous song in the playlist.
+        """
         if persistent.music_playlist:
             prev_index = (persistent.current_song_index - 1) % len(persistent.music_playlist)
             play_music_at_index(prev_index)
@@ -95,26 +98,22 @@ init -1 python:
 init 5 python:
     def resume_music_on_start():
         """
-        Scans for music and resumes the last played song if music was playing
-        when the game was last closed.
+        Resumes the last playing song when the game launches if it was playing previously.
         """
-        # Eensure the playlist is loaded from files
         scan_for_music()
         
-        # Check if music was playing and if theres a playlist
         if getattr(persistent, 'music_is_playing', False) and persistent.music_playlist:
             index = getattr(persistent, 'current_song_index', 0)
             
-            # Check if the saved index is valid for the current playlist
             if 0 <= index < len(persistent.music_playlist):
                 play_music_at_index(index)
-            # If the index is invalid (e.g., songs were removed), just play the first song
             else:
                 play_music_at_index(0)
 
-    # Register the function to be called when the game starts
     config.start_callbacks.append(resume_music_on_start)
 
+## Music Player Screen #################################################
+## Provides playing, pausing, and skipping music tracks.
 screen modern_music_player():
     zorder 100
     tag menu
@@ -171,19 +170,16 @@ screen modern_music_player():
                     hover_sound gui.hover_sound
                     activate_sound gui.activate_sound
 
-# The main container
 style music_player_frame:
     background Solid("#1a1a1ae0")
     padding (30, 30)
     xsize 1100
     ysize 620
 
-# VBox for the left column (playlist)
 style music_player_vbox:
     spacing 15
-    xsize 680 # Width for the left column
+    xsize 680
 
-# The title "Music Player"
 style music_player_title:
     size 36
     color "#ffffff"
@@ -191,7 +187,6 @@ style music_player_title:
     xalign 0.5
     bottom_margin 10
 
-# The song list viewport
 style music_list_viewport:
     xsize 680
     ysize 400
@@ -199,9 +194,8 @@ style music_list_viewport:
 style music_list_vbox:
     spacing 8
 
-# Styles for the song buttons
 style music_button is default:
-    xsize 660 # Adjusted for new viewport width
+    xsize 660
     background Solid("#00000040")
     hover_background Solid("#ffffff20")
 
@@ -211,19 +205,16 @@ style music_button_text is button_text:
     hover_color "#ffbde1"
     font "mod_assets/fonts/Fantasque/FantasqueSansMono-Regular.ttf"
 
-# Special style for the currently playing song
 style music_button_text_playing is music_button_text:
     color "#f988c5"
     bold True
 
-# Container for the control buttons
 style music_controls_hbox:
     spacing 0
     xalign 0.5
     yalign 0.5
     top_margin 10
 
-# Styles for the control buttons
 style music_control_button is button:
     background None
     hover_background None
@@ -233,7 +224,6 @@ style music_control_button_text is button_text:
     color "#e0e0e0"
     hover_color "#f988c5"
 
-# Style for the close button
 style music_player_close_button:
     xalign 0.5
     top_margin 20
@@ -244,7 +234,6 @@ style music_player_close_button:
 style music_player_close_button_text is music_button_text:
     size 22
 
-# For the Right Column
 style song_info_vbox:
     xalign 0.5
     yalign 0.5
