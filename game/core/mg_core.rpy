@@ -309,3 +309,12 @@ init 10 python:
             unlocked=lambda: getattr(store, "stein_native_available", False),
             description=_("Now in 3D!")
         )
+
+    # TODO: add a cover
+    if not any(g.label == "mg_nau" for g in _MG_OBJECTS):
+        register_minigame(
+            label="mg_nau",
+            name=_("NAU"),
+            image="mod_assets/images/minigames/covers/reversi_cover.png",
+            unlocked=True
+        )
