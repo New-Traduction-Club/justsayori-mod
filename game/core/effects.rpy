@@ -71,7 +71,7 @@ init -2 python:
         def update(self, st):
             st = st % (self.offTime + self.onTime)
             if st > self.offTime and self.offset == 0:
-                self.offset = random.randint(self.offsetMin, self.offsetMax)
+                self.offset = random.randint(int(self.offsetMin), int(self.offsetMax))
             elif st <= self.offTime and self.offset != 0:
                 self.offset = 0
 
@@ -90,9 +90,9 @@ init -2 python:
             else: self.srf = srf
             
             self.pieces = []
-            tearpoints = [0, self.height]
+            tearpoints = [0, int(self.height)]
             for i in range(number):
-                tearpoints.append(random.randint(10, self.height - 10))
+                tearpoints.append(random.randint(10, int(self.height) - 10))
             tearpoints.sort()
             for i in range(number+1):
                 self.pieces.append(TearPiece(tearpoints[i], tearpoints[i+1], offtimeMult, ontimeMult, offsetMin, offsetMax))

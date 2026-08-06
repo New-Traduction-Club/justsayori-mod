@@ -7570,7 +7570,7 @@ translate spanish s_topics_location_bffac00b:
 translate spanish s_topics_location_6f7bad2c:
 
     # s abbdaoa "But I suppose that gives me more room to use my imagination! {w=0.5}{nw}"
-    s abbdaoa "¡Pero supongo que eso me da más pie a usar mi imaginación! {w=0.auto}{nw}"
+    s abbdaoa "¡Pero supongo que eso me da más pie a usar mi imaginación! {w=0.5}{nw}"
 
 # game/dialogs/script-topics.rpy:3269
 translate spanish s_topics_location_7537962d:
