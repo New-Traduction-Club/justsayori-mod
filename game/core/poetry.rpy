@@ -97,16 +97,26 @@ python early:
 
 init python:
 
-    if persistent._poem_trans_db is None:
-        persistent._poem_trans_db = {}
+    persistent._poem_trans_db = {}
 
-    def reg_poem_trans(original_poem_name, translated_poem):
+    def reg_poem_trans(original_poem_name, translated_poem, lang=None):
         """
         Registers a translated poem.
         original_poem_name: The variable name of the original poem (like: "poem_sunshine").
         translated_poem: The poem object for the translation.
+        lang: Language string (e.g. "chinese", "spanish", "ptbr", "ru"). If None, inferred from poem name or active language.
         """
-        lang = persistent.language
+        if lang is None:
+            for name, obj in globals().items():
+                if obj is translated_poem:
+                    for prefix in ("chinese_", "spanish_", "ptbr_", "ru_"):
+                        if name.startswith(prefix):
+                            lang = prefix.rstrip("_")
+                            break
+                    break
+        if lang is None:
+            lang = persistent.language or _preferences.language
+
         if lang and lang != "english":
             persistent._poem_trans_db.setdefault(lang, {})[original_poem_name] = translated_poem
     author_s = Author("sayori")
@@ -168,7 +178,7 @@ init python:
         if poem is None:
             return
         
-        lang = persistent.language
+        lang = persistent.language or _preferences.language
         if lang and lang != "english":
             # attempt to find the original poems variable name
             original_poem_name = None

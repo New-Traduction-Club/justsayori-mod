@@ -66,3 +66,7 @@ translate chinese style notify_text:
 
 translate chinese style poemgame_text:
     font "mod_assets/fonts/NotoSansSC-Regular.ttf"
+
+translate chinese style sayori_text:
+    font "mod_assets/fonts/NotoSansSC-Regular.ttf"
+    size 22
