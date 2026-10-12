@@ -278,6 +278,8 @@ label splashscreen:
         $ renpy.change_language("spanish")
     elif persistent.language == "english":
         $ renpy.change_language(None)
+    elif persistent.language == "chinese":
+        $ renpy.change_language("chinese")
 
     python:
         if RELOADCHECK():
