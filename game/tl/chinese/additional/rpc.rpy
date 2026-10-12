@@ -4,5 +4,5 @@ translate chinese strings:
 
     # game/additional/rpc.rpy:15
     old "Spending Time With Sayori"
-    new ""
+    new "与纱世里共度时光"
 

@@ -4,5 +4,5 @@ translate chinese strings:
 
     # game/mod_extras/gallery.rpy:182
     old "Gallery"
-    new ""
+    new "相册"
 

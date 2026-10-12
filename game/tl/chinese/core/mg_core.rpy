@@ -4,17 +4,17 @@ translate chinese strings:
 
     # game/core/mg_core.rpy:199
     old "No minigames registered."
-    new ""
+    new "未注册小游戏。"
 
     # game/core/mg_core.rpy:212
     old "Ready to play!"
-    new ""
+    new "准备开玩！"
 
     # game/core/mg_core.rpy:217
     old "Select a game"
-    new ""
+    new "选择游戏"
 
     # game/core/mg_core.rpy:237
     old "Tic Tac Toe"
-    new ""
+    new "井字棋"
 

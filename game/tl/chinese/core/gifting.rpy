@@ -4,41 +4,41 @@
 translate chinese fae_cookies_168dfbd7:
 
     # s abhfaaa "I found cookies!"
-    s abhfaaa ""
+    s abhfaaa "我找到曲奇了！"
 
 # game/core/gifting.rpy:42
 translate chinese fae_cookies_c91a3f07:
 
     # s "Yum!"
-    s ""
+    s "豪赤！"
 
 # game/core/gifting.rpy:52
 translate chinese fae_otter_88f4ce7b:
 
     # s "I found an otter!"
-    s ""
+    s "我找到水獭了！"
 
 # game/core/gifting.rpy:54
 translate chinese fae_otter_18cfde96:
 
     # s "She's so cute!"
-    s ""
+    s "她真的好可爱！"
 
 # game/core/gifting.rpy:73
 translate chinese fae_chibi_eba34ea3:
 
     # s "Awwww"
-    s ""
+    s "啊啊啊……"
 
 # game/core/gifting.rpy:74
 translate chinese fae_chibi_18cfde96:
 
     # s "She's so cute!"
-    s ""
+    s "她好可爱！"
 
 # game/core/gifting.rpy:80
 translate chinese fae_no_gift_af0424c1:
 
     # s "I didn't find anything!"
-    s ""
+    s "我什么都没找到！"
 

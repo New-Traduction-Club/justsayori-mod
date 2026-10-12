@@ -4,17 +4,17 @@ translate chinese strings:
 
     # game/core/outfit_screen.rpy:44
     old "Select an item"
-    new ""
+    new "选择一件饰品"
 
     # game/core/outfit_screen.rpy:70
     old "No items in this category."
-    new ""
+    new "此分类下没有饰品。"
 
     # game/core/outfit_screen.rpy:88
     old "Apply"
-    new ""
+    new "应用"
 
     # game/core/outfit_screen.rpy:108
     old "Categories"
-    new ""
+    new "分类"
 

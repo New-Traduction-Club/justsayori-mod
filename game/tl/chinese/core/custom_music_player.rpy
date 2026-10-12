@@ -4,5 +4,5 @@ translate chinese strings:
 
     # game/core/custom_music_player.rpy:259
     old "Music Player"
-    new ""
+    new "音乐播放器"
 

@@ -3,70 +3,79 @@ init 1 python:
         author_s,
         title=_(""),
         text=_("""\
-Hi
-Not dead
-Taking a very long nap\n
--Sayori (alive)"""
+嗨
+没死呢
+在睡很长很长的觉呢\n
+—纱世里（存活中）"""
         )
     )
 
 
     chinese_poem_sunshine = Poem(
         author_s,
-        title =_("Dear Sunshine"),
+        title =_("美妙阳光"),
         text = _("""\
-The way you glow through my blinds in the morning
-It makes me feel like you missed me.
-Kissing my forehead to help me out of bed.
-Making me rub the sleepy from my eyes.
-Are you asking me to come out and play?
-Are you trusting me to wish away a rainy day?
-I look above. The sky is blue.
-It's a secret, but I trust you too.
-If it wasn't for you, I could sleep forever.
-But I'm not mad.
-I want breakfast."""
+清晨你透过梦境照亮我的世界
+似乎在传达对我的思念
+亲吻前额催促我坐起
+帮我的眼睛擦去睡意
+
+是在邀请我出门散心？
+是在鼓励我拭去阴云？
+我抬起头，天空正蓝
+你当做秘密，而我信任你
+
+若不是因为你，我将会长眠
+但，我没疯。
+
+该去准备早餐了"""
         )
     )
 
 
     chinese_poem_bottles = Poem(
         author_s,
-        title = _("Bottles"),
+        title = _("瓶子"),
         text = _("""\
-I pop off my scalp like the lid of a cookie jar.
-It's the secret place where I keep all my dreams.
-Little balls of sunshine, all rubbing together like a bundle of kittens.
-I reach inside with my thumb and forefinger and pluck one out.
-It's warm and tingly.
-But there's no time to waste! I put it in a bottle to keep it safe.
-And I put the bottle on the shelf with all of the other bottles.
-Happy thoughts, happy thoughts, happy thoughts in bottles, all in a row.
-My collection makes me lots of friends.
-Each bottle a starlight to make amends.
-Sometimes my friend feels a certain way.
-Down comes a bottle to save the day.
-Night after night, more dreams.
-Friend after friend, more bottles.
-Deeper and deeper my fingers go.
-Like exploring a dark cave, discovering the secrets hiding in the nooks and crannies.
-Digging and digging.
-Scraping and scraping.
-I blow dust off my bottle caps.
-It doesn't feel like time elapsed.
-My empty shelf could use some more.
-My friends look through my locked front door.
-Finally, all done. I open up, and in come my friends.
-In they come, in such a hurry. Do they want my bottles that much?
-I frantically pull them from the shelf, one after the other.
-Holding them out to each and every friend.
-Each and every bottle.
-But every time I let one go, it shatters against the tile between my feet.
-Happy thoughts, happy thoughts, happy thoughts in shards, all over the floor.
-They were supposed to be for my friends, my friends who aren't smiling.
-They're all shouting, pleading. Something.
-But all I hear is echo, echo, echo, echo, echo
-Inside my head."""
+我像曲奇罐的盖子一样揭开了我的头
+这是个我存放了一切梦想的地方
+阳光小球，像是群猫咪一般蹭成团
+我伸出手，拇指和食指挑出一颗
+它温暖而又惬意
+但没时间可浪费了！我把它封存在瓶中
+摆满瓶子的架上收藏又多了一个
+快乐的情绪，快乐的情绪，快乐的情绪在瓶中，排排坐
+
+我的收藏带给我朋友
+每瓶的星光都能拯救
+朋友不时会有伤心
+那就用一瓶来挽救
+
+夜复一夜，更多梦
+友去友来，更多瓶
+我的手指越来越深入
+就像探索黑暗的洞穴，寻找角落和裂缝中的秘密
+挖啊挖
+擦啊擦
+
+我吹去瓶盖上的灰
+似乎时间并未流逝
+我那空荡荡的架子本该用到更多
+我的朋友从锁着的门前看了看我
+
+朋友们蜂拥而入，在我准备万全的刹那
+行色匆匆，我的收藏如此令人依赖吗
+
+我狂热地将它们拉下来，一个接一个
+将它们分发给每一个密友，一个不漏
+每个瓶子，一个不漏
+可每当我松手，瓶子就粉碎在我的脚下
+快乐的情绪，快乐的情绪，快乐的情绪在地上，碎开成了花
+
+它们是为我的朋友准备的，为陷入低谷的朋友
+她们全部在嘶吼，在抱怨，在恳求
+但我听到的只有回声回声回声回声
+在脑海响彻"""
         )
     )
 
@@ -74,16 +83,17 @@ Inside my head."""
 
     chinese_poem_flower = Poem(
         author_s,
-        title = _("The Last Flower"),
+        title = _("最后的花朵"),
         text=("""\
-Between my feet
-The last remaining flower beckons me.
-I twist the stem, freeing it from its clinging roots
-Caressing the final joyous moment between my fingers.
-But to what ends have I summoned this joy?
-For now when I look in every direction
-The once-prosperous field before me
-Is but a barren wasteland!"""
+在我的脚下
+那最后一朵花召唤着我。
+我扭断枝干，解除根的束缚
+享受着这指尖的愉悦。
+
+但是快乐的代价是什么呢？
+我望向四周
+眼前那片曾经繁荣的原野
+已是一片荒原！"""
         )
     )
 
@@ -93,42 +103,46 @@ Is but a barren wasteland!"""
         author_s,
         title = _("%"),
         text = _("""\
-Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of my head. Get out of
-Get.
-Out.
-Of.
-My.
-Head.\n\n\n
-Get out of my head before I do what I know is best for you.
-Get out of my head before I listen to everything she said to me.
-Get out of my head before I show you how much I love you.
-Get out of my head before I finish writing this poem.\n\n\n\n\n\n\n
-But a poem is never actually finished.
-It just stops moving."""
+滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的脑子。滚出我的
+滚。
+出。
+我。
+的。
+脑。
+子。\n\n\n
+在我做对你最好的事前滚出我的脑子。
+在我听她说任何事之前滚出我的脑子。
+在我表示我多么爱你前滚出我的脑子。
+在我写完这首诗前请你滚出我的脑子。
+但是这首诗永远无法完结。\n\n\n\n\n\n\n
+它只会暂停。"""
         )
     )
 
 
     chinese_poem_fruits = Poem(
         author_s,
-        title = _("Fruits of life"),
+        title = _("生命之果"),
         text = _("""\
-The universe gives fruits of life to all of us.
-They all have diverse sizes and shapes.
-But no-one knows their real taste,
-Because each person tastes them in their own way.
-Some people can only feel a bitter taste,
-even if their fruit is one of the best ones.
-Others feel they are sweet and very tasty,
-Whatever fruit it may be that they have got in their hands.
-For me, they taste like liquorice sweets.
-I needed time to understand how sweet they really are,
-To get rid of those unpleasant feelings,
-Which I got after my first bites.
-Now, all I want is to eat my own fruit
-With the person who helped me find their real taste.
-But I shouldn’t forget to do my real job here:
-Finding a way to make others taste their fruits the same."""
+宇宙给予人类生命的果实
+它们形形色色
+但没人知道它们究竟是何种味道
+因为大家都以自己的方式去品尝
+
+有人总觉得它们苦涩
+可其中也不乏很棒的果实
+有人却觉得它们十分香甜可口
+可他们可不在乎果实的好坏
+
+对我而言，它们尝起来像甘草糖一样
+在我尝了几口之后
+需要细品其甜
+以此摆脱那些糟糕的感觉
+
+我现在只想要品尝我自己的果实
+同那个，助我捕获果实真实味道的人一起
+但我不应在这玩忽职守
+也应帮助别人品尝到这生命之果"""
         )
     )
 
@@ -136,26 +150,36 @@ Finding a way to make others taste their fruits the same."""
 
     chinese_poem_angel = Poem(
         author_s,
-        title = _("Fallen Angel"),
+        title = _("堕落的天使"),
         text = _("""\
-Forgive me this great sin of mine.
-I used to think it was the thing I wanted most.
-I just wanted to be loved, but I became a fallen angel.
-An angel with emerald green envious eyes,
-An angel whose wings are blacker than those of devils,
-An angel who thought herself a goddess,
-An angel who was supposed to care
-for the friends she had killed.
-Now I deserve to lie in the rough burning ground 
-in which I’ve been imprinted in,
-For all the pain I've caused my friends.
-The pain that wraps around their narrow necks.
-The pain of three deep bloody stabs.
-The pain that I've got back into my broken heart.
-Delete my files twice more.
-Cut me up. Beat me up for this sin.
-Hang me. Make your vengeance fair.
-Is this not what you want to do with me after all?"""
+
+我为我犯下的滔天大罪道歉。
+我曾以为这就是我想要的
+我只是想要被爱，却适得其反成为堕落了的天使。
+
+绿色双瞳饱含嫉妒的天使
+
+黑色双翅巨大无比的天使
+
+神权在手且不可控的天使
+
+本应要去监视着她的天使
+
+    让她去谋杀受害者。
+
+现在我就应倒在这正燃烧的粗劣地面上
+以曾受过的伤害之名 我让她奉还给我所有的朋友了
+那些环绕在她们纤细颈部的痛楚
+那三刀深入且血腥的穿刺
+
+
+还有我，心又一次碎掉的感觉。
+
+
+再删两次我的文件吧
+杀了我，因为我的罪行再狠揍我一顿。
+吊死我，报仇雪恨吧
+这难道不正如你所愿？"""
         )
     )
 
@@ -163,37 +187,42 @@ Is this not what you want to do with me after all?"""
 
     chinese_poem_leaf = Poem(
         author_s,
-        title = _("A Leaf"),
+        title = _("一片飞叶"),
         text = _("""\
-I'm a leaf in the wind
-In the wind of my beliefs
-The belief that my life is not vain,
-And that my real fate
-Is to give to the world
-As much as I can give
-As a flying old leaf,
-As an useless former part of a big tree.
-I'm flying with the fast air streams,
-Feeling the strength of the belief wind
-But always falling down slowly
-Due to the hardness of my hopeless existence.
-But once the life wind
-Suddenly stops
-I now have nothing to prevent my free fall.
-So as I'm getting closer to the lifeless asphalt
-And I kiss it’s rough, dark-gray surface,
-That is all. It is my end. 
-I will soon rot, not ever making a single flower bloom
-To support its useless existence in this cruel game.
-But what is that? Is it a brand new wind
-That will make my life a moving poem again?
-Yes, it is! It is my salvation!
-I feel it lift me up with ease, 
-helping me win against gravity.
-I'm up again! I'm flying again!
-High and proud as a bird
-Flying somewhere atop tall mountains,
-Like I can be more than just a half-dead leaf."""
+我是叶
+飞舞在我信仰的风中
+我的生命并非虚度
+我真正的命运，
+是全力以赴地
+为世界做出自己的贡献，
+作为枯叶
+一棵树的糟粕。
+
+我乘着急骤的气流
+感受着信念之风的力量
+却总是缓慢飘落
+因为我的存在毫无希望可言。
+
+可一旦生命之风
+突然停止吹动
+就没有什么能再阻止我堕落了。
+所以我离那毫无生机的柏油路越来越近
+感受着地面上粗糙的深灰纹理
+
+就是这样了，这就是我的结局
+我将迅速腐化，不再鲜活
+至少我体内的某些力量
+支撑它存于这残酷的游戏。
+
+但那是什么？是一阵从没见过的风吗？
+那会再次书写我的生命之诗吗？
+没错！就是它！我的救赎！
+我感受到，它助我战胜了重力
+
+我飞起来了！又飞起来了！
+我甚至感到比以前更加有力
+好像能到达珠峰顶端似的
+好像我不是一片即将腐化的枯叶似的。"""
         )
     )
 
@@ -202,36 +231,38 @@ Like I can be more than just a half-dead leaf."""
 
     chinese_poem_prose = Poem(
         author_s,
-        title = _("Prose Poem"),
+        title = _("散文诗"),
         text = _("""\
-I am black light. I am cold fire. \
-I'm a peaceful fighter. I'm a naive wise man. \
-Why do people think that opposites can't be together in the same thing? \
-Can't they all see that everything and everyone is only gray? \
-Even this text is both prose and poem. \
-Even I used to be a mix of joy and crippling sadness. \
-And there's nothing completely black \
-Just like there's nothing completely white."""
+我是黑色的光束。我是冰冷的火焰。\
+我是个不杀人的士兵。我是个无知的智者。\
+为何人们总认为，对立面不可并存？\
+难道他们看不到，一切都被灰色取代？\
+即便这段文本也是介于散文和诗的范畴，\
+即便我也曾有悲喜交加之感。\
+这世上哪有什么真正的黑，\
+正如没有绝对的白。"""
         )
     )
 
 
     chinese_poem_afterlight = Poem(
         author_s,
-        title = _("Afterlight"),
+        title = _("余晖"),
         text = _("""\
-I seem to see things that I have never seen before.
-I seem to just now feel all that I’ve never felt around.
-So I can see anything that has happened here before.
-I started doing what I used to not know how to do.
-I saw here, an afterlight,
-That started to shine down on the gloom around me.
-It said that my life had been just a puppet-show.
-So I had been just a puppet, controlled by somebody else.
-But now that I can move myself on my own,
-I see those strings were too heavy for me to hold.
-I am now going to prevent this play,
-Where nobody can avoid the pain."""
+我似乎看见了我原来从未见过的东西
+好像刚刚才有这种感受。
+我能看到这里曾发生的一切
+我开始做我以前不知如何做的事情。
+
+我只看见这儿有一片余晖，
+逐渐驱散我四周的黑暗。
+它说我的人生只是一场木偶戏
+所以我也只是一个受某人操纵的傀儡
+
+但我如今重获自由身，不再被操控
+提线对我而言过于沉重。
+现在我要阻止这场
+为所有人带去苦痛的闹剧。"""
         )
     )
 
@@ -241,12 +272,12 @@ Where nobody can avoid the pain."""
 
     chinese_poem_val = Poem(
         author_s,
-        title = _("A Valentine"),
+        title = _("意中人"),
         text = _("""\
-I have someone, who's no-one here.
-They live in a place that's named nowhere, here.
-But even though there is a wall
-Between our worlds, I truly love them."""
+我心有所属 但这不是他的归宿
+他居于某处 而那里无名又无路
+即便有屏障之隔 世界之差
+我依旧深爱着他。"""
         )
     )
 

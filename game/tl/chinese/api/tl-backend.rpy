@@ -4,13 +4,13 @@ translate chinese strings:
 
     # game/api/tl-backend.rpy:21
     old "Please select a language"
-    new ""
+    new "请选择语言"
 
     # game/api/tl-backend.rpy:27
     old "Language"
-    new ""
+    new "语言"
 
     # game/api/tl-backend.rpy:83
     old "OK"
-    new ""
+    new "好"
 

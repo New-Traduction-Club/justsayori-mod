@@ -128,179 +128,179 @@ translate chinese strings:
 
     # renpy/common/00accessibility.rpy:238
     old "The options on this menu are intended to improve accessibility. They may not work with all games, and some combinations of options may render the game unplayable. This is not an issue with the game or engine. For the best results when changing fonts, try to keep the text size the same as it originally was."
-    new ""
+    new "此菜单中的选项旨在提升游戏运行体验。其中有些选项可能并不起效，某些选项组合甚至会导致游戏故障。这并不是游戏或引擎本身的问题。为获得最佳效果，在更换字体时，尽量保持文本大小与原始大小一致。"
 
     # renpy/common/00accessibility.rpy:243
     old "Return"
-    new ""
+    new "返回"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Monday"
-    new ""
+    new "{#weekday}星期一"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Tuesday"
-    new ""
+    new "{#weekday}星期二"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Wednesday"
-    new ""
+    new "{#weekday}星期三"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Thursday"
-    new ""
+    new "{#weekday}星期四"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Friday"
-    new ""
+    new "{#weekday}星期无"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Saturday"
-    new ""
+    new "{#weekday}星期六"
 
     # renpy/common/00action_file.rpy:26
     old "{#weekday}Sunday"
-    new ""
+    new "{#weekday}星期日"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Mon"
-    new ""
+    new "{#weekday_short}星期一"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Tue"
-    new ""
+    new "{#weekday_short}星期二"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Wed"
-    new ""
+    new "{#weekday_short}星期三"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Thu"
-    new ""
+    new "{#weekday_short}星期四"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Fri"
-    new ""
+    new "{#weekday_short}星期五"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Sat"
-    new ""
+    new "{#weekday_short}星期六"
 
     # renpy/common/00action_file.rpy:37
     old "{#weekday_short}Sun"
-    new ""
+    new "{#weekday_short}星期日"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}January"
-    new ""
+    new "{#month}一月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}February"
-    new ""
+    new "{#month}二月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}March"
-    new ""
+    new "{#month}三月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}April"
-    new ""
+    new "{#month}四月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}May"
-    new ""
+    new "{#month}五月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}June"
-    new ""
+    new "{#month}六月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}July"
-    new ""
+    new "{#month}七月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}August"
-    new ""
+    new "{#month}八月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}September"
-    new ""
+    new "{#month}九月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}October"
-    new ""
+    new "{#month}十月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}November"
-    new ""
+    new "{#month}十一月"
 
     # renpy/common/00action_file.rpy:47
     old "{#month}December"
-    new ""
+    new "{#month}十二月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Jan"
-    new ""
+    new "{#month_short}一月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Feb"
-    new ""
+    new "{#month_short}二月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Mar"
-    new ""
+    new "{#month_short}三月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Apr"
-    new ""
+    new "{#month_short}四月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}May"
-    new ""
+    new "{#month_short}五月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Jun"
-    new ""
+    new "{#month_short}六月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Jul"
-    new ""
+    new "{#month_short}七月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Aug"
-    new ""
+    new "{#month_short}八月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Sep"
-    new ""
+    new "{#month_short}九月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Oct"
-    new ""
+    new "{#month_short}十月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Nov"
-    new ""
+    new "{#month_short}十一月"
 
     # renpy/common/00action_file.rpy:63
     old "{#month_short}Dec"
-    new ""
+    new "{#month_short}十二月"
 
     # renpy/common/00action_file.rpy:258
     old "%b %d, %H:%M"
-    new ""
+    new "%b %d， %H:%M"
 
     # renpy/common/00action_file.rpy:395
     old "Save slot %s: [text]"
-    new ""
+    new "保存第%s个存档：[text]"
 
     # renpy/common/00action_file.rpy:481
     old "Load slot %s: [text]"
-    new ""
+    new "加载第%s个存档：[text]"
 
     # renpy/common/00action_file.rpy:534
     old "Delete slot [text]"
-    new ""
+    new "删除存档[text]"
 
     # renpy/common/00action_file.rpy:613
     old "File page auto"
@@ -316,7 +316,7 @@ translate chinese strings:
 
     # renpy/common/00action_file.rpy:675
     old "Page {}"
-    new ""
+    new "第 {} 页"
 
     # renpy/common/00action_file.rpy:675
     old "Automatic saves"
@@ -324,7 +324,7 @@ translate chinese strings:
 
     # renpy/common/00action_file.rpy:675
     old "Quick saves"
-    new ""
+    new "快速存档"
 
     # renpy/common/00action_file.rpy:816
     old "Next file page."
@@ -360,15 +360,15 @@ translate chinese strings:
 
     # renpy/common/00director.rpy:1512
     old "⬆"
-    new ""
+    new "⬆"
 
     # renpy/common/00director.rpy:1518
     old "⬇"
-    new ""
+    new "⬇"
 
     # renpy/common/00director.rpy:1582
     old "Done"
-    new ""
+    new "好"
 
     # renpy/common/00director.rpy:1592
     old "(statement)"
@@ -476,31 +476,31 @@ translate chinese strings:
 
     # renpy/common/00gui.rpy:448
     old "Are you sure?"
-    new ""
+    new "你确定吗？"
 
     # renpy/common/00gui.rpy:449
     old "Are you sure you want to delete this save?"
-    new ""
+    new "你确定要删除这个存档吗？"
 
     # renpy/common/00gui.rpy:450
     old "Are you sure you want to overwrite your save?"
-    new ""
+    new "你确定要覆盖你的存档吗？"
 
     # renpy/common/00gui.rpy:451
     old "Loading will lose unsaved progress.\nAre you sure you want to do this?"
-    new ""
+    new "加载将会丢失未保存的进度。\n你确定要这么做吗？"
 
     # renpy/common/00gui.rpy:452
     old "Are you sure you want to quit?"
-    new ""
+    new "你确定要退出吗？"
 
     # renpy/common/00gui.rpy:453
     old "Are you sure you want to return to the main menu?\nThis will lose unsaved progress."
-    new ""
+    new "你确定要回到主菜单吗？\n未保存的进度将会丢失。"
 
     # renpy/common/00gui.rpy:454
     old "Are you sure you want to continue where you left off?"
-    new ""
+    new "你确定从离开的地方继续吗？"
 
     # renpy/common/00gui.rpy:455
     old "Are you sure you want to end the replay?"
@@ -528,11 +528,11 @@ translate chinese strings:
 
     # renpy/common/00keymap.rpy:325
     old "Failed to save screenshot as %s."
-    new ""
+    new "保存截图%s失败。"
 
     # renpy/common/00keymap.rpy:346
     old "Saved screenshot as %s."
-    new ""
+    new "成功保存截图%s。"
 
     # renpy/common/00library.rpy:257
     old "Skip Mode"
@@ -544,7 +544,7 @@ translate chinese strings:
 
     # renpy/common/00preferences.rpy:290
     old "display"
-    new ""
+    new "显示"
 
     # renpy/common/00preferences.rpy:310
     old "transitions"
@@ -564,7 +564,7 @@ translate chinese strings:
 
     # renpy/common/00preferences.rpy:339
     old "text speed"
-    new ""
+    new "文本速度"
 
     # renpy/common/00preferences.rpy:347
     old "joystick"
@@ -576,7 +576,7 @@ translate chinese strings:
 
     # renpy/common/00preferences.rpy:354
     old "skip"
-    new ""
+    new "快进"
 
     # renpy/common/00preferences.rpy:357
     old "skip unseen [text]"
@@ -588,11 +588,11 @@ translate chinese strings:
 
     # renpy/common/00preferences.rpy:364
     old "begin skipping"
-    new ""
+    new "开始快进"
 
     # renpy/common/00preferences.rpy:368
     old "after choices"
-    new ""
+    new "选项后"
 
     # renpy/common/00preferences.rpy:375
     old "skip after choices"
@@ -604,11 +604,11 @@ translate chinese strings:
 
     # renpy/common/00preferences.rpy:391
     old "auto-forward"
-    new ""
+    new "自动加载"
 
     # renpy/common/00preferences.rpy:398
     old "Auto forward"
-    new ""
+    new "自动加载"
 
     # renpy/common/00preferences.rpy:401
     old "auto-forward after click"
