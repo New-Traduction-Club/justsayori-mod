@@ -735,13 +735,13 @@ screen preferences():
                         textbutton _("Window") action Preference("display", "window")
                         textbutton _("Fullscreen") action Preference("display", "fullscreen")
 
-                if config.developer:
-                    vbox:
-                        style_prefix "radio"
-                        label _("Rollback Side")
-                        textbutton _("Disable") action Preference("rollback side", "disable")
-                        textbutton _("Left") action Preference("rollback side", "left")
-                        textbutton _("Right") action Preference("rollback side", "right")
+                # if config.developer:
+                #     vbox:
+                #         style_prefix "radio"
+                #         label _("Rollback Side")
+                #         textbutton _("Disable") action Preference("rollback side", "disable")
+                #         textbutton _("Left") action Preference("rollback side", "left")
+                #         textbutton _("Right") action Preference("rollback side", "right")
 
 
 
