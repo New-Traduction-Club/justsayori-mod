@@ -3320,7 +3320,7 @@ label js_music_player_entry:
         s ebfcao "Oh! And the best part is that you can add your very own music for us to listen to!"
         s ebbbas "It's really easy, I'll show you!"
         s ebbbao "First, you need to find the 'game' folder in the mod's files."
-        s ebgbao "Inside there, you'll see a folder called 'custom_bgm'."
+        s ebgbao "Inside there, you'll see a folder called 'custom_music'."
         s ebhhao "You can just put your songs right in there."
         s ebhejd "Just make sure they are in the .mp3 format, okay? "
         s ebhhao "That's the one the game likes to read."

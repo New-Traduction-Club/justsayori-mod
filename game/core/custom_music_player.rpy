@@ -29,14 +29,14 @@ init -1 python:
         all_songs = list(default_songs)
         known_paths = {song['path'] for song in all_songs}
 
-        custom_folder = os.path.join(config.gamedir, 'custom_bgm')
+        custom_folder = os.path.join(config.gamedir, 'custom_music')
 
         if os.path.isdir(custom_folder):
             supported_formats = ('.ogg', '.opus', '.mp3', '.wav', '.mp2', '.flac')
             for filename in os.listdir(custom_folder):
                 if filename.lower().endswith(supported_formats):
                     song_name = os.path.splitext(filename)[0].replace('_', ' ').title()
-                    song_path = "custom_bgm/" + filename
+                    song_path = "custom_music/" + filename
 
                     if song_path not in known_paths:
                         all_songs.append({"name": song_name, "path": song_path})
