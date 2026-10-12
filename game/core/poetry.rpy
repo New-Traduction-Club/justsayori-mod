@@ -528,8 +528,8 @@ screen poem(poem):
 
 style poem_vscrollbar:
     xsize 20
-    base_bar Frame("gui/scrollbar/verticalmadechoice_bar.png", tile=False)
-    thumb Frame("gui/scrollbar/verticalmadechoice_thumb.png", left=6, top=6, tile=True)
+    base_bar Frame("gui/scrollbar/vertical_poem_bar.png", tile=False)
+    thumb Frame("gui/scrollbar/vertical_poem_thumb.png", left=6, top=6, tile=True)
     unscrollable "hide"
     bar_invert True
 
