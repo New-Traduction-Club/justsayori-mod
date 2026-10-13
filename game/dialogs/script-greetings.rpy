@@ -293,6 +293,7 @@ init python:
             unlocked=True,
             extra_props={
                 "regret_type": fae_regrets.RegretTypes.long_absence,
+                "no_reveal": True,
             }
         ),
         chat_group=CHAT_GROUP_GREETING

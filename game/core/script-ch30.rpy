@@ -98,10 +98,30 @@ init python:
                     return user
         return None
 
-    def reveal():
-        
+    def js_should_reveal(chat_label):
+        """
+        Returns False if the topic should start in dark / without Sayori on screen.
+        """
+        if not chat_label:
+            return True
+        if chat_label in ("s_return_long_absence", "greeting_first_force_quit"):
+            return False
+        chat = get_chat(chat_label)
+        if chat and getattr(chat, "extra_props", None):
+            if isinstance(chat.extra_props, dict):
+                return not chat.extra_props.get("no_reveal", False)
+            elif isinstance(chat.extra_props, list):
+                for item in chat.extra_props:
+                    if isinstance(item, tuple) and item[0] == "no_reveal" and item[1]:
+                        return False
+        return True
+
+    def reveal(chat_label=None):
+        if chat_label is not None and not js_should_reveal(chat_label):
+            return
+        if persistent._event_list and not js_should_reveal(persistent._event_list[0]):
+            return
         renpy.show("sayori idle", at_list=[t11], zorder=store.fae_sprites.FAE_SAYORI_ZORDER)
-        
         renpy.hide("black")
 
     def fae_set_pronouns(key=None):
@@ -250,9 +270,13 @@ label ch30_init:
             Sayori.add_regret_quit(fae_regrets.RegretTypes.long_absence)
             persistent.fae_visit_counter += 1
             persistent.fae_last_visit_date = datetime.datetime.now()
-            ats("s_greeting_long_away")
-            reveal()
-            renpy.jump("cnc")
+            _absence_greet = "s_return_long_absence"
+            ats(_absence_greet)
+            if js_should_reveal(_absence_greet):
+                reveal()
+                renpy.jump("cnc")
+            else:
+                renpy.call("cnc", False)
 
         elif not persistent._fae_player_apology_type_on_quit:
             Affection.calculatedAffectionGain()
@@ -275,13 +299,18 @@ label ch30_init:
             
             else:
                 try:
-                    ats(fae_greetings.greet_sel())
+                    _greet = fae_greetings.greet_sel()
+                    ats(_greet)
                 except:
-                    ats("s_greeting_5")
+                    _greet = "s_greeting_5"
+                    ats(_greet)
                 persistent.fae_mood_on_quit = None
                 persistent._fae_player_apology_type_on_quit = None
-                reveal()
-                renpy.call("cnc")
+                if js_should_reveal(_greet):
+                    reveal()
+                    renpy.call("cnc")
+                else:
+                    renpy.call("cnc", False)
 
 
     hide black with dissolve
@@ -357,9 +386,13 @@ label cnc(show_sayori=True):
 
     $ remove_qabs()
 
+    python:
+        if persistent._event_list and not js_should_reveal(persistent._event_list[0]):
+            show_sayori = False
+
     if show_sayori:
         show sayori idle zorder fae_sprites.FAE_SAYORI_ZORDER at fae_center
-    hide black with dissolve
+        hide black with dissolve
 
     if persistent._event_list:
         $ _chat = persistent._event_list.pop(0)
