@@ -309,3 +309,12 @@ init 10 python:
             unlocked=lambda: getattr(store, "stein_native_available", False),
             description=_("Now in 3D!")
         )
+
+    if not any(g.label == "mg_guitar" for g in _MG_OBJECTS):
+        register_minigame(
+            label="mg_guitar",
+            name=_("Guitar"),
+            image="mod_assets/images/minigames/covers/ttt_cover.png",
+            unlocked=True,
+            description=_("Play the guitar!")
+        )
