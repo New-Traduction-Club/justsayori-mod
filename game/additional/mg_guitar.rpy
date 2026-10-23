@@ -464,13 +464,13 @@ init 5 python in js_guitar:
 
     def parse_song_file(filepath):
         """
-        Parses a complete song file into playback events.
+        Parses a complete song file into playback events and line timing metadata.
 
         IN:
             filepath - str: Path to the song file.
 
         OUT:
-            tuple: (header, events, total_duration) where events is a list of (timestamp, string_idx, fret_idx).
+            tuple: (header, events, total_duration, raw_lines, line_timings).
         """
         header = {
             "title": os.path.splitext(os.path.basename(filepath))[0],
@@ -478,6 +478,8 @@ init 5 python in js_guitar:
             "block_time": 0.1
         }
         events = []
+        raw_lines = []
+        line_timings = []
         in_notes = False
         current_time = 0.0
         strum_delay = 0.028
@@ -486,15 +488,23 @@ init 5 python in js_guitar:
             with open(filepath, "r", encoding="utf-8") as f:
                 lines = f.readlines()
         except Exception:
-            return header, events, 0.0
+            return header, events, 0.0, raw_lines, line_timings
 
-        for line in lines:
-            line = line.strip()
+        active_sound_line = None
+        active_sound_start = 0.0
+
+        for l_idx, raw_l in enumerate(lines):
+            line_no = l_idx + 1
+            line = raw_l.strip()
+            raw_lines.append((line_no, raw_l.rstrip("\r\n")))
+
             if not line or line.startswith("#"):
                 continue
+
             if line.startswith("["):
                 in_notes = (line.lower() == "[notes]")
                 continue
+
             if not in_notes:
                 if "=" in line:
                     k, v = line.split("=", 1)
@@ -516,14 +526,22 @@ init 5 python in js_guitar:
             cmd = parts[0].lower()
 
             if cmd in ("wait", "pause", "rest", "_"):
+                if active_sound_line is not None:
+                    line_timings.append((active_sound_start, current_time, active_sound_line))
+                    active_sound_line = None
+
+                dur = btime
                 if len(parts) > 1:
                     try:
                         blocks = float(parts[1])
-                        current_time += blocks * btime
+                        dur = blocks * btime
                     except ValueError:
                         pass
-                else:
-                    current_time += btime
+
+                start_t = current_time
+                end_t = current_time + dur
+                line_timings.append((start_t, end_t, line_no))
+                current_time = end_t
                 continue
 
             action = "auto"
@@ -548,6 +566,12 @@ init 5 python in js_guitar:
             if not parsed_notes:
                 continue
 
+            if active_sound_line is not None:
+                line_timings.append((active_sound_start, current_time, active_sound_line))
+
+            active_sound_line = line_no
+            active_sound_start = current_time
+
             if action == "pluck" or (action == "auto" and len(parsed_notes) <= 2):
                 for s_idx, f_idx in parsed_notes:
                     events.append((current_time, s_idx, f_idx))
@@ -563,7 +587,11 @@ init 5 python in js_guitar:
         events.sort(key=lambda x: x[0])
         max_ev_time = max((ev[0] for ev in events), default=0.0)
         total_duration = max(current_time, max_ev_time) + 0.6
-        return header, events, total_duration
+
+        if active_sound_line is not None:
+            line_timings.append((active_sound_start, total_duration, active_sound_line))
+
+        return header, events, total_duration, raw_lines, line_timings
 
     class JSGuitarSongPlayer(object):
         def __init__(self, engine):
@@ -580,6 +608,9 @@ init 5 python in js_guitar:
             self.is_playing = False
             self.finished = False
             self.end_time = 0.0
+            self.raw_lines = []
+            self.line_timings = []
+            self.show_dev_overlay = bool(renpy.config.developer)
 
         def load_song(self, filepath):
             """
@@ -591,13 +622,40 @@ init 5 python in js_guitar:
             OUT:
                 dict: Song metadata header.
             """
-            header, events, duration = parse_song_file(filepath)
+            header, events, duration, raw_lines, line_timings = parse_song_file(filepath)
             self.events = events
             self.event_idx = 0
             self.finished = False
             self.is_playing = False
             self.end_time = duration
+            self.raw_lines = raw_lines
+            self.line_timings = line_timings
             return header
+
+        def toggle_dev_overlay(self):
+            """
+            Toggles visibility of the developer live score overlay.
+            """
+            if renpy.config.developer:
+                self.show_dev_overlay = not self.show_dev_overlay
+
+        def get_active_line_no(self):
+            """
+            Calculates the currently executing file line number.
+
+            OUT:
+                int: 1-indexed line number.
+            """
+            if not self.is_playing or not self.line_timings:
+                return 1
+            elapsed = time.time() - self.start_time
+            active_lno = 1
+            for start_t, end_t, l_no in self.line_timings:
+                if start_t <= elapsed <= end_t:
+                    return l_no
+                if elapsed >= start_t:
+                    active_lno = l_no
+            return active_lno
 
         def start(self):
             """
@@ -664,7 +722,7 @@ init 5 python in js_guitar:
 
         def event(self, ev, x, y, st):
             """
-            Intercepts Escape key to stop song playback.
+            Intercepts Escape key to stop song playback and N key to toggle dev overlay.
 
             IN:
                 ev - pygame.event.Event: Pygame event object.
@@ -675,9 +733,14 @@ init 5 python in js_guitar:
             OUT:
                 str or None: Return value to exit the screen, or None.
             """
-            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
-                self.player.stop()
-                return "stop"
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_ESCAPE:
+                    self.player.stop()
+                    return "stop"
+                elif ev.key == pygame.K_n and renpy.config.developer:
+                    self.player.toggle_dev_overlay()
+                    renpy.restart_interaction()
+                    raise renpy.IgnoreEvent()
             return None
 
 
@@ -693,6 +756,80 @@ screen mg_guitar_playback_scr(player):
     add js_guitar.JSGuitarPlaybackDisplayable(player)
 
     timer 0.02 repeat True action [Function(player.update), If(player.finished, Return("finished"))]
+
+    if config.developer and player.show_dev_overlay and player.raw_lines:
+        python:
+            cur_lno = player.get_active_line_no()
+            cur_idx = max(0, cur_lno - 1)
+            total_lines = len(player.raw_lines)
+            win_size = 25
+            half_win = win_size // 2
+            start_idx = max(0, cur_idx - half_win)
+            end_idx = min(total_lines, start_idx + win_size)
+            start_idx = max(0, end_idx - win_size)
+            visible_lines = player.raw_lines[start_idx:end_idx]
+            elapsed_s = max(0.0, js_guitar.time.time() - player.start_time) if player.is_playing else 0.0
+            total_s = player.end_time
+
+        frame:
+            xalign 1.0
+            yalign 0.0
+            xsize 440
+            ysize 720
+            background Solid("#080c14e6")
+            padding (14, 12)
+
+            vbox:
+                xfill True
+                spacing 6
+
+                hbox:
+                    xfill True
+                    vbox:
+                        text _("Tab File") size 15 bold True color "#38bdf8"
+                        text ("Time: %02d:%04.1f / %02d:%04.1f | Line: L%03d (%d/%d)" % (int(elapsed_s // 60), elapsed_s % 60, int(total_s // 60), total_s % 60, cur_lno, cur_lno, total_lines)) substitute False size 11 color "#94a3b8"
+
+                frame:
+                    background Solid("#1e293b65")
+                    xfill True
+                    ysize 2
+
+                vbox:
+                    xfill True
+                    spacing 0
+
+                    for l_no, l_txt in visible_lines:
+                        python:
+                            is_active = (l_no == cur_lno)
+                            is_comment = l_txt.strip().startswith("#")
+                            if is_active:
+                                row_bg = "#2563eb66"
+                                txt_col = "#fde047"
+                                prefix = "> "
+                            elif is_comment:
+                                row_bg = None
+                                txt_col = "#38bdf888"
+                                prefix = "  "
+                            elif l_no < cur_lno:
+                                row_bg = None
+                                txt_col = "#64748b"
+                                prefix = "  "
+                            else:
+                                row_bg = None
+                                txt_col = "#cbd5e1"
+                                prefix = "  "
+
+                        frame:
+                            background (Solid(row_bg) if row_bg else None)
+                            padding (4, 2)
+                            xfill True
+                            ysize 24
+
+                            hbox:
+                                spacing 8
+                                yalign 0.5
+                                text ("%03d" % l_no) size 11 color ("#fde047" if is_active else "#475569") xsize 30 yalign 0.5
+                                text (prefix + l_txt) substitute False size 11 bold is_active color txt_col yalign 0.5
 
 
 screen mg_guitar_scr(engine):
