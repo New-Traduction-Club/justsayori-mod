@@ -21,6 +21,11 @@ Currently available in two official languages:
 *   English
 *   Spanish
 
+Languages planned on 1.2.0 update:
+* [Chinese](https://github.com/New-Traduction-Club/justsayori-mod-tl-chinese) by [littlebin](https://github.com/littlebinn)
+* [Portuguese](https://github.com/New-Traduction-Club/justsayori-mod-tl-ptbr) by [bach !](https://github.com/BachMP4) & [João](https://github.com/johnfg-archbtw)
+* [Russian](https://github.com/New-Traduction-Club/justsayori-mod-tl-russian) by [Syvelix](https://github.com/Syvelix)
+
 We are actively working on expanding localization. Thank you to all the contributors helping us break language barriers!
 
 ---
